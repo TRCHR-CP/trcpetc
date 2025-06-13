@@ -1,9 +1,9 @@
-Package: fanetc
+Package: trcpetc
 Type: Package
 Title: Descriptive table
 Version: 0.1.0
 Author: Chun-Po Steve Fan
-Maintainer: Steve Fan <s.fan@uhnresearch.ca>
+Maintainer: Jessica Weiss <jessica.weiss@uhn.ca>
 Description: Miscellaneous functions that Steve wrote to facilitate TRCP data analysis project.
 Depends: Hmisc, magrittr, tidyverse, rlang, forcats, lubridate, reshape2, survival, cmprsk, broom, grid, gridExtra, viridis, cowplot, extrafont
 Suggests: openxlsx, splines, mitools, purrr, scales
