@@ -25,7 +25,8 @@ show_cif(
   y_break = NULL,
   color_scheme = c("brewer", "grey", "viridis", "manual"),
   color_list = NULL,
-  plot_cdf = FALSE
+  plot_cdf = FALSE,
+  print_fig = TRUE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ show_cif(
 \item{add_legend}{a logical parameter indicating whether legend should be added to the figure.}
 
 \item{add_pvalue}{a logical parameter (default= FALSE) indiciates if a p-value should be added to the plot.}
+
+\item{atrisk_init_pos}{the location of the label "At-risk N:"}
 
 \item{pvalue_pos}{a character parameter indicating where the p-value should be added to the plot.}
 
