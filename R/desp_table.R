@@ -1,15 +1,29 @@
 #---- this is the main function ----
 #' @title table_one
-#'
+#' @description Creates a table of summary statistics
 #' @details
-#' Main function that users interact. \code{table_one} calculate the selected summary statistics for continuous, logical,
-#' and factor variables per statitstical guidelines of the Annals of medicine. If a group variable is provided, then
+#' \code{table_one} calculate the selected summary statistics for continuous, logical,
+#' and factor variables per statistical guidelines of the Annals of medicine. If a group variable is provided, then
 #' it will also assess the between-group difference.The input data frame should only consists of numeric, logical
 #' and factor variables. Factor variables with
 #' only two levels should be converted to logical variables. Date and datetime variables should be removed.
 #'
-#' @param df Dataframe consisting of numeric, logical, and factor variables with or without a grouping variable
+#' @param df A data frame consisting of numeric, logical, and factor variables with or without a grouping variable
 #' @param group Name of the grouping variable.
+#' @param datadic A data frame containing a data dictionary of variable names and their descriptions.
+#' @param var_name the column name of `data_dict` that
+#'   contains the variable names. Only required if the column name is not "var_name"
+#' @param var_desp the column name of `data_dict` that
+#'   contains the variable descriptions Only required if the column name is not "var_desp"
+#' @param seed Sets a seed
+#' @param include_overall Character string specifying whether and how to include an overall summary.
+#'   Must be one of:
+#'   \itemize{
+#'     \item `"none"`: Do not include an overall summary.
+#'     \item `"group"`: Include an overall summary only for observations with non-missing values in the grouping variable.
+#'     \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
+#'   }
+#'   Default is `"none"`.
 #' @return The function returns a dataframe, rows of which are summary statistics depending on the variable types.
 #' @examples
 #' set.seed(0)
@@ -33,19 +47,26 @@
 #' table_one(df, sex)
 #' table_one(df, sex, datadic= datadic)
 #' @export
-table_one<- function(df, group, datadic= NULL, var_name, var_desp) {
-  op<- options(warn = -1)
+#' @importFrom rlang enquo quo_is_missing
+#' @importFrom dplyr select
+#'
+table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all")) {
+
+  set.seed(seed)
+
+  op <- options(warn = -1)
   on.exit(options(op))
 
-  group<- rlang::enquo(group)
-  var_name<- rlang::enquo(var_name)
-  var_desp<- rlang::enquo(var_desp)
+  group <- rlang::enquo(group)
+  var_name <- rlang::enquo(var_name)
+  var_desp <- rlang::enquo(var_desp)
 
-  if (rlang::quo_is_missing(var_name)) var_name<- quo(var_name)
-  if (rlang::quo_is_missing(var_desp)) var_desp<- quo(var_desp)
+  if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
+  if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
 
   if (rlang::quo_is_missing(group)) {
-    df<- df %>%
+
+    df <- df %>%
       ungroup() %>%
       select_if(Negate(is.character)) %>%
       select_if(Negate(is.Date)) %>%
@@ -53,10 +74,9 @@ table_one<- function(df, group, datadic= NULL, var_name, var_desp) {
       mutate_if(is.factor, droplevels) %>%
       as_tibble()
 
-
-    group_var_idx<- NULL
+    group_var_idx <- NULL
   } else {
-    df<- df %>%
+    df <- df %>%
       ungroup() %>%
       select_if(Negate(is.character)) %>%
       select_if(Negate(is.Date)) %>%
@@ -64,17 +84,17 @@ table_one<- function(df, group, datadic= NULL, var_name, var_desp) {
       filter(!is.na(!!group)) %>%
       group_by(!!group)
 
-    group_var_idx<- match(group_vars(df), names(df))
+    group_var_idx <- match(group_vars(df), names(df))
   }
 
-  num_out_lst<- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class) %in% c("numeric", "integer"))) {
+  num_out_lst <- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class) %in% c("numeric", "integer"))) {
     numeric_desp(df, !!group) %>%
       rownames_to_column("row_id") %>%
       mutate(row_id= paste(variable, type, sep= "_")) %>%
       split(., .$variable)
   } else NULL
 
-  fct_out_lst<- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class)=="factor")) {
+  fct_out_lst <- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class)=="factor")) {
     factor_desp(df, !!group) %>%
       rownames_to_column("row_id") %>%
       rename(type= level) %>%
@@ -84,32 +104,32 @@ table_one<- function(df, group, datadic= NULL, var_name, var_desp) {
       split(., .$variable)
   } else NULL
 
-  logic_out_lst<- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class)=="logical")) {
+  logic_out_lst <- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class)=="logical")) {
     logical_desp(df, !!group) %>%
       rownames_to_column("row_id") %>%
       mutate(row_id= paste0(variable, "TRUE")) %>%
       split(., .$variable)
   } else NULL
 
-  out_lst<- num_out_lst %>%
+  out_lst <- num_out_lst %>%
     append(fct_out_lst) %>%
     append(logic_out_lst)
 
   if (is.null(datadic)) {
-    out<- out_lst[names(df)] %>%
+    out <- out_lst[names(df)] %>%
       bind_rows() %>%
       dplyr::select(row_id, variable, type,
                     ends_with("n"), ends_with("stat"), everything()) %>%
       # dplyr::select(-!!var_desp) %>%
-      mutate(type= ifelse(is.na(type) & row_id==variable,
+      mutate(type = ifelse(is.na(type) & row_id==variable,
                           gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type),
-             type= ifelse(type %in% c("meansd", "mediqr"),
+             type = ifelse(type %in% c("meansd", "mediqr"),
                           gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type),
-             type= ifelse(row_id==paste0(variable, "TRUE"),
+             type = ifelse(row_id==paste0(variable, "TRUE"),
                           gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type)) %>%
       rename(`var_desp`= type)
   } else {
-    out<- out_lst[names(df)] %>%
+    out <- out_lst[names(df)] %>%
       bind_rows() %>%
       left_join(dplyr::select(datadic, !!var_name, !!var_desp),
                 by= c("variable"= quo_name(var_name))) %>%

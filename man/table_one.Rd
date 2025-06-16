@@ -4,22 +4,49 @@
 \alias{table_one}
 \title{table_one}
 \usage{
-table_one(df, group, datadic = NULL, var_name, var_desp)
+table_one(
+  df,
+  group,
+  datadic = NULL,
+  var_name,
+  var_desp,
+  seed = 123,
+  include_overall = c("none", "group", "all")
+)
 }
 \arguments{
-\item{df}{Dataframe consisting of numeric, logical, and factor variables with or without a grouping variable}
+\item{df}{A data frame consisting of numeric, logical, and factor variables with or without a grouping variable}
 
 \item{group}{Name of the grouping variable.}
+
+\item{datadic}{A data frame containing a data dictionary of variable names and their descriptions.}
+
+\item{var_name}{the column name of `data_dict` that
+contains the variable names. Only required if the column name is not "var_name"}
+
+\item{var_desp}{the column name of `data_dict` that
+contains the variable descriptions Only required if the column name is not "var_desp"}
+
+\item{seed}{Sets a seed}
+
+\item{include_overall}{Character string specifying whether and how to include an overall summary.
+Must be one of:
+\itemize{
+  \item `"none"`: Do not include an overall summary.
+  \item `"group"`: Include an overall summary only for observations with non-missing values in the grouping variable.
+  \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
+}
+Default is `"none"`.}
 }
 \value{
 The function returns a dataframe, rows of which are summary statistics depending on the variable types.
 }
 \description{
-table_one
+Creates a table of summary statistics
 }
 \details{
-Main function that users interact. \code{table_one} calculate the selected summary statistics for continuous, logical,
-and factor variables per statitstical guidelines of the Annals of medicine. If a group variable is provided, then
+\code{table_one} calculate the selected summary statistics for continuous, logical,
+and factor variables per statistical guidelines of the Annals of medicine. If a group variable is provided, then
 it will also assess the between-group difference.The input data frame should only consists of numeric, logical
 and factor variables. Factor variables with
 only two levels should be converted to logical variables. Date and datetime variables should be removed.
