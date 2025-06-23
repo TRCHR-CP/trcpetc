@@ -17,7 +17,7 @@
 #'   contains the variable descriptions Only required if the column name is not "var_desp"
 #' @param seed Sets a seed
 #' @param include_overall Character string specifying whether and how to include an overall summary.
-#' @param total Logical variariable to report total N. Default is TRUE
+#' @param total Logical variable to report total N. Default is TRUE
 #'   Must be one of:
 #'   \itemize{
 #'     \item `"none"`: Do not include an overall summary.
@@ -27,6 +27,7 @@
 #'   Default is `"none"`.
 #' @param  pval Option to report p-value
 #' @param  continuous Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation
+#' @param  digits option argument to control the number of digits for all continuous variables
 #' @param  kable_output Outputs table as a formatted kable table and includes the column var_desp, N, Stat and p-value
 #' @return The function returns a dataframe, rows of which are summary statistics depending on the variable types.
 #' @examples
@@ -55,7 +56,7 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption) {
+                      total = TRUE,pval=TRUE,continuous = "mediqr",digits = NULL,kable_output=TRUE,caption = NULL) {
 
   set.seed(seed)
   include_overall <- match.arg(include_overall)
@@ -66,28 +67,29 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   var_name <- rlang::enquo(var_name)
   var_desp <- rlang::enquo(var_desp)
 
-  caption <- "Temp caption"
 
   if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
   if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
 
-  if (rlang::quo_is_missing(group)) {
+  if (rlang::quo_is_missing(group)) {  #If there is a grouping variable
 
     summary <- table_one_overall(df,total = total)
     pval <- FALSE
 
-  } else if(!rlang::quo_is_missing(group) & include_overall == "none") {
+  }else{ #If there is not a grouping variable
+
+  if(include_overall == "none") { #When only reporting the grouping variable
 
     summary <- table_one_stratify(df,group = !!group,total = total)
 
-  } else if(!rlang::quo_is_missing(group) & include_overall == "group") {
+  } else if(include_overall == "group") { #Including the overall total but only when the group is not missing
 
       df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
       summary_full <- table_one_overall(df_group,total = total)
       summary_group <- table_one_stratify(df,group = !!group,total = total)
       summary <- summary_full %>% left_join(summary_group)
 
-  } else if(rlang::quo_is_missing(group) & include_overall == "all") {
+  } else if(include_overall == "all") { #Including the overall total for all patients
 
 
     summary_full <- table_one_overall(df %>% select(-!!group),total = total)
@@ -96,7 +98,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   }
 
-
+}
 
   if (is.null(datadic)) {
     out <- summary %>%
@@ -125,6 +127,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   }
 
   if(kable_output){
+
+    indent <-
 
     first_row <- out %>% head(1)  %>%
       select(ends_with("_n"))
@@ -159,4 +163,4 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
 
-table_one(df,sex,include_overall = "none",pval = FALSE,total = FALSE)
+table_one(df,sex,include_overall = "all",pval = FALSE,total = TRUE,caption = "Baseline demographics")
