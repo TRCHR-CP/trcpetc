@@ -101,7 +101,7 @@ if(!pval) summary$pval <- NULL
 }
   #Optionally removing the continuous variables
   if(!"meansd" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
-  if(!"mediqr" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
+  if(!"mediqr" %in% (continuous)) summary <- summary %>% filter(!grepl("_mediqr$", row_id))
 
 
   if (is.null(datadic)) {
@@ -132,7 +132,13 @@ if(!pval) summary$pval <- NULL
 
   if(kable_output){
 
-    indent <-
+    #Getting the rows to indent
+    indent <-  out %>% filter(row_id != "Total_N") %>%
+      mutate(row_number = row_number()) %>%
+      select(matches("_n$"),row_number)  %>%
+      filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
+      pull(row_number)
+
 
     first_row <- out %>% head(1)  %>%
       select(ends_with("_n"))
@@ -157,7 +163,8 @@ if(!pval) summary$pval <- NULL
       kableExtra::row_spec(row = 0, align = "c") %>%
       kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                                 full_width = FALSE)%>%
-      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval) '' else character(0)))
+      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval) '' else character(0)))%>%
+      kableExtra::add_indent(indent)
 
 
   }
@@ -168,4 +175,4 @@ if(!pval) summary$pval <- NULL
 
 
 table_one(df,sex,include_overall = "all",pval = FALSE,total = TRUE,caption = "Baseline demographics",
-            continuous = c("mediqr","meansd"))
+            continuous = c("mediqr"))
