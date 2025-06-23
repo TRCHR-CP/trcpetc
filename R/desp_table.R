@@ -17,6 +17,7 @@
 #'   contains the variable descriptions Only required if the column name is not "var_desp"
 #' @param seed Sets a seed
 #' @param include_overall Character string specifying whether and how to include an overall summary.
+#' @param total Logical variariable to report total N. Default is TRUE
 #'   Must be one of:
 #'   \itemize{
 #'     \item `"none"`: Do not include an overall summary.
@@ -24,6 +25,9 @@
 #'     \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
 #'   }
 #'   Default is `"none"`.
+#' @param  pval Option to report p-value
+#' @param  continuous Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation
+#' @param  kable_output Outputs table as a formatted kable table and includes the column var_desp, N, Stat and p-value
 #' @return The function returns a dataframe, rows of which are summary statistics depending on the variable types.
 #' @examples
 #' set.seed(0)
@@ -50,10 +54,11 @@
 #' @importFrom rlang enquo quo_is_missing
 #' @importFrom dplyr select
 #'
-table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all")) {
+table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
+                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption) {
 
   set.seed(seed)
-
+  include_overall <- match.arg(include_overall)
   op <- options(warn = -1)
   on.exit(options(op))
 
@@ -61,63 +66,40 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   var_name <- rlang::enquo(var_name)
   var_desp <- rlang::enquo(var_desp)
 
+  caption <- "Temp caption"
+
   if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
   if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
 
   if (rlang::quo_is_missing(group)) {
 
-    df <- df %>%
-      ungroup() %>%
-      select_if(Negate(is.character)) %>%
-      select_if(Negate(is.Date)) %>%
-      as.data.frame() %>%
-      mutate_if(is.factor, droplevels) %>%
-      as_tibble()
+    summary <- table_one_overall(df,total = total)
+    pval <- FALSE
 
-    group_var_idx <- NULL
-  } else {
-    df <- df %>%
-      ungroup() %>%
-      select_if(Negate(is.character)) %>%
-      select_if(Negate(is.Date)) %>%
-      mutate_if(is.factor, droplevels) %>%
-      filter(!is.na(!!group)) %>%
-      group_by(!!group)
+  } else if(!rlang::quo_is_missing(group) & include_overall == "none") {
 
-    group_var_idx <- match(group_vars(df), names(df))
+    summary <- table_one_stratify(df,group = !!group,total = total)
+
+  } else if(!rlang::quo_is_missing(group) & include_overall == "group") {
+
+      df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
+      summary_full <- table_one_overall(df_group,total = total)
+      summary_group <- table_one_stratify(df,group = !!group,total = total)
+      summary <- summary_full %>% left_join(summary_group)
+
+  } else if(rlang::quo_is_missing(group) & include_overall == "all") {
+
+
+    summary_full <- table_one_overall(df %>% select(-!!group),total = total)
+    summary_group <- table_one_stratify(df,group = !!group,total = total)
+    summary <- summary_full %>% left_join(summary_group)
+
   }
 
-  num_out_lst <- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class) %in% c("numeric", "integer"))) {
-    numeric_desp(df, !!group) %>%
-      rownames_to_column("row_id") %>%
-      mutate(row_id= paste(variable, type, sep= "_")) %>%
-      split(., .$variable)
-  } else NULL
 
-  fct_out_lst <- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class)=="factor")) {
-    factor_desp(df, !!group) %>%
-      rownames_to_column("row_id") %>%
-      rename(type= level) %>%
-      mutate(row_id= ifelse(type!= "." & !is.na(type),
-                            paste(variable, gsub("\\ ", "_", trimws(type)), sep= "_"),
-                            variable)) %>%
-      split(., .$variable)
-  } else NULL
-
-  logic_out_lst <- if (any(sapply(if (is.null(group_var_idx)) df else df[-group_var_idx], class)=="logical")) {
-    logical_desp(df, !!group) %>%
-      rownames_to_column("row_id") %>%
-      mutate(row_id= paste0(variable, "TRUE")) %>%
-      split(., .$variable)
-  } else NULL
-
-  out_lst <- num_out_lst %>%
-    append(fct_out_lst) %>%
-    append(logic_out_lst)
 
   if (is.null(datadic)) {
-    out <- out_lst[names(df)] %>%
-      bind_rows() %>%
+    out <- summary %>%
       dplyr::select(row_id, variable, type,
                     ends_with("n"), ends_with("stat"), everything()) %>%
       # dplyr::select(-!!var_desp) %>%
@@ -129,13 +111,12 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
                           gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type)) %>%
       rename(`var_desp`= type)
   } else {
-    out <- out_lst[names(df)] %>%
-      bind_rows() %>%
+    out <- summary %>%
       left_join(dplyr::select(datadic, !!var_name, !!var_desp),
-                by= c("variable"= quo_name(var_name))) %>%
-      mutate(type= ifelse(is.na(type) & row_id==variable, !!var_desp, type), # factor
-             type= ifelse(type %in% c("meansd", "mediqr"), !!var_desp, type), # continuous
-             type= ifelse(row_id==paste0(variable, "TRUE"), !!var_desp, type), # logical
+                by = c("variable"= quo_name(var_name))) %>%
+      mutate(type = ifelse(is.na(type) & row_id==variable, !!var_desp, type), # factor
+             type = ifelse(type %in% c("meansd", "mediqr"), !!var_desp, type), # continuous
+             type = ifelse(row_id==paste0(variable, "TRUE"), !!var_desp, type), # logical
              ) %>%
       dplyr::select(row_id, variable, type,
                     ends_with("n"), ends_with("stat"), everything()) %>%
@@ -143,5 +124,39 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
       rename(`var_desp`= type)
   }
 
-  out
+  if(kable_output){
+
+    first_row <- out %>% head(1)  %>%
+      select(ends_with("_n"))
+
+    variable_names <- gsub("_n", "", names(first_row))
+    n_columns <- paste0(variable_names, "_n")
+    stat_columns <- paste0(variable_names, "_stat")
+
+    headers <- if(total){
+      paste0(variable_names," (N = ",first_row,")")} else{
+        variable_names
+      }
+
+    out <- out %>%
+      filter(!(row_number() == 1 & total == TRUE)) %>%
+      select(all_of(c("var_desp", c(rbind(n_columns, stat_columns)), if (pval) "pval" else NULL))) %>%
+      knitr::kable(caption = caption,
+                   booktabs=TRUE,
+                   escape = FALSE,
+                   align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
+                   col.names = c('Variables', rep(c('N', 'Stat'), length(headers)), if (pval) '*P*-value' else character(0))) %>%
+      kableExtra::row_spec(row = 0, align = "c") %>%
+      kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                                full_width = FALSE)%>%
+      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval) '' else character(0)))
+
+
+  }
+ out
+
 }
+
+
+
+table_one(df,sex,include_overall = "none",pval = FALSE,total = FALSE)

@@ -11,7 +11,12 @@ table_one(
   var_name,
   var_desp,
   seed = 123,
-  include_overall = c("none", "group", "all")
+  include_overall = c("none", "group", "all"),
+  total = TRUE,
+  pval = TRUE,
+  continuous = c("mediqr", "meansd"),
+  kable_output = TRUE,
+  caption
 )
 }
 \arguments{
@@ -29,7 +34,9 @@ contains the variable descriptions Only required if the column name is not "var_
 
 \item{seed}{Sets a seed}
 
-\item{include_overall}{Character string specifying whether and how to include an overall summary.
+\item{include_overall}{Character string specifying whether and how to include an overall summary.}
+
+\item{total}{Logical variariable to report total N. Default is TRUE
 Must be one of:
 \itemize{
   \item `"none"`: Do not include an overall summary.
@@ -37,6 +44,12 @@ Must be one of:
   \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
 }
 Default is `"none"`.}
+
+\item{pval}{Option to report p-value}
+
+\item{continuous}{Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation}
+
+\item{kable_output}{Outputs table as a formatted kable table and includes the column var_desp, N, Stat and p-value}
 }
 \value{
 The function returns a dataframe, rows of which are summary statistics depending on the variable types.
