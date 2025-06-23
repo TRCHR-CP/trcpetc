@@ -26,8 +26,7 @@
 #'   }
 #'   Default is `"none"`.
 #' @param  pval Option to report p-value
-#' @param  continuous Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation
-#' @param  digits option argument to control the number of digits for all continuous variables
+#' @param  continuous Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation. Can also put c("mediqr","meansd") for both
 #' @param  kable_output Outputs table as a formatted kable table and includes the column var_desp, N, Stat and p-value
 #' @return The function returns a dataframe, rows of which are summary statistics depending on the variable types.
 #' @examples
@@ -56,7 +55,8 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,continuous = "mediqr",digits = NULL,kable_output=TRUE,caption = NULL) {
+                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption = NULL) {
+
 
   set.seed(seed)
   include_overall <- match.arg(include_overall)
@@ -66,7 +66,6 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   group <- rlang::enquo(group)
   var_name <- rlang::enquo(var_name)
   var_desp <- rlang::enquo(var_desp)
-
 
   if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
   if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
@@ -97,8 +96,13 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
     summary <- summary_full %>% left_join(summary_group)
 
   }
+if(!pval) summary$pval <- NULL
 
 }
+  #Optionally removing the continuous variables
+  if(!"meansd" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
+  if(!"mediqr" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
+
 
   if (is.null(datadic)) {
     out <- summary %>%
@@ -163,4 +167,5 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
 
-table_one(df,sex,include_overall = "all",pval = FALSE,total = TRUE,caption = "Baseline demographics")
+table_one(df,sex,include_overall = "all",pval = FALSE,total = TRUE,caption = "Baseline demographics",
+            continuous = c("mediqr","meansd"))
