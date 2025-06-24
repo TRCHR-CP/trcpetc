@@ -14,17 +14,17 @@ table_one(
   include_overall = c("none", "group", "all"),
   total = TRUE,
   pval = TRUE,
-  continuous = c("mediqr", "meansd"),
+  continuous = "mediqr",
   kable_output = TRUE,
-  caption
+  caption = NULL
 )
 }
 \arguments{
 \item{df}{A data frame consisting of numeric, logical, and factor variables with or without a grouping variable}
 
-\item{group}{Name of the grouping variable.}
+\item{group}{Name of the grouping variable (optional).}
 
-\item{datadic}{A data frame containing a data dictionary of variable names and their descriptions.}
+\item{datadic}{datadic A data frame serving as a data dictionary, containing variable names and their descriptions.}
 
 \item{var_name}{the column name of `data_dict` that
 contains the variable names. Only required if the column name is not "var_name"}
@@ -32,37 +32,43 @@ contains the variable names. Only required if the column name is not "var_name"}
 \item{var_desp}{the column name of `data_dict` that
 contains the variable descriptions Only required if the column name is not "var_desp"}
 
-\item{seed}{Sets a seed}
+\item{seed}{An optional seed value for reproducibility of p-values}
 
-\item{include_overall}{Character string specifying whether and how to include an overall summary.}
-
-\item{total}{Logical variariable to report total N. Default is TRUE
+\item{include_overall}{Character string specifying whether and how to include an overall summary.
 Must be one of:
 \itemize{
-  \item `"none"`: Do not include an overall summary.
+  \item `"none"`: Do not include an overall summary (default).
   \item `"group"`: Include an overall summary only for observations with non-missing values in the grouping variable.
   \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
 }
 Default is `"none"`.}
 
-\item{pval}{Option to report p-value}
+\item{total}{Logical; whether to report the total N. Default is `TRUE`.}
 
-\item{continuous}{Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation}
+\item{pval}{Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.}
 
-\item{kable_output}{Outputs table as a formatted kable table and includes the column var_desp, N, Stat and p-value}
+\item{continuous}{Character string specifying the summary statistics for continuous variables.
+Must be one of:
+ \itemize{
+   \item `"mediqr"`: Median and interquartile range.
+   \item `"meansd"`: Mean and standard deviation.
+   \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
+ }}
+
+\item{kable_output}{Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.}
 }
 \value{
-The function returns a dataframe, rows of which are summary statistics depending on the variable types.
+A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
 }
 \description{
-Creates a table of summary statistics
+Generates a table of summary statistics for descriptive analysis.
 }
 \details{
-\code{table_one} calculate the selected summary statistics for continuous, logical,
-and factor variables per statistical guidelines of the Annals of medicine. If a group variable is provided, then
-it will also assess the between-group difference.The input data frame should only consists of numeric, logical
-and factor variables. Factor variables with
-only two levels should be converted to logical variables. Date and datetime variables should be removed.
+The `table_one` function computes summary statistics for continuous, logical, and factor variables,
+following the statistical reporting guidelines of the *Annals of Medicine*. If a grouping variable is provided,
+the function can also evaluates between-group differences. The input data frame should consist only of numeric,
+logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
+Date and datetime variables should be excluded.
 }
 \examples{
 set.seed(0)

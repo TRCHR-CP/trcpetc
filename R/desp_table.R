@@ -1,34 +1,41 @@
 #---- this is the main function ----
 #' @title table_one
-#' @description Creates a table of summary statistics
+#' @description Generates a table of summary statistics for descriptive analysis.
 #' @details
-#' \code{table_one} calculate the selected summary statistics for continuous, logical,
-#' and factor variables per statistical guidelines of the Annals of medicine. If a group variable is provided, then
-#' it will also assess the between-group difference.The input data frame should only consists of numeric, logical
-#' and factor variables. Factor variables with
-#' only two levels should be converted to logical variables. Date and datetime variables should be removed.
+#' The `table_one` function computes summary statistics for continuous, logical, and factor variables,
+#' following the statistical reporting guidelines of the *Annals of Medicine*. If a grouping variable is provided,
+#' the function can also evaluates between-group differences. The input data frame should consist only of numeric,
+#' logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
+#' Date and datetime variables should be excluded.
+
 #'
 #' @param df A data frame consisting of numeric, logical, and factor variables with or without a grouping variable
-#' @param group Name of the grouping variable.
-#' @param datadic A data frame containing a data dictionary of variable names and their descriptions.
+#' @param group Name of the grouping variable (optional).
+#' @param datadic datadic A data frame serving as a data dictionary, containing variable names and their descriptions.
 #' @param var_name the column name of `data_dict` that
 #'   contains the variable names. Only required if the column name is not "var_name"
 #' @param var_desp the column name of `data_dict` that
 #'   contains the variable descriptions Only required if the column name is not "var_desp"
-#' @param seed Sets a seed
+#' @param seed An optional seed value for reproducibility of p-values
 #' @param include_overall Character string specifying whether and how to include an overall summary.
-#' @param total Logical variable to report total N. Default is TRUE
 #'   Must be one of:
 #'   \itemize{
-#'     \item `"none"`: Do not include an overall summary.
+#'     \item `"none"`: Do not include an overall summary (default).
 #'     \item `"group"`: Include an overall summary only for observations with non-missing values in the grouping variable.
 #'     \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
 #'   }
 #'   Default is `"none"`.
-#' @param  pval Option to report p-value
-#' @param  continuous Select which continuous descriptors to include using "mediqr" for the median with interquartile range and "meansd" for the mean and standard deviation. Can also put c("mediqr","meansd") for both
-#' @param  kable_output Outputs table as a formatted kable table and includes the column var_desp, N, Stat and p-value
-#' @return The function returns a dataframe, rows of which are summary statistics depending on the variable types.
+#' @param total Logical; whether to report the total N. Default is `TRUE`.
+#' @param  pval Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.
+#' @param  continuous Character string specifying the summary statistics for continuous variables.
+#'  Must be one of:
+#'   \itemize{
+#'     \item `"mediqr"`: Median and interquartile range.
+#'     \item `"meansd"`: Mean and standard deviation.
+#'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
+#'   }
+#' @param  kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
+#' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
 #' @examples
 #' set.seed(0)
 #' df<- data_frame(sex   = factor(c(rep("F", 90), rep("M", 900))),
@@ -172,7 +179,3 @@ if(!pval) summary$pval <- NULL
 
 }
 
-
-
-table_one(df,sex,include_overall = "all",pval = FALSE,total = TRUE,caption = "Baseline demographics",
-            continuous = c("mediqr"))
