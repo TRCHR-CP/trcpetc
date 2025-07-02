@@ -16,13 +16,13 @@ factor_desp<- function(df, group, includeNA= FALSE) {
     })
   }
 
-  make_bivariate_fml<- function(x, z, y= NULL) {
+  make_bivariate_fml <- function(x, z, y= NULL) {
     sapply(x, function(x){
       if (is.null(y)) formula(paste0("~", x, " + ", z)) else formula(paste0(y, "~", x, " + ", z))
     })
   }
 
-  output_one_way_tbl<- function(freq, pct_digits= 1) {
+  output_one_way_tbl <- function(freq, pct_digits= 1) {
     pct  <- prop.table(freq)
     var_name<- names(dimnames(freq))
     freq<- freq %>%
@@ -62,36 +62,36 @@ factor_desp<- function(df, group, includeNA= FALSE) {
     out[match(c('.', levels(df[[var_name]])), out$level),]
   }
 
-  output_two_way_tbl<- function(freq, pct_digits= 1) {
-    tbl_var_name<- names(dimnames(freq))
+  output_two_way_tbl <- function(freq, pct_digits= 1) {
+    tbl_var_name <- names(dimnames(freq))
     pct  <- prop.table(freq, margin = 2)
 
     # fisher exact test
-    test<- try(fisher.test(freq, hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
-    test<- if (class(test)=="try-error") NA else test$p.value
+    test <- try(fisher.test(freq, hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
+    test <- if (class(test)=="try-error") NA else test$p.value
 
     # total
-    total<- margin.table(freq, 2) %>%
+    total <- margin.table(freq, 2) %>%
       as.data.frame(responseName = "n", stringsAsFactors = FALSE) %>%
       mutate(n= ifelse(!is.na(n), formatC(n, format= "d", big.mark = ","), NA_character_)) %>%
       dcast(as.formula( paste0(". ~ ", tbl_var_name[2])), value.var = "n") %>%
-      bind_cols(pval= format_pvalue(test))
+      bind_cols(pval= format_pvalue(test))  %>%  mutate(test = "Fisher")
 
-    freq<- freq %>%
+    freq <- freq %>%
       as.data.frame(responseName = "freq", stringsAsFactors = FALSE) %>%
       mutate(freq= ifelse(!is.na(freq), formatC(freq, format= "d", big.mark = ","), NA_character_))
 
-    pct<- pct %>%
+    pct <- pct %>%
       as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
       mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
 
-    freq<- freq %>%
+    freq <- freq %>%
       mutate_all(as.character)
 
-    pct<- pct %>%
+    pct <- pct %>%
       mutate_all(as.character)
 
-    out<- full_join(freq, pct, by= tbl_var_name) %>%
+    out <- full_join(freq, pct, by= tbl_var_name) %>%
       mutate(stat= paste0(freq, " (", pct, "%)")) %>%
       # bind_rows(total) %>%
       dplyr::select(-freq, -pct) %>%
@@ -100,14 +100,14 @@ factor_desp<- function(df, group, includeNA= FALSE) {
       mutate_all(as.character)
 
     names(out)[1]<- names(total)[1]<- "level"
-    out<- full_join(total, out, by= "level", suffix= c("_n", "_stat"))
+    out <- full_join(total, out, by= "level", suffix= c("_n", "_stat"))
     out[match(c('.', levels(df[[tbl_var_name[1]]])), out$level),]
     # out
   }
   ##
 
 
-  group<- rlang::enquo(group)
+  group <- rlang::enquo(group)
 
   # 1 - select variables of factor class
   if (rlang::quo_is_missing(group)) {
@@ -115,27 +115,27 @@ factor_desp<- function(df, group, includeNA= FALSE) {
       ungroup() %>%
       select_if(is.factor)
 
-    fml<- make_univariate_fml(names(df))
+    fml <- make_univariate_fml(names(df))
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
-    tbl_list<- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
+    tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
     out     <- lapply(tbl_list, output_one_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1)
 
   } else {
-    df<- df %>%
+    df <- df %>%
       group_by(!!group) %>%
       select_if(is.factor)
 
-    fml<- make_bivariate_fml(grep(paste0("^", quo_name(group), "$"), names(df), value= TRUE, invert = TRUE),
+    fml <- make_bivariate_fml(grep(paste0("^", quo_name(group), "$"), names(df), value= TRUE, invert = TRUE),
                              z= quo_name(group))
 
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
-    tbl_list<- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
+    tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
     out     <- lapply(tbl_list, output_two_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1)
   }
 
-  out<- out %>%
+  out <- out %>%
     bind_rows(.id= "variable") %>%
     mutate(level= ifelse(level==".", NA_character_, level))
   out
