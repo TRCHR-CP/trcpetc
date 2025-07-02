@@ -14,6 +14,7 @@ table_one(
   include_overall = c("none", "group", "all"),
   total = TRUE,
   pval = TRUE,
+  bold_pval = FALSE,
   print_test = FALSE,
   continuous = "mediqr",
   kable_output = TRUE,
@@ -47,6 +48,8 @@ Default is `"none"`.}
 \item{total}{Logical; whether to report the total N. Default is `TRUE`.}
 
 \item{pval}{Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.}
+
+\item{bold_pval}{Logical. If TRUE, p-values <0.05 will be bold in formatted `kable` table. Default is `FALSE`.}
 
 \item{print_test}{Logical. If TRUE, the output will include the type of statistical test applied to each variable. Default is `FALSE`.}
 
