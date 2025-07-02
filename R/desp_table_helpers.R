@@ -109,7 +109,7 @@ table_one_stratify <- function(df,group,total = TRUE){
       mutate(across(where(is.integer), as.character))
 
     list(N = left_join(n_var, n_var, by= "variable", suffix= c("_n", "_stat")) %>%
-      mutate(row_id = "Total_N", type = as.character(NA), pval = as.character(NA)) %>%
+      mutate(row_id = "Total_N", type = as.character(NA), pval = as.character(NA), test = as.character(NA)) %>%
       dplyr::select(row_id,variable, type, everything()) %>%
       mutate(type= NA_character_))
 
