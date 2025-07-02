@@ -1825,14 +1825,14 @@ border-radius: 5px;
 <li>Can show overall summaries for all patients or only those with non-missing values for the grouping variable</li>
 </ul></li>
 <li>Option to suppress p-values</li>
+<li>Option to print which statistical test was performed for each variable</li>
 <li>Option to include total N counts</li>
 <li>Sets a random seed to ensure reproducible p-values</li>
 </ul>
 </div>
-<div id="coming-updates" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Coming updates</h2>
+<div id="ongoing-updates" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Ongoing updates</h2>
 <ul>
-<li>Printing which statistical test was performed</li>
 <li>Paired statistical tests</li>
 </ul>
 <pre class="r"><code>df$grade &lt;- factor_order(df$grade)
@@ -1841,16 +1841,15 @@ table_one(df = df,
           group = sex,  
           kable_output = TRUE,
           caption =  &quot;Summary table overall and stratified by sex&quot;,
-          continuous = &quot;mediqr&quot;,
+          continuous = c(&quot;mediqr&quot;),
           include_overall = &quot;all&quot;,
           pval = TRUE,
           total = TRUE,
-          seed = 123
-          )%&gt;%
- kable_styling(full_width = FALSE)</code></pre>
-<table class="table table-striped table-hover table-condensed table" style="width: auto !important; margin-left: auto; margin-right: auto; width: auto !important; margin-left: auto; margin-right: auto;">
+          print_test =  FALSE
+          )</code></pre>
+<table class="table table-striped table-hover table-condensed" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-<span id="tab:unnamed-chunk-2">Table 2.1: </span>Summary table overall and stratified by sex
+<span id="tab:unnamed-chunk-3">Table 2.1: </span>Summary table overall and stratified by sex
 </caption>
 <thead>
 <tr>

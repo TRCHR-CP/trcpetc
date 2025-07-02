@@ -100,13 +100,14 @@ Updates to the `table_one()` function include:
 - Option to display overall summaries alongside group summaries
   - Can show overall summaries for all patients or only those with non-missing values for the grouping variable
 - Option to suppress p-values
+- Option to print which statistical test was performed for each variable
 - Option to include total N counts
 - Sets a random seed to ensure reproducible p-values
 
-## Coming updates 
 
-- Printing which statistical test was performed 
+## Ongoing updates 
 - Paired statistical tests 
+- Having sample data as part of the package
 
 ```{r,echo=TRUE}
 df$grade <- factor_order(df$grade)
@@ -119,8 +120,7 @@ table_one(df = df,
           include_overall = "all",
           pval = TRUE,
           total = TRUE,
-          seed = 123,
-          test_type = TRUE
+          print_test =  FALSE
           )
 
 ```
