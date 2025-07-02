@@ -10,36 +10,36 @@
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 #' @export
-logical_desp<- function(df, group) {
+logical_desp <- function(df, group) {
 
-  binary_desp<- function(x, pct_digits= 1) {
-    fun<- c(sum, mean)
-    out<- sapply(fun,
+  binary_desp <- function(x, pct_digits= 1) {
+    fun <- c(sum, mean)
+    out <- sapply(fun,
                  function(f) {
-                   res<- try(f(x, na.rm= TRUE), silent = TRUE)
-                   res<- if (class(res)== "try-error") NA else res
+                   res <- try(f(x, na.rm= TRUE), silent = TRUE)
+                   res <- if (class(res)== "try-error") NA else res
                    return(res)
                  })
 
-    freq<- formatC(out[1], format= "d", big.mark = ",")
+    freq <- formatC(out[1], format= "d", big.mark = ",")
     pct <- formatC(out[2]*100, digits= pct_digits, format= "f")
     pct <- paste0(pct, "%")
     out <- paste0(freq, " (", pct, ")")
     out
   }
 
-  group<- rlang::enquo(group)
-  df<- df %>%
+  group <- rlang::enquo(group)
+  df <- df %>%
     ungroup()
 
   # fisher exact test
   # test<- try(fisher.test(freq, hybrid = TRUE, conf.int = FALSE), silent = TRUE)
   # test<- if (class(test)=="try-error") NA else test$p.value
-  test_fun<- fisher_test
+  test_fun <- fisher_test
 
   if (rlang::quo_is_missing(group)) {
 
-    sum_stat<- df %>%
+    sum_stat <- df %>%
       summarise_if(is.logical, funs(binary_desp),
                    pct_digits= if (nrow(.)>= 200) 1 else 0) %>%
       rownames_to_column() %>%
@@ -47,7 +47,7 @@ logical_desp<- function(df, group) {
       mutate(type= "freq") %>%
       dplyr::select(variable, type, stat)
 
-    n_var<- df %>%
+    n_var <- df %>%
       summarise_if(is.logical, funs(n_avail)) %>%
       rownames_to_column() %>%
       melt(id.vars= "rowname", value.name = "n") %>%
@@ -55,11 +55,11 @@ logical_desp<- function(df, group) {
 
   } else {
 
-    df<- df %>%
+    df <- df %>%
       # ungroup() %>%
       group_by(!!group)
 
-    sum_stat<- df %>%
+    sum_stat <- df %>%
       summarise_if(is.logical, funs(binary_desp),
                    pct_digits= if (nrow(.)>= 200) 1 else 0) %>%
       melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
@@ -68,16 +68,16 @@ logical_desp<- function(df, group) {
       # left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
       left_join(test_fun(df, !!group), by= c("variable", "type"))
 
-    n_var<- df %>%
+    n_var <- df %>%
       summarise_if(is.logical, funs(n_avail)) %>%
       melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
       dcast(as.formula(paste("variable", quo_name(group), sep= " ~ ")))
   }
 
-  n_var<- n_var %>%
+  n_var <- n_var %>%
     mutate_all(as.character)
 
-  sum_stat<- sum_stat %>%
+  sum_stat <- sum_stat %>%
     mutate_all(as.character)
 
   left_join(n_var, sum_stat, by= "variable", suffix= c("_n", "_stat")) %>%
@@ -140,7 +140,7 @@ fisher_test<- function(df, group) {
     unnest() %>%
     melt(id.vars= "variable", variable.name= "type", value.name = "pval") %>%
     mutate(pval= format_pvalue(pval)) %>%
-    mutate_all(as.character)
+    mutate_all(as.character) %>% mutate(test = "Fisher")
 
   #   variable  type       pval
   # 1       dm  freq 0.04608804
