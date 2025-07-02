@@ -1,0 +1,80 @@
+/* font */
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond&family=Open+Sans&display=swap');
+
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+
+h1 {
+  color: #C62828;
+  font-size: 16pt;
+  font-weight: 700;
+}
+
+h2, h3, h4, h5 {
+  /* font-family: 'Open Sans', sans-serif; */
+  font-size: 14pt;
+}
+
+p {
+  /* color: red; */
+  /* font-family: 'Open Sans', sans-serif; */
+  font-size: 12pt;
+}
+
+blockquote {
+  margin-inline-start: 0;
+  padding-left: 25pt;
+  padding-right: 25pt;
+  border-left: 2pt solid;
+  /* font-style: italic; */
+}
+
+img {
+  max-width: 100%;
+}
+
+
+
+/* page and margin for pagedown package only */
+@page {
+  size: 8.5in 11in;
+
+  @bottom-left-corner {
+    content: "";
+    background-repeat: no-repeat;
+    background-position: center;
+    /* background-size: 0.5in; */
+    /* background-image: url(rru-logo-blue.svg); */
+  }
+
+  @bottom-right-corner {
+    content: counter(page);
+    font-size: 12 pt;
+  }
+}
+
+/*
+@page:first {
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  @bottom-left-corner {
+    background: none;
+  }
+
+  @bottom-right-corner {
+    background: none;
+  }
+} */
+
+:root {
+  --pagedjs-margin-top: 1in;
+  --pagedjs-margin-right: 1in;
+  --pagedjs-margin-bottom: 1in;
+  --pagedjs-margin-left: 1in;
+}
+

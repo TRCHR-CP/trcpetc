@@ -7,8 +7,10 @@
 show_cif(
   surv_obj,
   evt_type = 1,
-  evt_label = function(x) {     recode_factor(x, `1` = "Event", `2` =
-    "Competing event", .default = "Event free") },
+  evt_label = function(x) {
+     recode_factor(x, `1` = "Event", `2` = "Competing event",
+    .default = "Event free")
+ },
   add_ci = TRUE,
   add_atrisk = TRUE,
   add_legend = FALSE,

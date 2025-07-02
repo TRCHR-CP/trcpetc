@@ -1,0 +1,126 @@
+--- 
+title: "Title of the project"
+author: 
+    - "Author name"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    css: "style.css"
+    theme: united #or sandstone or simplex
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+link-citations: yes
+bibliography:
+ - book.bib
+# - packages.bib
+biblio-style: apalike
+
+---
+
+<style>
+p.boxedtext {
+background-color: #DBDBDB;
+padding: 10px;
+border: 1px solid black;
+margin-left: 25px;
+border-radius: 5px;
+<!-- font-style: italic; -->
+}
+</style>
+
+
+```{r setup, echo=FALSE, include= FALSE}
+library(trcpetc)
+library(knitr)
+library(kableExtra)
+library(dplyr)
+
+knitr::opts_chunk$set(fig.align="center", 
+                      dev="png", 
+                      dev.args=list(pointsize=11), 
+                      echo=FALSE, 
+                      fig.width=6.5, 
+                      warning =  FALSE,
+                      message = FALSE,
+                      fig.show="hold", 
+                      fig.path = "./figures/",
+                      out.extra = 'style="border:20px solid white;"',
+                      concordance= TRUE,
+                      cache= FALSE)
+knit_hooks$set(inline = function(x){if (is.numeric(x)) round(x, 3) else x})
+options(knitr.kable.NA = '')
+
+
+
+```
+
+
+```{r, cache= FALSE}
+# Here we should load the data
+set.seed(2)
+df <- data_frame(sex   = factor(c(rep("F", 90), rep("M", 900))),
+                grade = factor(sample(c("A", "B", "C"), 990, replace= TRUE,prob = c(0.35,0.4,0.25)), c("A", "B", "C", "D")),
+                income=  100 * (rnorm(990) + 5),
+                dm= rbernoulli(990, p= .5),
+                af= rbernoulli(990, p= .95)) %>%
+  mutate(weight= if_else( sex=="F" & income>500, 3, 1),
+         income= ifelse(income<456, NA, income),
+         sex   = ifelse(runif(990)<.2, NA, sex),
+         sex   = factor(sex, 1:2, labels = c("Female", "Male")),
+         grade = ifelse(runif(990)<.25, NA, grade),
+         grade   = factor(grade, 1:4, labels = c("A", "B", "C", "D")))
+
+ datadic <- data.frame(var_name= c("sex", "grade", "income", "dm", "af","Weight"),
+                       var_desp= c("Sex", "Grade", "Household income",
+                                  "Presence of diabetes mellitus", "African American","Weight"),
+                     stringsAsFactors = FALSE)
+```
+
+
+The `fanetc` r package has been updated to the `trcpetc` r package.
+
+# Updates 
+
+- Updated the `table_one()` function to support additional capabilities and reduce the need for manual coding when generating summary tables.
+
+- Added the `factor_order()` function, which automatically orders factor levels by descending frequency for clearer presentation in summary outputs.
+
+# table_one
+
+## Updates
+
+Updates to the `table_one()` function include:
+
+- Ability to output a clean, report-ready kable table
+  - Option to add a custom table caption via an argument
+- Option for selecting which continuous summary statistics to display (defaults to median + IQR)
+- Option to display overall summaries alongside group summaries
+  - Can show overall summaries for all patients or only those with non-missing values for the grouping variable
+- Option to suppress p-values
+- Option to include total N counts
+- Sets a random seed to ensure reproducible p-values
+
+## Coming updates 
+
+- Printing which statistical test was performed 
+- Paired statistical tests 
+
+```{r,echo=TRUE}
+df$grade <- factor_order(df$grade)
+
+table_one(df = df, 
+          group = sex,  
+          kable_output = TRUE,
+          caption =  "Summary table overall and stratified by sex",
+          continuous = "mediqr",
+          include_overall = "all",
+          pval = TRUE,
+          total = TRUE,
+          seed = 123
+          )
+
+```
+

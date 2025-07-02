@@ -62,7 +62,7 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption = NULL) {
+                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption = NULL,...) {
 
 
   set.seed(seed)
@@ -162,7 +162,7 @@ if(!pval) summary$pval <- NULL
     out <- out %>%
       filter(!(row_number() == 1 & total == TRUE)) %>%
       select(all_of(c("var_desp", c(rbind(n_columns, stat_columns)), if (pval) "pval" else NULL))) %>%
-      knitr::kable(caption = caption,
+      kableExtra::kbl(caption = caption,
                    booktabs=TRUE,
                    escape = FALSE,
                    align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
