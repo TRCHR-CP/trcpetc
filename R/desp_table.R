@@ -62,8 +62,16 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption = NULL,...) {
+                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption = NULL) {
 
+
+
+  invalid_continuous <- continuous[!continuous %in% c("mediqr", "meansd")]
+
+  if (length(invalid_continuous) > 0) {
+    stop(paste0('Invalid value(s) in "continuous": ', paste(unique(invalid_continuous), collapse = ", "),
+                '. Allowed values are "mediqr" and "meansd".'))
+  }
 
   set.seed(seed)
   include_overall <- match.arg(include_overall)
@@ -93,14 +101,14 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
       df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
       summary_full <- table_one_overall(df_group,total = total)
       summary_group <- table_one_stratify(df,group = !!group,total = total)
-      summary <- summary_full %>% left_join(summary_group)
+      summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   } else if(include_overall == "all") { #Including the overall total for all patients
 
 
     summary_full <- table_one_overall(df %>% select(-!!group),total = total)
     summary_group <- table_one_stratify(df,group = !!group,total = total)
-    summary <- summary_full %>% left_join(summary_group)
+    summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   }
 if(!pval) summary$pval <- NULL
