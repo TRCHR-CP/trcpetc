@@ -215,8 +215,8 @@ two_sample_test<- function(df, group) {
                            })) %>%
     dplyr::select(-data) %>%
     # unnest(cols = c(ttest, wilcox)) %>%
-    melt(id.vars= "variable", variable.name= "type", value.name = "pval") %>%
-    mutate(type= ifelse(grepl("^ttest", type), "meansd", "mediqr"),
+    melt(id.vars= "variable", variable.name= "test", value.name = "pval") %>%
+    mutate(type= ifelse(grepl("^ttest", test), "meansd", "mediqr"),
            pval= format_pvalue(pval)
     ) %>%
     mutate_all(as.character)
@@ -263,8 +263,8 @@ k_sample_test<- function(df, group) {
                             })) %>%
     dplyr::select(-data) %>%
     # unnest(cols = c(ttest, wilcox)) %>%
-    melt(id.vars= "variable", variable.name= "type", value.name = "pval") %>%
-    mutate(type= ifelse(grepl("^oneway", type), "meansd", "mediqr"),
+    melt(id.vars= "variable", variable.name= "test", value.name = "pval") %>%
+    mutate(type= ifelse(grepl("^oneway", test), "meansd", "mediqr"),
            pval= format_pvalue(pval)
     ) %>%
     mutate_all(as.character)
