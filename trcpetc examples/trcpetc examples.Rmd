@@ -119,7 +119,8 @@ table_one(df = df,
           include_overall = "all",
           pval = TRUE,
           total = TRUE,
-          seed = 123
+          seed = 123,
+          test_type = TRUE
           )
 
 ```

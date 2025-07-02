@@ -27,6 +27,7 @@
 #'   Default is `"none"`.
 #' @param total Logical; whether to report the total N. Default is `TRUE`.
 #' @param  pval Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.
+#' @param print_test Logical. If TRUE, the output will include the type of statistical test applied to each variable. Default is `FALSE`.
 #' @param  continuous Character string specifying the summary statistics for continuous variables.
 #'  Must be one of:
 #'   \itemize{
@@ -62,7 +63,7 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,continuous = "mediqr",kable_output=TRUE,caption = NULL) {
+                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",kable_output=TRUE,caption = NULL) {
 
 
 
@@ -72,6 +73,9 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
     stop(paste0('Invalid value(s) in "continuous": ', paste(unique(invalid_continuous), collapse = ", "),
                 '. Allowed values are "mediqr" and "meansd".'))
   }
+
+
+  if(!pval) print_test <- FALSE #Can't print the test is there is no pvalue
 
   set.seed(seed)
   include_overall <- match.arg(include_overall)
@@ -89,6 +93,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
     summary <- table_one_overall(df,total = total)
     pval <- FALSE
+    print_test  <- FALSE
 
   }else{ #If there is not a grouping variable
 
@@ -112,7 +117,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   }
 if(!pval) summary$pval <- NULL
-
+if(!print_test ) summary$print_test  <- NULL
 }
   #Optionally removing the continuous variables
   if(!"meansd" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
@@ -169,16 +174,16 @@ if(!pval) summary$pval <- NULL
 
     out <- out %>%
       filter(!(row_number() == 1 & total == TRUE)) %>%
-      select(all_of(c("var_desp", c(rbind(n_columns, stat_columns)), if (pval) "pval" else NULL))) %>%
+      select(all_of(c("var_desp", c(rbind(n_columns, stat_columns)), if (pval) "pval" else NULL,if (print_test ) "test" else NULL))) %>%
       kableExtra::kbl(caption = caption,
                    booktabs=TRUE,
                    escape = FALSE,
                    align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
-                   col.names = c('Variables', rep(c('N', 'Stat'), length(headers)), if (pval) '*P*-value' else character(0))) %>%
+                   col.names = c('Variables', rep(c('N', 'Stat'), length(headers)), if (pval) '*P*-value' else character(0) , if (print_test ) 'Statistical test' else character(0))) %>%
       kableExtra::row_spec(row = 0, align = "c") %>%
       kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                                 full_width = FALSE)%>%
-      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval) '' else character(0)))%>%
+      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval) '' else character(0), if (print_test ) '' else character(0)))%>%
       kableExtra::add_indent(indent)
 
 
