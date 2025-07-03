@@ -403,23 +403,23 @@ show_surv<- function(surv_obj,
                      'manual' = match.call(do.call, call('do.call', what= 'scale_color_manual', args= color_list)))
 
   if (!plot_cdf & !is.null(y_lim)) {
-    y_lim<- c(0, 1)
+    y_lim <- c(0, 1)
     message("The parameter y_lim was reset to y_lim= c(0, 1) for survival function.")
   } else if (plot_cdf & !is.null(y_lim)) {
-    y_lim<- c(0, max(y_lim, na.rm= TRUE))
+    y_lim <- c(0, max(y_lim, na.rm= TRUE))
     message("The lower limit of y-axis was reset to 0 for failure function.")
   } else if (!plot_cdf & is.null(y_lim)) {
-    y_lim<- c(0, 1)
+    y_lim <- c(0, 1)
     message("The parameter y_lim was set to y_lim= c(0, 1) for survival function.")
   } else if (plot_cdf & is.null(y_lim)) {
-    y_lim<- c(0, 1)
+    y_lim <- c(0, 1)
     message("The parameter y_lim was set to y_lim= c(0, 1) for failure function.")
   }
 
   #---- prepare survfit for plot ----
-  surv_mat<- prepare_survfit(surv_obj)
+  surv_mat <- prepare_survfit(surv_obj)
 
-  plot_prob_d<- surv_mat %>%
+  plot_prob_d <- surv_mat %>%
     dplyr::select(strata, plot_prob_d) %>%
     unnest(cols = c(plot_prob_d)) %>%
     mutate(prob= if (plot_cdf) 1-prob else prob)
@@ -432,7 +432,7 @@ show_surv<- function(surv_obj,
       group_by(strata)
   }
 
-  out<- ggplot() +
+  out <- ggplot() +
     geom_step(data= plot_prob_d,
               aes(x= time, y= prob, group= strata, color= strata),
               size= 1.1, show.legend = add_legend) +
@@ -443,12 +443,12 @@ show_surv<- function(surv_obj,
                        labels= function(x) scales::comma(x, accuracy = 1))
 
   if (add_ci) {
-    plot_ci_d<- surv_mat %>%
+    plot_ci_d <- surv_mat %>%
       dplyr::select(strata, plot_ci_d) %>%
       unnest(cols = c(plot_ci_d))
 
     if (plot_cdf) {
-      plot_ci_d<- plot_ci_d %>%
+      plot_ci_d <- plot_ci_d %>%
         mutate_at(vars(starts_with('conf')), function(x) 1-x) %>%
         rename(conf_high= conf_low,
                conf_low = conf_high)
@@ -462,96 +462,96 @@ show_surv<- function(surv_obj,
     #            conf_low = replace(conf_low, conf_low< y_lim[1], y_lim[1]))
     # }
 
-    out<- out +
+    out <- out +
       geom_ribbon(data= plot_ci_d,
                   aes(x= time, ymin= conf_low, ymax= conf_high, fill= strata),
                   alpha= .2, show.legend = FALSE) +
       eval(fill_fun)
   }
 
-  out<- out + scale_y_continuous(name  = y_lab,
+  out <- out + scale_y_continuous(name  = y_lab,
                                  # name  = if (is.null(y_lab)) "Freedom from death" else y_lab,
                                  breaks= if (is.null(y_break)) scales::pretty_breaks(6) else y_break,
                                  # expand= c(0.01, 0.005),
                                  expand= c(0.005, 0),
                                  labels= function(x) scales::percent(x, accuracy = 1))
 
-  out<- if (!is.null(y_lim)) out + coord_cartesian(ylim = y_lim, clip = "on") else out
+  out <- if (!is.null(y_lim)) out + coord_cartesian(ylim = y_lim, clip = "on") else out
 
   if (add_pvalue) {
-    pval<- run_logrank_test(surv_obj) %>%
+    pval <- run_logrank_test(surv_obj) %>%
       format_pvalue()
     # pval<- format_pvalue(pval)
-    pval<- ifelse(trimws(pval)=="<0.001", "Log-rank p< 0.001", paste0("Log-rank p= ", pval) )
+    pval <- ifelse(trimws(pval)=="<0.001", "Log-rank p< 0.001", paste0("Log-rank p= ", pval) )
 
 
     y_bottom<- min(layer_scales(out)$y$range$range[1], out$coordinates$limits$y[1], na.rm= TRUE)
     y_top   <- max(layer_scales(out)$y$range$range[2], out$coordinates$limits$y[2], na.rm= TRUE)
     y_mid   <- (y_top + y_bottom)/2
 
-    tiny_nudge<- 0.01
-    pvalue_pos<- match.arg(pvalue_pos)
+    tiny_nudge <- 0.01
+    pvalue_pos <- match.arg(pvalue_pos)
     if (pvalue_pos %in% c("topleft")) {
       # pvalue.x<- layer_scales(out)$x$range$range[1]
       # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
-      pvalue.x<- 0 + tiny_nudge
-      pvalue.y<- 1 - tiny_nudge
+      pvalue.x <- 0 + tiny_nudge
+      pvalue.y <- 1 - tiny_nudge
       pvalue.hjust<- 0
       pvalue.vjust<- 1
     } else if (pvalue_pos %in% c("bottomleft")) {
       # pvalue.x<- layer_scales(out)$x$range$range[1]
       # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
-      pvalue.x<- 0 + tiny_nudge
-      pvalue.y<- 0 + tiny_nudge
-      pvalue.hjust<- 0
-      pvalue.vjust<- 0
+      pvalue.x <- 0 + tiny_nudge
+      pvalue.y <- 0 + tiny_nudge
+      pvalue.hjust <- 0
+      pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("topright")) {
       # pvalue.x<- layer_scales(out)$x$range$range[2]
       # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
-      pvalue.x<- 1 - tiny_nudge
-      pvalue.y<- 1 - tiny_nudge
-      pvalue.hjust<- 1
-      pvalue.vjust<- 1
+      pvalue.x <- 1 - tiny_nudge
+      pvalue.y <- 1 - tiny_nudge
+      pvalue.hjust <- 1
+      pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottomright")) {
       # pvalue.x<- layer_scales(out)$x$range$range[2]
       # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
-      pvalue.x<- 1 - tiny_nudge
-      pvalue.y<- 0 + tiny_nudge
-      pvalue.hjust<- 1
-      pvalue.vjust<- 0
+      pvalue.x <- 1 - tiny_nudge
+      pvalue.y <- 0 + tiny_nudge
+      pvalue.hjust <- 1
+      pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("left")) {
       # pvalue.x<- layer_scales(out)$x$range$range[1]
       # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
-      pvalue.x<- 0 + tiny_nudge
-      pvalue.y<- 0.5
-      pvalue.hjust<- 0
-      pvalue.vjust<- 0.5
+      pvalue.x <- 0 + tiny_nudge
+      pvalue.y <- 0.5
+      pvalue.hjust <- 0
+      pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("right")) {
       # pvalue.x<- layer_scales(out)$x$range$range[2]
       # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
-      pvalue.x<- 1 - tiny_nudge
-      pvalue.y<- 0.5
-      pvalue.hjust<- 1
-      pvalue.vjust<- 0.5
+      pvalue.x <- 1 - tiny_nudge
+      pvalue.y <- 0.5
+      pvalue.hjust <- 1
+      pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("top")) {
       # pvalue.x<- mean(layer_scales(out)$x$range$range)
       # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
-      pvalue.x<- 0.5
-      pvalue.y<- 1 - tiny_nudge
-      pvalue.hjust<- 0.5
-      pvalue.vjust<- 1
+      pvalue.x <- 0.5
+      pvalue.y <- 1 - tiny_nudge
+      pvalue.hjust <- 0.5
+      pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottom")) {
       # pvalue.x<- mean(layer_scales(out)$x$range$range)
       # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
-      pvalue.x<- 0.5
-      pvalue.y<- 0 + tiny_nudge
-      pvalue.hjust<- 0.5
-      pvalue.vjust<- 0
+      pvalue.x <- 0.5
+      pvalue.y <- 0 + tiny_nudge
+      pvalue.hjust <- 0.5
+      pvalue.vjust <- 0
     } else {
-      pvalue.x<- NULL
-      pvalue.y<- NULL
-      pvalue.hjust<- NULL
-      pvalue.vjust<- NULL
+      pvalue.x <- NULL
+      pvalue.y <- NULL
+      pvalue.hjust <- NULL
+      pvalue.vjust <- NULL
     }
 
     out<- out +
@@ -574,7 +574,7 @@ show_surv<- function(surv_obj,
     # xmax = pvalue.x)
   }
 
-  if (add_atrisk) out<- add_atrisk(out,
+  if (add_atrisk) out <- add_atrisk(out,
                                    surv_obj = surv_obj,
                                    x_break = x_break,
                                    atrisk_init_pos= atrisk_init_pos,
@@ -598,7 +598,7 @@ show_surv<- function(surv_obj,
 #'
 #'
 #' @export
-estimate_cif<- function(df, evt_time, evt, group, ...) {
+estimate_cif <- function(df, evt_time, evt, group, ...) {
 
   evt_time<- enquo(evt_time)
   evt     <- enquo(evt)
@@ -634,7 +634,7 @@ estimate_cif<- function(df, evt_time, evt, group, ...) {
 
 
 #' @export
-run_gray_test<- function(surv_obj, evt_type= 1:2) {
+run_gray_test <- function(surv_obj, evt_type= 1:2) {
 
   df<- as.list(eval(surv_obj$call$data, parent.frame()))
   df<- all.vars(surv_obj$call$formula) %>%
@@ -725,7 +725,7 @@ run_gray_test<- function(surv_obj, evt_type= 1:2) {
 #' gt$layout$clip[gt$layout$name == 'panel'] <- "off"
 #' grid.draw(gt)
 #' @export
-show_cif<- function(surv_obj,
+show_cif <- function(surv_obj,
                     evt_type = 1,
                     # evt_label= identity, # identity function
                     evt_label= function(x) {
@@ -752,7 +752,14 @@ show_cif<- function(surv_obj,
                     color_list= NULL, #required only if color_scheme= 'manual'. eg color_list= list(values= c('red', 'blue'))
 
                     plot_cdf= FALSE,
-                    print_fig = TRUE) {
+                    print_fig = TRUE,
+
+                    top.margin = 18,
+                    right.margin = 18,
+                    bottom.margin = 96,
+                    left.margin = 96
+
+                    ) {
 
   #---- prepare survfit for plot ----
   cmprisk_mat<- prepare_survfit(surv_obj)
@@ -865,7 +872,7 @@ show_cif<- function(surv_obj,
 
     }
 
-    out<- out + eval(fill_fun)
+    out <- out + eval(fill_fun)
 
   }
 
@@ -959,13 +966,26 @@ show_cif<- function(surv_obj,
         # xmax = pvalue.x)
   }
 
-  if (add_atrisk) out<- add_atrisk(out,
+  if (add_atrisk) out <- add_atrisk(out,
                                    surv_obj = surv_obj,
                                    x_break = x_break,
                                    atrisk_init_pos= atrisk_init_pos,
                                    plot_theme = plot_theme)
 
-  out<- out + plot_theme
+  out <- out + plot_theme
+
+  if(add_atrisk) {
+    p <- out + theme(plot.margin= unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
+    gt <- ggplot_gtable(ggplot_build(p))
+    gt$layout$clip[gt$layout$name == 'panel'] <- "off"
+    out <- gt
+    #grid.draw(gt)
+
+  }
+
+
+
+
 
   if (print_fig) print(out)
   return(out)

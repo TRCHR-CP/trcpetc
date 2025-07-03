@@ -28,7 +28,12 @@ show_cif(
   color_scheme = c("brewer", "grey", "viridis", "manual"),
   color_list = NULL,
   plot_cdf = FALSE,
-  print_fig = TRUE
+  print_fig = TRUE,
+  print_at_risk = TRUE,
+  top.margin = 18,
+  right.margin = 18,
+  bottom.margin = 96,
+  left.margin = 96
 )
 }
 \arguments{
