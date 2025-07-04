@@ -2,7 +2,7 @@
 % Please edit documentation in R/event_time_desp.R
 \name{show_cif}
 \alias{show_cif}
-\title{show_cif}
+\title{Plot Cumulative Incidence Function for Competing Risks}
 \usage{
 show_cif(
   surv_obj,
@@ -27,9 +27,7 @@ show_cif(
   y_break = NULL,
   color_scheme = c("brewer", "grey", "viridis", "manual"),
   color_list = NULL,
-  plot_cdf = FALSE,
   print_fig = TRUE,
-  print_at_risk = TRUE,
   top.margin = 18,
   right.margin = 18,
   bottom.margin = 96,
@@ -37,42 +35,61 @@ show_cif(
 )
 }
 \arguments{
-\item{surv_obj}{a survfitms subject.}
+\item{surv_obj}{A \code{survfit} object, such as one returned by \code{estimate_cif()}.}
 
-\item{add_ci}{an integer vector indicating right censoring (0= censored; 1= event of interest; other= competing risk(s)).}
+\item{evt_type}{Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).}
 
-\item{add_atrisk}{a logical parameter indicating whether at-risk table should be added to the figure.}
+\item{evt_label}{A function to relabel event types for plotting (default uses \code{recode_factor()} to label 1 = "Event", 2 = "Competing event", others = "Event free").}
 
-\item{add_legend}{a logical parameter indicating whether legend should be added to the figure.}
+\item{add_ci}{Logical; if \code{TRUE}, adds confidence intervals to the CIF curves (default = TRUE).}
 
-\item{add_pvalue}{a logical parameter (default= FALSE) indiciates if a p-value should be added to the plot.}
+\item{add_atrisk}{Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).}
 
-\item{atrisk_init_pos}{the location of the label "At-risk N:"}
+\item{add_legend}{Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).}
 
-\item{pvalue_pos}{a character parameter indicating where the p-value should be added to the plot.}
+\item{add_pvalue}{Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).}
 
-\item{plot_theme}{a numeric vector recording the time points at which the event occurs.}
+\item{atrisk_init_pos}{Character; position of the "At-risk N:" label.}
 
-\item{x_lab}{an integer vector indicating right censoring (0= censored; 1= event of interest; other= competing risk(s)).}
+\item{pvalue_pos}{Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).}
 
-\item{y_lab}{a numeric vector specifying the time point at which administrative censoring is applied.}
+\item{plot_theme}{A \code{ggplot2} theme object to customize the appearance of the plot (default = \code{theme_minimal()}).}
 
-\item{x_lim}{a numeric vector specifying the time point at which administrative censoring is applied.}
+\item{x_lab}{Character; label for the x-axis (default = "Time").}
 
-\item{y_lim}{a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.}
+\item{y_lab}{Character; label for the y-axis (default = "Proportion of subjects").}
 
-\item{color_list}{input data}
+\item{x_lim}{Numeric vector of length 2 specifying x-axis limits.}
 
-\item{plot_cdf}{Not used}
+\item{y_lim}{Numeric vector of length 2 specifying y-axis limits.}
+
+\item{x_break}{Numeric vector specifying x-axis tick positions.}
+
+\item{y_break}{Numeric vector specifying y-axis tick positions.}
+
+\item{color_scheme}{Character; color scheme to use. Options: "brewer", "grey", "viridis", "manual" (default = "brewer").}
+
+\item{color_list}{A named list of colors to use when \code{color_scheme = "manual"} (e.g., \code{list(values = c("red", "blue"))}).}
+
+\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = TRUE).}
+
+\item{top.margin}{Numeric; top margin space for the at-risk table (default = 18).}
+
+\item{right.margin}{Numeric; right margin space for the at-risk table (default = 18).}
+
+\item{bottom.margin}{Numeric; bottom margin space for the at-risk table (default = 96).}
+
+\item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object representing the cumulative incidence function plot.
 }
 \description{
-show_cif
+Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization.
 }
 \details{
-The function shows the cumulative incidence function for competing risks with and without strata.
+This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
+It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
 }
 \examples{
 my_plot_theme<- theme_bw() +

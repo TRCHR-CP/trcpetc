@@ -192,7 +192,7 @@ prepare_survfit<- function(surv_obj) {
 }
 
 #' @export
-add_atrisk<- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_theme = NULL) {
+add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_theme = NULL) {
 
   # ---- get font information ----
   if (is.null(plot_theme)) {
@@ -319,14 +319,22 @@ add_atrisk<- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_th
 }
 
 #' @title estimate_km
-#'
+#' @description Computes Kaplan-Meier survival estimates from a dataset, optionally stratified by a grouping variable.
+#' @param df A data frame containing the survival data.
+#' @param evt_time A numeric vector representing the time to event or censoring.
+#' @param evt A binary event indicator (1 = event occurred, 0 = censored).
+#' @param group A grouping variable for stratified survival curves.
+#' @param ... Additional arguments passed to \code{survival::survfit()}.
+#' @return A \code{survfit} object containing the survival estimates.
 #' @details
 #' The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
 #' transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
 #' run_logrank_test().
 #'
 #' @export
-estimate_km<- function(df, evt_time, evt, group, ...) {
+#'
+#'
+estimate_km <- function(df, evt_time, evt, group, ...) {
 
   evt_time<- enquo(evt_time)
   evt     <- enquo(evt)
@@ -334,12 +342,12 @@ estimate_km<- function(df, evt_time, evt, group, ...) {
 
   out<- if (quo_is_missing(group)) {
     substitute(survfit(Surv(evt_time, evt) ~ 1, data= df, conf.type= "log-log", ...),
-               list(evt_time= quo_get_expr(evt_time),
+               list(evt_time = quo_get_expr(evt_time),
                     evt     = quo_get_expr(evt),
                     df      = df))
   } else {
     substitute(survfit(Surv(evt_time, evt) ~ grp, data= df, conf.type= "log-log", ...),
-               list(evt_time= quo_get_expr(evt_time),
+               list(evt_time = quo_get_expr(evt_time),
                     evt     = quo_get_expr(evt),
                     grp     = quo_get_expr(group),
                     df      = df))
@@ -348,14 +356,19 @@ estimate_km<- function(df, evt_time, evt, group, ...) {
   out
 }
 
-#' @export
-run_logrank_test<- function(surv_obj) {
 
-  tmp<- surv_obj$call
-  tmp[[1]]<- as.name("survdiff")
-  tmp$rho<- 0
-  tmp$conf.type<- NULL
-  test<- eval(tmp, parent.frame())
+#' @title Run Log-Rank Test for Survival Differences
+#' @description Performs a log-rank test to compare survival distributions between two or more groups.
+#' @param surv_obj A \code{survfit} object, such as one returned by \code{estimate_km()}, containing grouped survival curves.
+#' @return A numeric value representing the p-value from the log-rank test.
+#' @export
+run_logrank_test <- function(surv_obj) {
+
+  tmp <- surv_obj$call
+  tmp[[1]] <- as.name("survdiff")
+  tmp$rho <- 0
+  tmp$conf.type <- NULL
+  test <- eval(tmp, parent.frame())
 
   pval<- pchisq(test$chisq, df= length(test$n) - 1, lower.tail = FALSE)
   pval
@@ -363,7 +376,7 @@ run_logrank_test<- function(surv_obj) {
 
 
 #' @export
-show_surv<- function(surv_obj,
+show_surv <- function(surv_obj,
                      x_lab= 'Time',
                      y_lab= if (plot_cdf) 'The proportion of deceased subjects' else 'The freedom from death',
                      # x_lim= NULL,
@@ -647,26 +660,39 @@ run_gray_test <- function(surv_obj, evt_type= 1:2) {
   pval
 }
 
-#' @title show_cif
+#' @title Plot Cumulative Incidence Function for Competing Risks
+#' @description Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization.
 #'
 #' @details
-#' The function shows the cumulative incidence function for competing risks with and without strata.
+#' This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
+#' It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+#' @param surv_obj  A \code{survfit} object, such as one returned by \code{estimate_cif()}.
+#' @param evt_type Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).
+#' @param evt_label A function to relabel event types for plotting (default uses \code{recode_factor()} to label 1 = "Event", 2 = "Competing event", others = "Event free").
+#' @param add_ci Logical; if \code{TRUE}, adds confidence intervals to the CIF curves (default = TRUE).
+#' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
+#' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
+#' @param add_pvalue Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).
+#' @param atrisk_init_pos Character; position of the "At-risk N:" label.
+#' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
+#' @param plot_theme A \code{ggplot2} theme object to customize the appearance of the plot (default = \code{theme_minimal()}).
+#' @param x_lab Character; label for the x-axis (default = "Time").
+#' @param y_lab Character; label for the y-axis (default = "Proportion of subjects").
+#' @param x_lim Numeric vector of length 2 specifying x-axis limits.
+#' @param y_lim Numeric vector of length 2 specifying y-axis limits.
+#' @param x_break Numeric vector specifying x-axis tick positions.
+#' @param y_break Numeric vector specifying y-axis tick positions.
+#' @param color_scheme Character; color scheme to use. Options: "brewer", "grey", "viridis", "manual" (default = "brewer").
+#' @param color_list A named list of colors to use when \code{color_scheme = "manual"} (e.g., \code{list(values = c("red", "blue"))}).
+#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = TRUE).
+#' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
+#' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
+#' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
+#' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
 #'
-#' @param surv_obj a survfitms subject.
-#' @param x_lab an integer vector indicating right censoring (0= censored; 1= event of interest; other= competing risk(s)).
-#' @param y_lab a numeric vector specifying the time point at which administrative censoring is applied.
-#' @param x_lim a numeric vector specifying the time point at which administrative censoring is applied.
-#' @param y_lim a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.
-#' @param color_list input data
-#' @param plot_theme a numeric vector recording the time points at which the event occurs.
-#' @param add_ci an integer vector indicating right censoring (0= censored; 1= event of interest; other= competing risk(s)).
-#' @param add_atrisk a logical parameter indicating whether at-risk table should be added to the figure.
-#' @param add_legend a logical parameter indicating whether legend should be added to the figure.
-#' @param add_pvalue a logical parameter (default= FALSE) indiciates if a p-value should be added to the plot.
-#' @param pvalue_pos a character parameter indicating where the p-value should be added to the plot.
-#' @param atrisk_init_pos the location of the label "At-risk N:"
-#' @param plot_cdf Not used
-#' @return A ggplot object.
+#' @return A \code{ggplot} object representing the cumulative incidence function plot.
+#'
+
 #' @examples
 #' my_plot_theme<- theme_bw() +
 #' theme(axis.title  = element_text(size= 14, family="Arial"),
@@ -751,7 +777,6 @@ show_cif <- function(surv_obj,
                     color_scheme= c("brewer", "grey", "viridis", "manual"),
                     color_list= NULL, #required only if color_scheme= 'manual'. eg color_list= list(values= c('red', 'blue'))
 
-                    plot_cdf= FALSE,
                     print_fig = TRUE,
 
                     top.margin = 18,
@@ -770,15 +795,15 @@ show_cif <- function(surv_obj,
            state       = fct_drop((state)),
            state_strata= interaction(state_label, strata, drop= TRUE, sep= ": "))
 
-  plot_prob_d<- cmprisk_mat %>%
+  plot_prob_d <- cmprisk_mat %>%
     dplyr::select(strata, state, state_label, state_strata, plot_prob_d) %>%
     unnest(cols = c(plot_prob_d))
 
-  add_pvalue<- if (nlevels(plot_prob_d$strata)==1) FALSE else add_pvalue
-  add_legend<- if ((nlevels(plot_prob_d$strata)==1 &
+  add_pvalue <- if (nlevels(plot_prob_d$strata)==1) FALSE else add_pvalue
+  add_legend <- if ((nlevels(plot_prob_d$strata)==1 &
                     nlevels(plot_prob_d$state) ==1 )) FALSE else add_legend
 
-  color_scheme<- match.arg(color_scheme)
+  color_scheme <- match.arg(color_scheme)
   if (color_scheme=='manual' & is.null(color_list)) stop("Please provide a list of color value(s) when a manual color scheme is specified.")
 
   fill_fun <- switch(color_scheme,
@@ -830,11 +855,11 @@ show_cif <- function(surv_obj,
   out<- if (!is.null(x_lim) | !is.null(y_lim)) out + coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "on") else out
 
   if (add_ci) {
-    plot_ci_d<- cmprisk_mat %>%
+    plot_ci_d <- cmprisk_mat %>%
       dplyr::select(strata, state, state_label, state_strata, plot_ci_d) %>%
       unnest(cols = c(plot_ci_d))
 
-    out<- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
+    out <- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
 
       out +
         geom_ribbon(data= plot_ci_d,
@@ -877,76 +902,76 @@ show_cif <- function(surv_obj,
   }
 
   if (add_pvalue) {
-    pval<- run_gray_test(surv_obj, evt_type = evt_type) %>%
+    pval <- run_gray_test(surv_obj, evt_type = evt_type) %>%
       format_pvalue()
-    pval<- ifelse(trimws(pval)=="<0.001", "Gray's p< 0.001", paste0("Gray's p= ", pval) )
+    pval <- ifelse(trimws(pval)=="<0.001", "Gray's p< 0.001", paste0("Gray's p= ", pval) )
 
-    tiny_nudge<- 0.01
-    pvalue_pos<- match.arg(pvalue_pos)
+    tiny_nudge <- 0.01
+    pvalue_pos <- match.arg(pvalue_pos)
     if (pvalue_pos %in% c("topleft")) {
       # pvalue.x<- layer_scales(out)$x$range$range[1]
       # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
-      pvalue.x<- 0 + tiny_nudge
-      pvalue.y<- 1 - tiny_nudge
-      pvalue.hjust<- 0
-      pvalue.vjust<- 1
+      pvalue.x <- 0 + tiny_nudge
+      pvalue.y <- 1 - tiny_nudge
+      pvalue.hjust <- 0
+      pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottomleft")) {
       # pvalue.x<- layer_scales(out)$x$range$range[1]
       # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
-      pvalue.x<- 0 + tiny_nudge
-      pvalue.y<- 0 + tiny_nudge
-      pvalue.hjust<- 0
-      pvalue.vjust<- 0
+      pvalue.x <- 0 + tiny_nudge
+      pvalue.y <- 0 + tiny_nudge
+      pvalue.hjust <- 0
+      pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("topright")) {
       # pvalue.x<- layer_scales(out)$x$range$range[2]
       # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
-      pvalue.x<- 1 - tiny_nudge
-      pvalue.y<- 1 - tiny_nudge
-      pvalue.hjust<- 1
-      pvalue.vjust<- 1
+      pvalue.x <- 1 - tiny_nudge
+      pvalue.y <- 1 - tiny_nudge
+      pvalue.hjust <- 1
+      pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottomright")) {
       # pvalue.x<- layer_scales(out)$x$range$range[2]
       # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
-      pvalue.x<- 1 - tiny_nudge
-      pvalue.y<- 0 + tiny_nudge
-      pvalue.hjust<- 1
-      pvalue.vjust<- 0
+      pvalue.x <- 1 - tiny_nudge
+      pvalue.y <- 0 + tiny_nudge
+      pvalue.hjust <- 1
+      pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("left")) {
       # pvalue.x<- layer_scales(out)$x$range$range[1]
       # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
-      pvalue.x<- 0 + tiny_nudge
-      pvalue.y<- 0.5
-      pvalue.hjust<- 0
-      pvalue.vjust<- 0.5
+      pvalue.x <- 0 + tiny_nudge
+      pvalue.y <- 0.5
+      pvalue.hjust <- 0
+      pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("right")) {
       # pvalue.x<- layer_scales(out)$x$range$range[2]
       # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
-      pvalue.x<- 1 - tiny_nudge
-      pvalue.y<- 0.5
-      pvalue.hjust<- 1
-      pvalue.vjust<- 0.5
+      pvalue.x <- 1 - tiny_nudge
+      pvalue.y <- 0.5
+      pvalue.hjust <- 1
+      pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("top")) {
       # pvalue.x<- mean(layer_scales(out)$x$range$range)
       # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
-      pvalue.x<- 0.5
-      pvalue.y<- 1 - tiny_nudge
-      pvalue.hjust<- 0.5
-      pvalue.vjust<- 1
+      pvalue.x <- 0.5
+      pvalue.y <- 1 - tiny_nudge
+      pvalue.hjust <- 0.5
+      pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottom")) {
       # pvalue.x<- mean(layer_scales(out)$x$range$range)
       # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
-      pvalue.x<- 0.5
-      pvalue.y<- 0 + tiny_nudge
-      pvalue.hjust<- 0.5
-      pvalue.vjust<- 0
+      pvalue.x <- 0.5
+      pvalue.y <- 0 + tiny_nudge
+      pvalue.hjust <- 0.5
+      pvalue.vjust <- 0
     } else {
-      pvalue.x<- NULL
-      pvalue.y<- NULL
-      pvalue.hjust<- NULL
-      pvalue.vjust<- NULL
+      pvalue.x <- NULL
+      pvalue.y <- NULL
+      pvalue.hjust <- NULL
+      pvalue.vjust <- NULL
     }
 
-    out<- out +
+    out <- out +
       annotation_custom(
         grob = textGrob(label= pval,
                         x = pvalue.x,

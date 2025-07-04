@@ -6,8 +6,22 @@
 \usage{
 estimate_km(df, evt_time, evt, group, ...)
 }
+\arguments{
+\item{df}{A data frame containing the survival data.}
+
+\item{evt_time}{A numeric vector representing the time to event or censoring.}
+
+\item{evt}{A binary event indicator (1 = event occurred, 0 = censored).}
+
+\item{group}{A grouping variable for stratified survival curves.}
+
+\item{...}{Additional arguments passed to \code{survival::survfit()}.}
+}
+\value{
+A \code{survfit} object containing the survival estimates.
+}
 \description{
-estimate_km
+Computes Kaplan-Meier survival estimates from a dataset, optionally stratified by a grouping variable.
 }
 \details{
 The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
