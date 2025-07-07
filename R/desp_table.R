@@ -28,7 +28,6 @@
 #' @param total Logical; whether to report the total N. Default is `TRUE`.
 #' @param  pval Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.
 #' @param print_test Logical. If TRUE, the output will include the type of statistical test applied to each variable. Default is `FALSE`.
-#' @param bold_pval  Logical. If TRUE, p-values <0.05 will be bold in formatted `kable` table. Default is `FALSE`.
 #' @param  continuous Character string specifying the summary statistics for continuous variables.
 #'  Must be one of:
 #'   \itemize{
@@ -36,7 +35,7 @@
 #'     \item `"meansd"`: Mean and standard deviation.
 #'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
 #'   }
-#' @param round_to_100 force rounded total to add up to 100% calculated using the largest remainder method
+#' @param round_to_100 force rounded total to add up to 100% calculated using the largest remainder method for factor variables
 #' @param  kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
 #' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
 #' @examples
@@ -65,7 +64,7 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,bold_pval = FALSE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,kable_output=TRUE,caption = NULL) {
+                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,kable_output=TRUE,caption = NULL) {
 
 
 
@@ -176,9 +175,6 @@ if(!print_test ) summary$print_test  <- NULL
 
     out <- out %>%
       filter(!(row_number() == 1 & total == TRUE)) %>%
-      mutate(pval = ifelse(bold_pval & (parse_number(pval) < 0.05),
-                           kableExtra::cell_spec(pval, bold = TRUE),
-                           as.character(pval))) %>%
       select(all_of(c("var_desp", c(rbind(n_columns, stat_columns)), if (pval) "pval" else NULL,if (print_test) "test" else NULL))) %>%
 
       kableExtra::kbl(caption = caption,
