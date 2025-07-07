@@ -73,6 +73,49 @@ format_pvalue <- function(x, eps = 0.001, trim = TRUE,
 }
 
 
+
+#'@title Round a Vector of Percentages to Sum
+#'
+#'@description Rounds a vector of values to whole numbers while preserving the sum (rounded if it is not a whole number) using the largest remainder method
+#'
+#' @param percentages A numeric vector of percentages that should sum to 100.
+#' @param digits An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).
+#'
+#' @return A numeric vector of the same length as `percentages`, rounded to the specified number of digits, and summing to exactly 100.
+#'
+#' @examples
+#' round_to_100(c(33.3, 33.3, 33.4))
+#' # Returns: 33 33 34
+#'
+#' round_to_100(c(33.33, 33.33, 33.34), digits = 1)
+#' # Returns: 33.3 33.3 33.4
+#'
+#' @export
+# Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits
+RoundFixedSum <- function (v,digits = 1)
+{
+
+
+  scaleFactor <- 10^digits
+  v_scaled <- v * scaleFactor
+
+
+  if (all(v_scaled%%1 == 0)) {
+    out <- v_scaled
+  }
+  else {
+    vfloor <- floor(v_scaled)
+    vfrac <- v_scaled - vfloor
+    kfrac <- round(sum(v_scaled)) - sum(vfloor)
+    i <- tail(order(vfrac), kfrac)
+    vfloor[i] <- vfloor[i] + 1
+    out <- vfloor
+  }
+  return(out/scaleFactor)
+}
+
+
+
 #' @title updateWorksheet
 #'
 #' @details

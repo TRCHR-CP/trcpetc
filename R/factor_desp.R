@@ -7,7 +7,7 @@
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 #' @export
-factor_desp<- function(df, group, includeNA= FALSE) {
+factor_desp <- function(df, group, includeNA= FALSE) {
 
   ##
   make_univariate_fml<- function(x, y= NULL) {
@@ -24,8 +24,8 @@ factor_desp<- function(df, group, includeNA= FALSE) {
 
   output_one_way_tbl <- function(freq, pct_digits= 1) {
     pct  <- prop.table(freq)
-    var_name<- names(dimnames(freq))
-    freq<- freq %>%
+    var_name <- names(dimnames(freq))
+    freq <- freq %>%
       addmargins() %>%
       as.data.frame(row.names= names(dimnames(.)),
                     responseName = "freq",
@@ -38,7 +38,7 @@ factor_desp<- function(df, group, includeNA= FALSE) {
       ) %>%
       dplyr::select(level, n, freq)
 
-    pct<- pct %>%
+    pct <- pct %>%
       as.data.frame(row.names= names(dimnames(.)),
                     responseName = "pct",
                     stringsAsFactors = FALSE) %>%
@@ -46,13 +46,13 @@ factor_desp<- function(df, group, includeNA= FALSE) {
       mutate(pct= formatC(pct*100, digits= pct_digits, format= "f")) %>%
       dplyr::select(level, pct)
 
-    freq<- freq %>%
+    freq <- freq %>%
       mutate_all(as.character)
 
-    pct<- pct %>%
+    pct <- pct %>%
       mutate_all(as.character)
 
-    out<- full_join(freq, pct, by = c("level")) %>%
+    out <- full_join(freq, pct, by = c("level")) %>%
       mutate(stat= paste0(freq, " (", pct, "%)"),
              stat= ifelse(level=="Sum", NA_character_, stat),
              level= ifelse(level=="Sum", ".", level)) %>%
