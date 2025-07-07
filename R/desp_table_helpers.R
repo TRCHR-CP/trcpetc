@@ -1,14 +1,15 @@
 #' @keywords internal
 
-table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,overall_label = "Overall"){
+table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE,overall_label = "Overall"){
 
   df <- df %>%
     ungroup() %>%
     select_if(Negate(is.character)) %>%
     select_if(Negate(is.Date)) %>%
-    as.data.frame() %>%
-    mutate_if(is.factor, droplevels) %>%
-    as_tibble()
+    as.data.frame() %>% as_tibble()
+
+    if(drop.unused.levels) df <- df %>% mutate_if(is.factor, droplevels)
+
 
 
   num_out_lst <- if (any(sapply(df, class) %in% c("numeric", "integer"))) {
@@ -19,7 +20,7 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,overall_label
   } else NULL
 
   fct_out_lst <- if (any(sapply(df, class)=="factor")) {
-    factor_desp(df,round_to_100 = round_to_100) %>%
+    factor_desp(df,round_to_100 = round_to_100,drop.unused.levels=drop.unused.levels) %>%
       rownames_to_column("row_id") %>%
       rename(type= level) %>%
       mutate(row_id= ifelse(type!= "." & !is.na(type),
@@ -60,7 +61,7 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,overall_label
 
 #' @keywords internal
 
-table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE){
+table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE){
 
   group <- rlang::enquo(group)
 
@@ -68,9 +69,11 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE){
     ungroup() %>%
     select_if(Negate(is.character)) %>%
     select_if(Negate(is.Date)) %>%
-    mutate_if(is.factor, droplevels) %>%
     filter(!is.na(!!group)) %>%
     group_by(!!group)
+
+  if(drop.unused.levels) df <- df %>% mutate_if(is.factor, droplevels)
+
 
   group_var_idx <- match(group_vars(df), names(df))
 
@@ -83,7 +86,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE){
   } else NULL
 
   fct_out_lst <- if (any(sapply(df[-group_var_idx], class)=="factor")) {
-    factor_desp(df, !!group,round_to_100 = round_to_100) %>%
+    factor_desp(df,!!group,round_to_100 = round_to_100,drop.unused.levels=drop.unused.levels) %>%
       rownames_to_column("row_id") %>%
       rename(type= level) %>%
       mutate(row_id= ifelse(type!= "." & !is.na(type),

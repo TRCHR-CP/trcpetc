@@ -36,6 +36,7 @@
 #'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
 #'   }
 #' @param round_to_100 force rounded total to add up to 100% calculated using the largest remainder method for factor variables
+#' @param drop.unused.levels Removes factor variables with 0. Levels with zero are not included in statistical tests
 #' @param  kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
 #' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
 #' @examples
@@ -64,7 +65,9 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,kable_output=TRUE,caption = NULL,overall_label = "Overall") {
+                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
+                      drop.unused.levels = FALSE,
+                      kable_output=TRUE,caption = NULL,overall_label = "Overall") {
 
 
 
@@ -92,7 +95,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if (rlang::quo_is_missing(group)) {  #If there is a grouping variable
 
-    summary <- table_one_overall(df,total = total,round_to_100 = round_to_100,overall_label = overall_label)
+    summary <- table_one_overall(df,total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
     pval <- FALSE
     print_test  <- FALSE
 
@@ -100,24 +103,22 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if(include_overall == "none") { #When only reporting the grouping variable
 
-    summary <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
+    summary <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
 
   } else if(include_overall == "group") { #Including the overall total but only when the group is not missing
     if(overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
 
-
-
       df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
-      summary_full <- table_one_overall(df_group,total = total,round_to_100 = round_to_100,overall_label = overall_label)
-      summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
+      summary_full <- table_one_overall(df_group,total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
+      summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
       summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   } else if(include_overall == "all") { #Including the overall total for all patients
 
     if(overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
 
-    summary_full <- table_one_overall(df %>% select(-!!group),total = total,round_to_100 = round_to_100,overall_label = overall_label)
-    summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
+    summary_full <- table_one_overall(df %>% select(-!!group),total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
+    summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
     summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   }

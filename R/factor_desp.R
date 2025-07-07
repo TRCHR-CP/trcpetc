@@ -7,10 +7,10 @@
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 #' @export
-factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE) {
+factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.unused.levels = FALSE) {
 
   ##
-  make_univariate_fml<- function(x, y= NULL) {
+  make_univariate_fml <- function(x, y= NULL) {
     sapply(x, function(x){
       if (is.null(y)) formula(paste0("~", x)) else formula(paste0(y, "~", x))
     })
@@ -67,7 +67,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE) {
     pct  <- prop.table(freq, margin = 2)
 
     # fisher exact test
-    test <- try(fisher.test(freq, hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
+    test <- try(fisher.test(freq[rowSums(freq) != 0, ], hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
     test <- if (class(test)=="try-error") NA else test$p.value
 
     # total
@@ -129,7 +129,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE) {
     fml <- make_univariate_fml(names(df))
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
-    tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
+    tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = drop.unused.levels)
     out     <- lapply(tbl_list, output_one_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1,round_to_100 = round_to_100)
 
   } else {
@@ -142,7 +142,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE) {
 
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
-    tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
+    tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = drop.unused.levels)
     out     <- lapply(tbl_list, output_two_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1,round_to_100 = round_to_100)
   }
 
@@ -150,18 +150,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE) {
     bind_rows(.id= "variable") %>%
     mutate(level= ifelse(level==".", NA_character_, level))
   out
-  # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
-  # here we are going to drop unused levels (drop.unused.levels = TRUE)
-  # table_obj<- xtabs( ~ ., data= df, addNA= TRUE, drop.unused.levels = TRUE)
 
-  # if (rlang::quo_is_missing(group)) {
-  #   factor_dist(table_obj = table_obj,
-  #               pct_digits = if (nrow(df)< 200) 0 else 1)
-  # } else {
-  #   factor_dist(table_obj = table_obj,
-  #               col_var = rlang::UQ(group),
-  #               pct_digits = if (nrow(df)< 200) 0 else 1)
-  # }
 }
 
 
