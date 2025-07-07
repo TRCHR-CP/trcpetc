@@ -36,6 +36,7 @@
 #'     \item `"meansd"`: Mean and standard deviation.
 #'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
 #'   }
+#' @param round_to_100 force rounded total to add up to 100% calculated using the largest remainder method
 #' @param  kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
 #' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
 #' @examples
@@ -64,7 +65,7 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,bold_pval = FALSE,print_test  = FALSE,continuous = "mediqr",kable_output=TRUE,caption = NULL) {
+                      total = TRUE,pval=TRUE,bold_pval = FALSE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,kable_output=TRUE,caption = NULL) {
 
 
 
@@ -92,7 +93,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if (rlang::quo_is_missing(group)) {  #If there is a grouping variable
 
-    summary <- table_one_overall(df,total = total)
+    summary <- table_one_overall(df,total = total,round_to_100 = round_to_100)
     pval <- FALSE
     print_test  <- FALSE
 
@@ -100,20 +101,20 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if(include_overall == "none") { #When only reporting the grouping variable
 
-    summary <- table_one_stratify(df,group = !!group,total = total)
+    summary <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
 
   } else if(include_overall == "group") { #Including the overall total but only when the group is not missing
 
       df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
-      summary_full <- table_one_overall(df_group,total = total)
-      summary_group <- table_one_stratify(df,group = !!group,total = total)
+      summary_full <- table_one_overall(df_group,total = total,round_to_100 = round_to_100)
+      summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
       summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   } else if(include_overall == "all") { #Including the overall total for all patients
 
 
-    summary_full <- table_one_overall(df %>% select(-!!group),total = total)
-    summary_group <- table_one_stratify(df,group = !!group,total = total)
+    summary_full <- table_one_overall(df %>% select(-!!group),total = total,round_to_100 = round_to_100)
+    summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
     summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   }

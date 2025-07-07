@@ -7,7 +7,7 @@
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 #' @export
-factor_desp <- function(df, group, includeNA= FALSE) {
+factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE) {
 
   ##
   make_univariate_fml<- function(x, y= NULL) {
@@ -22,7 +22,7 @@ factor_desp <- function(df, group, includeNA= FALSE) {
     })
   }
 
-  output_one_way_tbl <- function(freq, pct_digits= 1) {
+  output_one_way_tbl <- function(freq, pct_digits = 1,round_to_100 = FALSE) {
     pct  <- prop.table(freq)
     var_name <- names(dimnames(freq))
     freq <- freq %>%
@@ -42,8 +42,8 @@ factor_desp <- function(df, group, includeNA= FALSE) {
       as.data.frame(row.names= names(dimnames(.)),
                     responseName = "pct",
                     stringsAsFactors = FALSE) %>%
-      rownames_to_column("level") %>%
-      mutate(pct= formatC(pct*100, digits= pct_digits, format= "f")) %>%
+      rownames_to_column("level")  %>%
+      mutate(pct = if (round_to_100) formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f") else formatC(pct * 100, digits = pct_digits, format = "f"))%>%
       dplyr::select(level, pct)
 
     freq <- freq %>%
@@ -62,7 +62,7 @@ factor_desp <- function(df, group, includeNA= FALSE) {
     out[match(c('.', levels(df[[var_name]])), out$level),]
   }
 
-  output_two_way_tbl <- function(freq, pct_digits= 1) {
+  output_two_way_tbl <- function(freq, pct_digits = 1,round_to_100 = FALSE) {
     tbl_var_name <- names(dimnames(freq))
     pct  <- prop.table(freq, margin = 2)
 
@@ -81,9 +81,20 @@ factor_desp <- function(df, group, includeNA= FALSE) {
       as.data.frame(responseName = "freq", stringsAsFactors = FALSE) %>%
       mutate(freq= ifelse(!is.na(freq), formatC(freq, format= "d", big.mark = ","), NA_character_))
 
-    pct <- pct %>%
-      as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
-      mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
+    if(round_to_100){
+      pct <- pct %>%
+        as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
+        group_by(!!sym(tbl_var_name[2])) %>%
+        mutate(pct=  formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f"))
+
+
+    }else {
+      pct <- pct %>%
+        as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
+        mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
+    }
+
+
 
     freq <- freq %>%
       mutate_all(as.character)
@@ -111,7 +122,7 @@ factor_desp <- function(df, group, includeNA= FALSE) {
 
   # 1 - select variables of factor class
   if (rlang::quo_is_missing(group)) {
-    df<- df %>%
+    df <- df %>%
       ungroup() %>%
       select_if(is.factor)
 
@@ -119,7 +130,7 @@ factor_desp <- function(df, group, includeNA= FALSE) {
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
     tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
-    out     <- lapply(tbl_list, output_one_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1)
+    out     <- lapply(tbl_list, output_one_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1,round_to_100 = round_to_100)
 
   } else {
     df <- df %>%
@@ -132,7 +143,7 @@ factor_desp <- function(df, group, includeNA= FALSE) {
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
     tbl_list <- lapply(fml, xtabs, data= df, addNA= includeNA, drop.unused.levels = TRUE)
-    out     <- lapply(tbl_list, output_two_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1)
+    out     <- lapply(tbl_list, output_two_way_tbl, pct_digits = if (nrow(df)< 200) 0 else 1,round_to_100 = round_to_100)
   }
 
   out <- out %>%

@@ -1,6 +1,6 @@
 #' @keywords internal
 
-table_one_overall <- function(df,total = TRUE){
+table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE){
 
   df <- df %>%
     ungroup() %>%
@@ -19,7 +19,7 @@ table_one_overall <- function(df,total = TRUE){
   } else NULL
 
   fct_out_lst <- if (any(sapply(df, class)=="factor")) {
-    factor_desp(df) %>%
+    factor_desp(df,round_to_100 = round_to_100) %>%
       rownames_to_column("row_id") %>%
       rename(type= level) %>%
       mutate(row_id= ifelse(type!= "." & !is.na(type),
@@ -60,7 +60,7 @@ table_one_overall <- function(df,total = TRUE){
 
 #' @keywords internal
 
-table_one_stratify <- function(df,group,total = TRUE){
+table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE){
 
   group <- rlang::enquo(group)
 
@@ -83,7 +83,7 @@ table_one_stratify <- function(df,group,total = TRUE){
   } else NULL
 
   fct_out_lst <- if (any(sapply(df[-group_var_idx], class)=="factor")) {
-    factor_desp(df, !!group) %>%
+    factor_desp(df, !!group,round_to_100 = round_to_100) %>%
       rownames_to_column("row_id") %>%
       rename(type= level) %>%
       mutate(row_id= ifelse(type!= "." & !is.na(type),
