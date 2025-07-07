@@ -1,6 +1,6 @@
 #' @keywords internal
 
-table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE){
+table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,overall_label = "Overall"){
 
   df <- df %>%
     ungroup() %>%
@@ -50,7 +50,7 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE){
     append(fct_out_lst) %>%
     append(logic_out_lst)
 
-  Output <- out_lst[c("N",names(df))] %>% bind_rows() %>% rename(Overall_n = n,Overall_stat = stat)
+  Output <- out_lst[c("N",names(df))] %>% bind_rows() %>% rename(!!paste0(overall_label,"_n") := n, !!paste0(overall_label,"_stat") := stat)
 
 
 

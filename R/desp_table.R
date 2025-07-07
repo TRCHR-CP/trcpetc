@@ -64,7 +64,7 @@
 #' @importFrom dplyr select
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,kable_output=TRUE,caption = NULL) {
+                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,kable_output=TRUE,caption = NULL,overall_label = "Overall") {
 
 
 
@@ -92,7 +92,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if (rlang::quo_is_missing(group)) {  #If there is a grouping variable
 
-    summary <- table_one_overall(df,total = total,round_to_100 = round_to_100)
+    summary <- table_one_overall(df,total = total,round_to_100 = round_to_100,overall_label = overall_label)
     pval <- FALSE
     print_test  <- FALSE
 
@@ -103,16 +103,20 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
     summary <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
 
   } else if(include_overall == "group") { #Including the overall total but only when the group is not missing
+    if(overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
+
+
 
       df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
-      summary_full <- table_one_overall(df_group,total = total,round_to_100 = round_to_100)
+      summary_full <- table_one_overall(df_group,total = total,round_to_100 = round_to_100,overall_label = overall_label)
       summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
       summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
   } else if(include_overall == "all") { #Including the overall total for all patients
 
+    if(overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
 
-    summary_full <- table_one_overall(df %>% select(-!!group),total = total,round_to_100 = round_to_100)
+    summary_full <- table_one_overall(df %>% select(-!!group),total = total,round_to_100 = round_to_100,overall_label = overall_label)
     summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100)
     summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
 
