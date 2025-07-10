@@ -67,7 +67,7 @@
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,
-                      kable_output=TRUE,caption = NULL,overall_label = "Overall") {
+                      kable_output=TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE) {
 
   set.seed(seed)
 
@@ -111,7 +111,21 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 if(!rlang::quo_is_missing(group)){
   summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
-}
+
+
+# Including a missing column and p-value -------------------------------------------------------------------------
+
+
+  if(include_Missing){
+    summary_group <-   df %>% mutate(
+    {{ group }} := {{ group }} %>%
+          forcats::fct_na_value_to_level(level = "Missing")) %>%
+          table_one_stratify(group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels) %>%
+          left_join((summary_group %>% select(row_id,pval)),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
+
+      }
+
+  }
 
 
 # Overall summary table -------------------------------------------------------------------------
@@ -215,17 +229,25 @@ if(!print_test ) summary$print_test  <- NULL
 
     out <- out %>%
       filter(!(row_number() == 1 & total == TRUE)) %>%
-      select(all_of(c("var_desp", c(rbind(n_columns, stat_columns)), if (pval) "pval" else NULL,if (print_test) "test" else NULL))) %>%
+        select(
+        all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
+        any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
+        any_of(if (print_test) "test" else NULL)
+      ) %>%
 
       kableExtra::kbl(caption = caption,
                    booktabs=TRUE,
                    escape = FALSE,
                    align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
-                   col.names = c('Variables', rep(c('N', 'Stat'), length(headers)), if (pval) '*P*-value' else character(0) , if (print_test ) 'Statistical test' else character(0))) %>%
+                   col.names = c('Variables', rep(c('N', 'Stat'), length(headers)),
+                                 if (pval & !include_Missing) '*P*-value' else character(0) ,
+                                 if (pval & include_Missing) 'Without missing' else character(0) ,
+                                 if (pval & include_Missing) 'With missing' else character(0) ,
+                                 if (print_test) 'Statistical test' else character(0))) %>%
       kableExtra::row_spec(row = 0, align = "c") %>%
       kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                                full_width = FALSE)%>%
-      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval) '' else character(0), if (print_test ) '' else character(0)))%>%
+                                full_width = FALSE) %>%
+      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) setNames(rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
       kableExtra::add_indent(indent)
 
 
