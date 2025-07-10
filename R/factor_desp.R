@@ -84,6 +84,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
     if(round_to_100){
       pct <- pct %>%
         as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
+        mutate(pct = ifelse(is.nan(pct),0,pct)) %>%
         group_by(!!sym(tbl_var_name[2])) %>%
         mutate(pct=  formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f"))
 
@@ -91,6 +92,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
     }else {
       pct <- pct %>%
         as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
+        mutate(pct = ifelse(is.nan(pct),0,pct)) %>%
         mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
     }
 
