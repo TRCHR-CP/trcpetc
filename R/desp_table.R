@@ -69,19 +69,14 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
                       drop.unused.levels = FALSE,
                       kable_output=TRUE,caption = NULL,overall_label = "Overall") {
 
-
-
-  invalid_continuous <- continuous[!continuous %in% c("mediqr", "meansd")]
-
-  if (length(invalid_continuous) > 0) {
-    stop(paste0('Invalid value(s) in "continuous": ', paste(unique(invalid_continuous), collapse = ", "),
-                '. Allowed values are "mediqr" and "meansd".'))
-  }
-
-
-  if(!pval) print_test <- FALSE #Can't print the test is there is no pvalue
-
   set.seed(seed)
+
+
+
+
+# Setting up  -------------------------------------------------------------------------
+
+
   include_overall <- match.arg(include_overall)
   op <- options(warn = -1)
   on.exit(options(op))
@@ -93,41 +88,76 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
   if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
 
-  if (rlang::quo_is_missing(group)) {  #If there is a grouping variable
+  if(!rlang::quo_is_missing(group)) pval <- FALSE #No p-values without a grouping variable
+  if(!pval) print_test <- FALSE #Can't print the test is there is no pvalue
 
-    summary <- table_one_overall(df,total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
-    pval <- FALSE
-    print_test  <- FALSE
+  # Errors -------------------------------------------------------------------------
 
-  }else{ #If there is not a grouping variable
+  ## Only allows mediqr & meansd for continuous variables
 
-  if(include_overall == "none") { #When only reporting the grouping variable
-
-    summary <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
-
-  } else if(include_overall == "group") { #Including the overall total but only when the group is not missing
-    if(overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
-
-      df_group <- df %>% filter(!is.na(!!group)) %>% select(-!!group)
-      summary_full <- table_one_overall(df_group,total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
-      summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
-      summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
-
-  } else if(include_overall == "all") { #Including the overall total for all patients
-
-    if(overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
-
-    summary_full <- table_one_overall(df %>% select(-!!group),total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
-    summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
-    summary <- summary_full %>% left_join(summary_group,by = c('row_id','variable','type'))
-
+  invalid_continuous <- continuous[!continuous %in% c("mediqr", "meansd")]
+  if (length(invalid_continuous) > 0) {
+    stop(paste0('Invalid value(s) in "continuous": ', paste(unique(invalid_continuous), collapse = ", "),
+                '. Allowed values are "mediqr" and "meansd".'))
   }
+
+  #Overall name can not match a group name
+  if((!rlang::quo_is_missing(group) & include_overall %in% c("group","all")) & overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) {
+    stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
+  }
+
+
+#Grouped summary table -------------------------------------------------------------------------
+
+if(!rlang::quo_is_missing(group)){
+  summary_group <- table_one_stratify(df,group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
+}
+
+
+# Overall summary table -------------------------------------------------------------------------
+
+  ##If include overall = "group" remove rows where the grouping variable is missing
+  if(!rlang::quo_is_missing(group) & include_overall == "group"){
+    df <- df %>% filter(!is.na(!!group))
+  }
+
+
+  ##Remove the grouping variable from the overall table
+  if(!rlang::quo_is_missing(group)){
+    df <- df %>% select(-!!group)
+  }
+
+  if(rlang::quo_is_missing(group) |include_overall == "all" | include_overall == "group" ){
+    summary_overall <- table_one_overall(df,total = total,round_to_100 = round_to_100,overall_label = overall_label,drop.unused.levels = drop.unused.levels)
+    }
+
+
+# Combining summary tables together -------------------------------------------------------------------------
+
+  if(!rlang::quo_is_missing(group) & (include_overall == "all" | include_overall == "group" )){
+  summary <- summary_overall %>% left_join(summary_group,by = c('row_id','variable','type'))
+  }else if(rlang::quo_is_missing(group)){
+    summary <- summary_overall
+  }else {
+    summary <- summary_group
+  }
+
+  ##Run the grouped table (If include_overall is include_overall = all or include_overall = group)
+
+
+# Removing pre-defined columns (pval, continuous) -------------------------
+
+
+
 if(!pval) summary$pval <- NULL
 if(!print_test ) summary$print_test  <- NULL
-}
+
   #Optionally removing the continuous variables
   if(!"meansd" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
   if(!"mediqr" %in% (continuous)) summary <- summary %>% filter(!grepl("_mediqr$", row_id))
+
+
+# Adding the datadic and cleaning the table -------------------------------------------------------------------------
 
 
   if (is.null(datadic)) {
@@ -155,6 +185,11 @@ if(!print_test ) summary$print_test  <- NULL
       dplyr::select(-!!var_desp) %>%
       rename(`var_desp`= type)
   }
+
+
+# Creating a kable table -------------------------------------------------------------------------
+
+
 
   if(kable_output){
 
