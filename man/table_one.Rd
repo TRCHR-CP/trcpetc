@@ -14,11 +14,13 @@ table_one(
   include_overall = c("none", "group", "all"),
   total = TRUE,
   pval = TRUE,
-  bold_pval = FALSE,
   print_test = FALSE,
   continuous = "mediqr",
+  round_to_100 = FALSE,
+  drop.unused.levels = FALSE,
   kable_output = TRUE,
-  caption = NULL
+  caption = NULL,
+  overall_label = "Overall"
 )
 }
 \arguments{
@@ -49,8 +51,6 @@ Default is `"none"`.}
 
 \item{pval}{Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.}
 
-\item{bold_pval}{Logical. If TRUE, p-values <0.05 will be bold in formatted `kable` table. Default is `FALSE`.}
-
 \item{print_test}{Logical. If TRUE, the output will include the type of statistical test applied to each variable. Default is `FALSE`.}
 
 \item{continuous}{Character string specifying the summary statistics for continuous variables.
@@ -60,6 +60,10 @@ Must be one of:
    \item `"meansd"`: Mean and standard deviation.
    \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
  }}
+
+\item{round_to_100}{force rounded total to add up to 100% calculated using the largest remainder method for factor variables}
+
+\item{drop.unused.levels}{Removes factor variables with 0. Levels with zero are not included in statistical tests}
 
 \item{kable_output}{Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.}
 }

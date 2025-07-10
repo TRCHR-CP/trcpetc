@@ -4,7 +4,13 @@
 \alias{factor_desp}
 \title{factor_desp}
 \usage{
-factor_desp(df, group, includeNA = FALSE)
+factor_desp(
+  df,
+  group,
+  includeNA = FALSE,
+  round_to_100 = FALSE,
+  drop.unused.levels = FALSE
+)
 }
 \arguments{
 \item{df}{Dataframe}
