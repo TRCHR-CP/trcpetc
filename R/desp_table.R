@@ -67,7 +67,8 @@
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,
-                      kable_output=TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE) {
+                      kable_output =TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE,
+                      Check_box = NULL,Check_box_title = NULL) {
 
   set.seed(seed)
 
@@ -88,7 +89,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
   if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
 
-  if(!rlang::quo_is_missing(group)) pval <- FALSE #No p-values without a grouping variable
+  if(rlang::quo_is_missing(group)) pval <- FALSE #No p-values without a grouping variable
   if(!pval) print_test <- FALSE #Can't print the test is there is no pvalue
 
   # Errors -------------------------------------------------------------------------
@@ -163,7 +164,7 @@ if(!rlang::quo_is_missing(group)){
 
 
 
-if(!pval) summary$pval <- NULL
+if(!pval) summary$pval = summary$pval.Missing = summary$pval.No.Missing <- NULL
 if(!print_test ) summary$print_test  <- NULL
 
   #Optionally removing the continuous variables
@@ -200,6 +201,29 @@ if(!print_test ) summary$print_test  <- NULL
       rename(`var_desp`= type)
   }
 
+  ##Formatting check box rows to indent
+  out <- out   %>%
+    mutate(across(
+      ends_with("_n"),
+      ~ if_else(variable %in% Check_box, NA, .)
+    ))
+
+  ##Formatting title rows to
+  out <- out   %>%
+    mutate(across(
+      ends_with("_stat"),
+      ~ if_else(variable %in% Check_box_title, NA, .)
+    ))
+
+
+
+  # out <- out %>%
+  #   mutate(across(
+  #     c(test, pval),
+  #     ~ if_else(variable %in% Check_box_title, NA, .)
+  #   ))
+
+
 
 # Creating a kable table -------------------------------------------------------------------------
 
@@ -207,52 +231,12 @@ if(!print_test ) summary$print_test  <- NULL
 
   if(kable_output){
 
-    #Getting the rows to indent
-    indent <-  out %>% filter(row_id != "Total_N") %>%
-      mutate(row_number = row_number()) %>%
-      select(matches("_n$"),row_number)  %>%
-      filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
-      pull(row_number)
+    out <-  kable_table_one(out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total,caption=caption)
 
+   }
 
-    first_row <- out %>% head(1)  %>%
-      select(ends_with("_n"))
-
-    variable_names <- gsub("_n", "", names(first_row))
-    n_columns <- paste0(variable_names, "_n")
-    stat_columns <- paste0(variable_names, "_stat")
-
-    headers <- if(total){
-      paste0(variable_names," (N = ",first_row,")")} else{
-        variable_names
-      }
-
-    out <- out %>%
-      filter(!(row_number() == 1 & total == TRUE)) %>%
-        select(
-        all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
-        any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
-        any_of(if (print_test) "test" else NULL)
-      ) %>%
-
-      kableExtra::kbl(caption = caption,
-                   booktabs=TRUE,
-                   escape = FALSE,
-                   align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
-                   col.names = c('Variables', rep(c('N', 'Stat'), length(headers)),
-                                 if (pval & !include_Missing) '*P*-value' else character(0) ,
-                                 if (pval & include_Missing) 'Without missing' else character(0) ,
-                                 if (pval & include_Missing) 'With missing' else character(0) ,
-                                 if (print_test) 'Statistical test' else character(0))) %>%
-      kableExtra::row_spec(row = 0, align = "c") %>%
-      kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                                full_width = FALSE) %>%
-      kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) setNames(rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
-      kableExtra::add_indent(indent)
-
-
-  }
  out
 
 }
+
 

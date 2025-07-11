@@ -7,7 +7,7 @@
 decimalplaces(x, max_dec = 4L)
 }
 \arguments{
-\item{x}{a continous variable}
+\item{x}{a continuous variable}
 }
 \value{
 the most frequent number of digits in the variable

@@ -20,7 +20,10 @@ table_one(
   drop.unused.levels = FALSE,
   kable_output = TRUE,
   caption = NULL,
-  overall_label = "Overall"
+  overall_label = "Overall",
+  include_Missing = FALSE,
+  Check_box = NULL,
+  Check_box_title = NULL
 )
 }
 \arguments{

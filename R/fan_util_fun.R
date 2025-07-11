@@ -5,7 +5,7 @@
 #' @details
 #' An internal function that determines the number of digits in the summary of a continuous variable.
 #'
-#' @param x a continous variable
+#' @param x a continuous variable
 #' @return the most frequent number of digits in the variable
 #' @export
 decimalplaces <- function(x, max_dec= 4L) {
@@ -78,7 +78,7 @@ format_pvalue <- function(x, eps = 0.001, trim = TRUE,
 #'
 #'@description Rounds a vector of values to a 100% value using the largest remainder method
 #'
-#' @param percentages A numeric vector of percentages that should approximatley sum to the total
+#' @param percentages A numeric vector of percentages that should approximately sum to the total
 #' @param digits An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).
 #'
 #' @return A numeric vector of the same length as `percentages`, rounded to the specified number of digits, and summing to exactly 100.

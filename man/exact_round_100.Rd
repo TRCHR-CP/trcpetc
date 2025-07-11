@@ -9,7 +9,7 @@ exact_round_100(values, digits = 1)
 \arguments{
 \item{digits}{An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).}
 
-\item{percentages}{A numeric vector of percentages that should approximatley sum to the total}
+\item{percentages}{A numeric vector of percentages that should approximately sum to the total}
 }
 \value{
 A numeric vector of the same length as `percentages`, rounded to the specified number of digits, and summing to exactly 100.
