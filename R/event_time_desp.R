@@ -37,9 +37,9 @@ extract_atrisk<- function(fit, time.list, time.scale= 1) {
     rownames(atRiskPts)<- time.list
     colnames(atRiskPts)<- strata_lab
     atRiskPts<- as.data.frame(atRiskPts) %>%
-      mutate_all(as.integer) %>%
+      dplyr::mutate_all(as.integer) %>%
       # rownames_to_column("time") %>%
-      mutate(time= time.list) %>%
+      dplyr::mutate(time= time.list) %>%
       dplyr::select(time, everything())
   }
   else {
@@ -129,7 +129,7 @@ prepare_survfit<- function(surv_obj) {
       prepare_cmprisk() %>%
       group_by(strata, state) %>%
       nest() %>%
-      mutate(plot_prob_d= map2(state, data,
+      dplyr::mutate(plot_prob_d= map2(state, data,
                                function(state, df) {
                                  df<- df %>%
                                    dplyr::select(one_of("time", "prob")) %>%
@@ -145,7 +145,7 @@ prepare_survfit<- function(surv_obj) {
       prepare_surv() %>%
       group_by(strata) %>%
       nest() %>%
-      mutate(data= map(data,
+      dplyr::mutate(data= map(data,
                        function(df) {
                          remove<- duplicated(df$prob)
                          if (remove[length(remove)]) remove[length(remove)]<- FALSE
@@ -175,7 +175,7 @@ prepare_survfit<- function(surv_obj) {
   }
 
   out<- out %>%
-    mutate(plot_ci_d= map(data,
+    dplyr::mutate(plot_ci_d= map(data,
                           function(df) {
                             nn<- nrow(df)
                             # check http://stackoverflow.com/questions/33874909/how-do-i-add-shading-and-color-to-the-confidence-intervals-in-ggplot-2-generated
@@ -206,18 +206,18 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
   }
 
   #---- get parameters required for where to include the at-risk table ----#
-  # atrisk_init_pos<- -0.25 * max(diff(layer_scales(p)$y$range$range),
+  # atrisk_init_pos<- -0.25 * max(diff(ggplot2::layer_scales(p)$y$range$range),
   #                            diff(p$coordinates$limits$y))
   atrisk_init_pos<- if (is.null(atrisk_init_pos)) {
-    -0.225 * max(diff(layer_scales(p)$y$range$range),
+    -0.225 * max(diff(ggplot2::layer_scales(p)$y$range$range),
                  diff(p$coordinates$limits$y))
   } else atrisk_init_pos
 
   # I need to calculate the number of at-risk at the x_break
   x_break     <- if (is.null(x_break)) {
-    layer_scales(p)$x$get_breaks(layer_scales(p)$x$range$range)
+    ggplot2::layer_scales(p)$x$get_breaks(ggplot2::layer_scales(p)$x$range$range)
   } else {
-    x_break[x_break >= min(layer_scales(p)$x$range$range) & x_break<= max(layer_scales(p)$x$range$range)]
+    x_break[x_break >= min(ggplot2::layer_scales(p)$x$range$range) & x_break<= max(ggplot2::layer_scales(p)$x$range$range)]
   }
 
   x_break<- if (any(is.na(x_break))) x_break[!is.na(x_break)] else x_break
@@ -229,16 +229,16 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
 
   # to include the at-risk table in the existing figure, I specified the location
   # (x- and y-position) for the "At-risk N:" label and for each cell entry of the
-  #  at-risk table by creating separate textGrob object.
+  #  at-risk table by creating separate grid::textGrob object.
 
   # Step 1: add a bold 'At-risk N:' label at x= 0 and y= atrisk_init_pos
-  out <- p + annotation_custom(
-    grob = textGrob(label= format("At-risk N:", width = 20),
+  out <- p + ggplot2::annotation_custom(
+    grob = grid::textGrob(label= format("At-risk N:", width = 20),
                     vjust= 1, hjust = 1,
-                    gp = gpar(fontfamily= font_family,
+                    gp = grid::gpar (fontfamily= font_family,
                               fontsize  = font_size,
                               fontface  = "bold")),
-    ymin = atrisk_init_pos,      # Vertical position of the textGrob
+    ymin = atrisk_init_pos,      # Vertical position of the grid::textGrob
     ymax = atrisk_init_pos,
     xmin = 0,         # Note: The grobs are positioned outside the plot area
     xmax = 0)
@@ -249,16 +249,16 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
   if (nstrata==1) {
     # no strata #
     for (i in seq_along(risk_tbl$time))  {
-      out<- out + annotation_custom(
-        grob = textGrob(label = formatC(risk_tbl[i, 2],
+      out<- out + ggplot2::annotation_custom(
+        grob = grid::textGrob(label = formatC(risk_tbl[i, 2],
                                         digits = 0,
                                         format = "d",
                                         big.mark = ",",
                                         flag = "#"),
                         vjust= 1, hjust = 0.5,
-                        gp = gpar(fontfamily= font_family,
+                        gp = grid::gpar (fontfamily= font_family,
                                   fontsize  = font_size)),
-        ymin = atrisk_init_pos,      # Vertical position of the textGrob
+        ymin = atrisk_init_pos,      # Vertical position of the grid::textGrob
         ymax = atrisk_init_pos,
         xmin = risk_tbl$time[i],         # Note: The grobs are positioned outside the plot area
         xmax = risk_tbl$time[i])
@@ -267,13 +267,13 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
     # strata #
 
     # when there are strata, atrisk_y_inc indicates the relative position from the initial at-risk y pos.
-    # atrisk_y_inc<- -0.075 * diff(layer_scales(p)$y$range$range)
-    atrisk_y_inc<- -0.05 * max(diff(layer_scales(p)$y$range$range),
+    # atrisk_y_inc<- -0.075 * diff(ggplot2::layer_scales(p)$y$range$range)
+    atrisk_y_inc<- -0.05 * max(diff(ggplot2::layer_scales(p)$y$range$range),
                                diff(p$coordinates$limits$y))
 
     # extract the color code used in the plot for different strata
-    strata_col<- unique(layer_data(p)$colour)
-    strata_lty<- unique(layer_data(p)$linetype)
+    strata_col<- unique(ggplot2::layer_data(p)$colour)
+    strata_lty<- unique(ggplot2::layer_data(p)$linetype)
 
     strata_col<- if (length(strata_col)==1 & length(strata_col)< nstrata) rep(strata_col, nstrata) else strata_col
     strata_lty<- if (length(strata_lty)==1 & length(strata_lty)< nstrata) rep(strata_lty, nstrata) else strata_lty
@@ -281,15 +281,15 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
     for (j in 2:ncol(risk_tbl)) {
       tmp_y<- atrisk_init_pos + (j-1)*atrisk_y_inc
 
-      out <- out + annotation_custom(
-        grob = textGrob(label = format(paste0(colnames(risk_tbl)[j], ":"),
+      out <- out + ggplot2::annotation_custom(
+        grob = grid::textGrob(label = format(paste0(colnames(risk_tbl)[j], ":"),
                                        width = nchar(colnames(risk_tbl)[j])+ (20 - nchar("At-risk N:") + 1)),
                         vjust= 1, hjust = 1,
-                        gp = gpar(fontfamily= font_family,
+                        gp = grid::gpar (fontfamily= font_family,
                                   fontsize  = font_size,
                                   col   = strata_col[j-1],
                                   lty   = strata_lty[j-1])),
-        ymin = tmp_y,      # Vertical position of the textGrob
+        ymin = tmp_y,      # Vertical position of the grid::textGrob
         ymax = tmp_y,
         xmin = 0,         # Note: The grobs are positioned outside the plot area
         xmax = 0)
@@ -297,18 +297,18 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
       for (i in seq_along(risk_tbl$time)) {
         tmp_x<- risk_tbl$time[i]
 
-        out <- out + annotation_custom(
-          grob = textGrob(label = formatC(risk_tbl[i, j],
+        out <- out + ggplot2::annotation_custom(
+          grob = grid::textGrob(label = formatC(risk_tbl[i, j],
                                           digits = 0,
                                           format = "d",
                                           big.mark = ",",
                                           flag = "#"),
                           vjust= 1, hjust = 0.5,
-                          gp = gpar(fontfamily= font_family,
+                          gp = grid::gpar (fontfamily= font_family,
                                     fontsize  = font_size,
                                     col   = strata_col[j-1],
                                     lty   = strata_lty[j-1])),
-          ymin = tmp_y,      # Vertical position of the textGrob
+          ymin = tmp_y,      # Vertical position of the grid::textGrob
           ymax = tmp_y,
           xmin = tmp_x,      # Note: The grobs are positioned outside the plot area
           xmax = tmp_x)
@@ -435,11 +435,11 @@ show_surv <- function(surv_obj,
   plot_prob_d <- surv_mat %>%
     dplyr::select(strata, plot_prob_d) %>%
     unnest(cols = c(plot_prob_d)) %>%
-    mutate(prob= if (plot_cdf) 1-prob else prob)
+    dplyr::mutate(prob= if (plot_cdf) 1-prob else prob)
 
   if (y_lim[2]< 1) {
     plot_prob_d<- plot_prob_d %>%
-      mutate(prob= pmin(prob, y_lim[2], na.rm= TRUE),
+      dplyr::mutate(prob= pmin(prob, y_lim[2], na.rm= TRUE),
              # prob= pmax(prob, min(y_lim, na.rm = TRUE), na.rm= TRUE)
       ) %>%
       group_by(strata)
@@ -462,7 +462,7 @@ show_surv <- function(surv_obj,
 
     if (plot_cdf) {
       plot_ci_d <- plot_ci_d %>%
-        mutate_at(vars(starts_with('conf')), function(x) 1-x) %>%
+        dplyr::mutate_at(vars(starts_with('conf')), function(x) 1-x) %>%
         rename(conf_high= conf_low,
                conf_low = conf_high)
     }
@@ -471,7 +471,7 @@ show_surv <- function(surv_obj,
     #   plot_ci_d<- plot_ci_d %>%
     #     filter(conf_low <= y_lim[2],
     #            conf_high>= y_lim[1]) %>%
-    #     mutate(conf_high= replace(conf_high, conf_high> y_lim[2], y_lim[2]),
+    #     dplyr::mutate(conf_high= replace(conf_high, conf_high> y_lim[2], y_lim[2]),
     #            conf_low = replace(conf_low, conf_low< y_lim[1], y_lim[1]))
     # }
 
@@ -498,64 +498,64 @@ show_surv <- function(surv_obj,
     pval <- ifelse(trimws(pval)=="<0.001", "Log-rank p< 0.001", paste0("Log-rank p= ", pval) )
 
 
-    y_bottom<- min(layer_scales(out)$y$range$range[1], out$coordinates$limits$y[1], na.rm= TRUE)
-    y_top   <- max(layer_scales(out)$y$range$range[2], out$coordinates$limits$y[2], na.rm= TRUE)
+    y_bottom<- min(ggplot2::layer_scales(out)$y$range$range[1], out$coordinates$limits$y[1], na.rm= TRUE)
+    y_top   <- max(ggplot2::layer_scales(out)$y$range$range[2], out$coordinates$limits$y[2], na.rm= TRUE)
     y_mid   <- (y_top + y_bottom)/2
 
     tiny_nudge <- 0.01
     pvalue_pos <- match.arg(pvalue_pos)
     if (pvalue_pos %in% c("topleft")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[1]
-      # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[1]
+      # pvalue.y<- y_top #ggplot2::layer_scales(out)$y$range$range[2]
       pvalue.x <- 0 + tiny_nudge
       pvalue.y <- 1 - tiny_nudge
       pvalue.hjust<- 0
       pvalue.vjust<- 1
     } else if (pvalue_pos %in% c("bottomleft")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[1]
-      # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[1]
+      # pvalue.y<- y_bottom #ggplot2::layer_scales(out)$y$range$range[1]
       pvalue.x <- 0 + tiny_nudge
       pvalue.y <- 0 + tiny_nudge
       pvalue.hjust <- 0
       pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("topright")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[2]
-      # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[2]
+      # pvalue.y<- y_top #ggplot2::layer_scales(out)$y$range$range[2]
       pvalue.x <- 1 - tiny_nudge
       pvalue.y <- 1 - tiny_nudge
       pvalue.hjust <- 1
       pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottomright")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[2]
-      # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[2]
+      # pvalue.y<- y_bottom #ggplot2::layer_scales(out)$y$range$range[1]
       pvalue.x <- 1 - tiny_nudge
       pvalue.y <- 0 + tiny_nudge
       pvalue.hjust <- 1
       pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("left")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[1]
-      # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[1]
+      # pvalue.y<- y_mid #mean(ggplot2::layer_scales(out)$y$range$range)
       pvalue.x <- 0 + tiny_nudge
       pvalue.y <- 0.5
       pvalue.hjust <- 0
       pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("right")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[2]
-      # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[2]
+      # pvalue.y<- y_mid #mean(ggplot2::layer_scales(out)$y$range$range)
       pvalue.x <- 1 - tiny_nudge
       pvalue.y <- 0.5
       pvalue.hjust <- 1
       pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("top")) {
-      # pvalue.x<- mean(layer_scales(out)$x$range$range)
-      # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
+      # pvalue.x<- mean(ggplot2::layer_scales(out)$x$range$range)
+      # pvalue.y<- y_top #ggplot2::layer_scales(out)$y$range$range[2]
       pvalue.x <- 0.5
       pvalue.y <- 1 - tiny_nudge
       pvalue.hjust <- 0.5
       pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottom")) {
-      # pvalue.x<- mean(layer_scales(out)$x$range$range)
-      # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
+      # pvalue.x<- mean(ggplot2::layer_scales(out)$x$range$range)
+      # pvalue.y<- y_bottom #ggplot2::layer_scales(out)$y$range$range[1]
       pvalue.x <- 0.5
       pvalue.y <- 0 + tiny_nudge
       pvalue.hjust <- 0.5
@@ -568,20 +568,20 @@ show_surv <- function(surv_obj,
     }
 
     out<- out +
-      annotation_custom(
-        grob = textGrob(label= pval,
+      ggplot2::annotation_custom(
+        grob = grid::textGrob(label= pval,
                         x = pvalue.x,
                         hjust = pvalue.hjust,
 
                         y = pvalue.y,
                         vjust= pvalue.vjust,
 
-                        gp   = gpar(family  = "Inconsolata",
+                        gp   = grid::gpar (family  = "Inconsolata",
                                     # fontface="bold.italic",
                                     fontface = "italic",
                                     # cex   = 1,
                                     fontsize  = if (is.null(plot_theme$text$size)) 11 else plot_theme$text$size)))
-    # ymin = pvalue.y,      # Vertical position of the textGrob
+    # ymin = pvalue.y,      # Vertical position of the grid::textGrob
     # ymax = pvalue.y,
     # xmin = pvalue.x,
     # xmax = pvalue.x)
@@ -790,7 +790,7 @@ show_cif <- function(surv_obj,
   cmprisk_mat<- prepare_survfit(surv_obj)
   cmprisk_mat<- cmprisk_mat %>%
     filter(state %in% evt_type) %>%
-    mutate(state_label = evt_label(state),
+    dplyr::mutate(state_label = evt_label(state),
            state_label = fct_drop(state_label),
            state       = fct_drop((state)),
            state_strata= interaction(state_label, strata, drop= TRUE, sep= ": "))
@@ -909,57 +909,57 @@ show_cif <- function(surv_obj,
     tiny_nudge <- 0.01
     pvalue_pos <- match.arg(pvalue_pos)
     if (pvalue_pos %in% c("topleft")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[1]
-      # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[1]
+      # pvalue.y<- y_top #ggplot2::layer_scales(out)$y$range$range[2]
       pvalue.x <- 0 + tiny_nudge
       pvalue.y <- 1 - tiny_nudge
       pvalue.hjust <- 0
       pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottomleft")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[1]
-      # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[1]
+      # pvalue.y<- y_bottom #ggplot2::layer_scales(out)$y$range$range[1]
       pvalue.x <- 0 + tiny_nudge
       pvalue.y <- 0 + tiny_nudge
       pvalue.hjust <- 0
       pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("topright")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[2]
-      # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[2]
+      # pvalue.y<- y_top #ggplot2::layer_scales(out)$y$range$range[2]
       pvalue.x <- 1 - tiny_nudge
       pvalue.y <- 1 - tiny_nudge
       pvalue.hjust <- 1
       pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottomright")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[2]
-      # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[2]
+      # pvalue.y<- y_bottom #ggplot2::layer_scales(out)$y$range$range[1]
       pvalue.x <- 1 - tiny_nudge
       pvalue.y <- 0 + tiny_nudge
       pvalue.hjust <- 1
       pvalue.vjust <- 0
     } else if (pvalue_pos %in% c("left")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[1]
-      # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[1]
+      # pvalue.y<- y_mid #mean(ggplot2::layer_scales(out)$y$range$range)
       pvalue.x <- 0 + tiny_nudge
       pvalue.y <- 0.5
       pvalue.hjust <- 0
       pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("right")) {
-      # pvalue.x<- layer_scales(out)$x$range$range[2]
-      # pvalue.y<- y_mid #mean(layer_scales(out)$y$range$range)
+      # pvalue.x<- ggplot2::layer_scales(out)$x$range$range[2]
+      # pvalue.y<- y_mid #mean(ggplot2::layer_scales(out)$y$range$range)
       pvalue.x <- 1 - tiny_nudge
       pvalue.y <- 0.5
       pvalue.hjust <- 1
       pvalue.vjust <- 0.5
     } else if (pvalue_pos %in% c("top")) {
-      # pvalue.x<- mean(layer_scales(out)$x$range$range)
-      # pvalue.y<- y_top #layer_scales(out)$y$range$range[2]
+      # pvalue.x<- mean(ggplot2::layer_scales(out)$x$range$range)
+      # pvalue.y<- y_top #ggplot2::layer_scales(out)$y$range$range[2]
       pvalue.x <- 0.5
       pvalue.y <- 1 - tiny_nudge
       pvalue.hjust <- 0.5
       pvalue.vjust <- 1
     } else if (pvalue_pos %in% c("bottom")) {
-      # pvalue.x<- mean(layer_scales(out)$x$range$range)
-      # pvalue.y<- y_bottom #layer_scales(out)$y$range$range[1]
+      # pvalue.x<- mean(ggplot2::layer_scales(out)$x$range$range)
+      # pvalue.y<- y_bottom #ggplot2::layer_scales(out)$y$range$range[1]
       pvalue.x <- 0.5
       pvalue.y <- 0 + tiny_nudge
       pvalue.hjust <- 0.5
@@ -972,20 +972,20 @@ show_cif <- function(surv_obj,
     }
 
     out <- out +
-      annotation_custom(
-        grob = textGrob(label= pval,
+      ggplot2::annotation_custom(
+        grob = grid::textGrob(label= pval,
                         x = pvalue.x,
                         hjust = pvalue.hjust,
 
                         y = pvalue.y,
                         vjust= pvalue.vjust,
 
-                        gp   = gpar(family  = "Inconsolata",
+                        gp   = grid::gpar (family  = "Inconsolata",
                                     # fontface="bold.italic",
                                     fontface="italic",
                                     # cex   = 1,
                                     fontsize  = if (is.null(plot_theme$text$size)) 11 else plot_theme$text$size)))
-        # ymin = pvalue.y,      # Vertical position of the textGrob
+        # ymin = pvalue.y,      # Vertical position of the grid::textGrob
         # ymax = pvalue.y,
         # xmin = pvalue.x,
         # xmax = pvalue.x)

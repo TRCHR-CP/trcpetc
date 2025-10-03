@@ -1,13 +1,40 @@
-Package: trcpetc
 Type: Package
+Package: trcpetc
 Title: Descriptive table
 Version: 0.1.0
 Author: Chun-Po Steve Fan
 Maintainer: Jessica Weiss <jessica.weiss@uhn.ca>
-Description: Miscellaneous functions that Steve wrote to facilitate TRCP data analysis project.
-Depends: Hmisc, magrittr, tidyverse, rlang, forcats, lubridate, reshape2, survival, cmprsk, broom, grid, gridExtra, viridis, cowplot, extrafont
-Suggests: openxlsx, splines, mitools, purrr, scales
+Description: Miscellaneous functions that Steve wrote to facilitate TRCP
+    data analysis project.
 License: What license is it under?
+Depends: 
+    Hmisc,
+    magrittr,
+    tidyverse,
+    rlang,
+    forcats,
+    lubridate,
+    reshape2,
+    survival,
+    cmprsk,
+    broom,
+    grid,
+    gridExtra,
+    viridis,
+    cowplot,
+    extrafont,
+    R (>= 3.5)
+Imports: 
+    dplyr,
+    kableExtra,
+    lazyeval,
+    mitools,
+    openxlsx,
+    purrr,
+    sandwich,
+    scales,
+    stats,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2

@@ -42,7 +42,7 @@ nn<- 100
 test<- data.frame(idx_dt= as.Date("1970-01-01"),
                   evt_dt= c(sample((-30:70), nn-1, replace= TRUE), 0) + as.Date("1970-01-01"),
                   end_dt= sample((0:99), nn, replace= TRUE) + as.Date("1970-01-01")) \%>\%
-  mutate(flag= evt_dt > end_dt,
+  dplyr::mutate(flag= evt_dt > end_dt,
          evt_dt= replace(evt_dt, flag, NA),
          end_dt= replace(end_dt, !flag, NA),
          patid= 1:n())
