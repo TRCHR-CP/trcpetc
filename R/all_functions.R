@@ -1,14 +1,14 @@
 
-# Desc table helpers  -------------------------------------------------------------------------
+# dplyr::desc table helpers  -------------------------------------------------------------------------
 #' @keywords internal
 
 table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE,overall_label = "Overall"){
 
   df <- df %>%
     dplyr::ungroup() %>%
-    select_if(Negate(is.character)) %>%
-    select_if(Negate(is.Date)) %>%
-    as.data.frame() %>% as_tibble()
+    dplyr::select_if(Negate(is.character)) %>%
+    dplyr::select_if(Negate(lubridate::is.Date)) %>%
+    as.data.frame() %>% tibble::as_tibble()
 
   if(drop.unused.levels) df <- df %>% dplyr::mutate_if(is.factor, droplevels)
 
@@ -16,15 +16,15 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.l
 
   num_out_lst <- if (any(sapply(df, class) %in% c("numeric", "integer"))) {
     numeric_desp(df) %>%
-      rownames_to_column("row_id") %>%
+      tibble::rownames_to_column("row_id") %>%
       dplyr::mutate(row_id= paste(variable, type, sep= "_")) %>%
       split(., .$variable)
   } else NULL
 
   fct_out_lst <- if (any(sapply(df, class)=="factor")) {
     factor_desp(df,round_to_100 = round_to_100,drop.unused.levels=drop.unused.levels) %>%
-      rownames_to_column("row_id") %>%
-      rename(type= level) %>%
+      tibble::rownames_to_column("row_id") %>%
+      dplyr::rename(type= level) %>%
       dplyr::mutate(row_id= ifelse(type!= "." & !is.na(type),
                                    paste(variable, gsub("\\ ", "_", trimws(type)), sep= "_"),
                                    variable)) %>%
@@ -33,7 +33,7 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.l
 
   logic_out_lst <- if (any(sapply(df, class)=="logical")) {
     logical_desp(df) %>%
-      rownames_to_column("row_id") %>%
+      tibble::rownames_to_column("row_id") %>%
       dplyr::mutate(row_id= paste0(variable, "TRUE")) %>%
       split(., .$variable)
   } else NULL
@@ -41,7 +41,7 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.l
   Total_N <- if (total) {
 
     N <- df %>%
-      count() %>% unlist()
+      dplyr::count() %>% unlist()
 
     list(N = data.frame(row_id = "Total_N",variable  = "Total N",type = as.character(NA), n = as.character(N),stat = as.character(N)))
 
@@ -53,7 +53,7 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.l
     append(fct_out_lst) %>%
     append(logic_out_lst)
 
-  Output <- out_lst[c("N",names(df))] %>% bind_rows() %>% rename(!!paste0(overall_label,"_n") := n, !!paste0(overall_label,"_stat") := stat)
+  Output <- out_lst[c("N",names(df))] %>% dplyr::bind_rows() %>% dplyr::rename(!!paste0(overall_label,"_n") := n, !!paste0(overall_label,"_stat") := stat)
 
 
 
@@ -68,28 +68,28 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 
   df <- df %>%
     dplyr::ungroup() %>%
-    select_if(Negate(is.character)) %>%
-    select_if(Negate(is.Date)) %>%
-    filter(!is.na(!!group)) %>%
-    group_by(!!group)
+    dplyr::select_if(Negate(is.character)) %>%
+    dplyr::select_if(Negate(lubridate::is.Date)) %>%
+    dplyr::filter(!is.na(!!group)) %>%
+    dplyr::group_by(!!group)
 
   if(drop.unused.levels) df <- df %>% dplyr::mutate_if(is.factor, droplevels)
 
 
-  group_var_idx <- match(group_vars(df), names(df))
+  group_var_idx <- match(dplyr::group_vars(df), names(df))
 
 
   num_out_lst <- if (any(sapply(df[-group_var_idx], class) %in% c("numeric", "integer"))) {
     numeric_desp(df, !!group) %>%
-      rownames_to_column("row_id") %>%
+      tibble::rownames_to_column("row_id") %>%
       dplyr::mutate(row_id= paste(variable, type, sep= "_")) %>%
       split(., .$variable)
   } else NULL
 
   fct_out_lst <- if (any(sapply(df[-group_var_idx], class)=="factor")) {
     factor_desp(df,!!group,round_to_100 = round_to_100,drop.unused.levels=drop.unused.levels) %>%
-      rownames_to_column("row_id") %>%
-      rename(type= level) %>%
+      tibble::rownames_to_column("row_id") %>%
+      dplyr::rename(type= level) %>%
       dplyr::mutate(row_id= ifelse(type!= "." & !is.na(type),
                                    paste(variable, gsub("\\ ", "_", trimws(type)), sep= "_"),
                                    variable)) %>%
@@ -98,7 +98,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 
   logic_out_lst <- if (any(sapply(df[-group_var_idx], class)=="logical")) {
     logical_desp(df, !!group) %>%
-      rownames_to_column("row_id") %>%
+      tibble::rownames_to_column("row_id") %>%
       dplyr::mutate(row_id= paste0(variable, "TRUE")) %>%
       split(., .$variable)
   } else NULL
@@ -106,15 +106,15 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
   Total_N <- if (total) {
 
     n_var <- df %>%
-      count(!!group) %>%
+      dplyr::count(!!group) %>%
       tidyr::pivot_wider(names_from = !!group, values_from = n, values_fill = 0) %>%
       dplyr::mutate(variable = "Total N") %>%
-      select(variable, everything()) %>%
-      dplyr::mutate(dplyr::across(where(is.integer), as.character))
+      select(variable, dplyr::everything()) %>%
+      dplyr::mutate(dplyr::across(dplyr::where(is.integer), as.character))
 
-    list(N = left_join(n_var, n_var, by= "variable", suffix= c("_n", "_stat")) %>%
+    list(N = dplyr::left_join(n_var, n_var, by= "variable", suffix= c("_n", "_stat")) %>%
            dplyr::mutate(row_id = "Total_N", type = as.character(NA), pval = as.character(NA), test = as.character(NA)) %>%
-           dplyr::select(row_id,variable, type, everything()) %>%
+           dplyr::select(row_id,variable, type, dplyr::everything()) %>%
            dplyr::mutate(type= NA_character_))
 
   } else NULL
@@ -125,7 +125,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
     append(fct_out_lst) %>%
     append(logic_out_lst)
 
-  Output <- out_lst[c("N",names(df))] %>% bind_rows()
+  Output <- out_lst[c("N",names(df))] %>% dplyr::bind_rows()
 
 
 
@@ -134,15 +134,15 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 }
 
 kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
-  indent <-  out %>% filter(row_id != "Total_N") %>%
-    dplyr::mutate(row_number = row_number()) %>%
-    select(matches("_n$"),row_number)  %>%
-    filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
-    pull(row_number)
+  indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
+    dplyr::mutate(row_number = dplyr::row_number()) %>%
+    select(dplyr::matches("_n$"),row_number)  %>%
+    dplyr::filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
+    dplyr::pull(row_number)
 
 
-  first_row <- out %>% head(1)  %>%
-    select(ends_with("_n"))
+  first_row <- out %>% utils::head(1)  %>%
+    select(dplyr::ends_with("_n"))
 
   variable_names <- gsub("_n", "", names(first_row))
   n_columns <- paste0(variable_names, "_n")
@@ -154,7 +154,7 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
     }
 
   out <- out %>%
-    filter(!(row_number() == 1 & total == TRUE)) %>%
+    dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE)) %>%
     select(
       dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
       dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
@@ -173,7 +173,7 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
     kableExtra::row_spec(row = 0, align = "c") %>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                               full_width = FALSE) %>%
-    kableExtra::add_header_above(c("", setNames(rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) setNames(rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
+    kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
     kableExtra::add_indent(indent)
 }
 
@@ -184,13 +184,13 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
 titles_non_missing <- function(df, columns, new_col_name = "Title") {
   df %>%
     dplyr::mutate(
-      {{ new_col_name }} := if_else(
+      {{ new_col_name }} := dplyr::if_else(
         rowSums(!is.na(dplyr::across(dplyr::all_of(columns)))) > 0,
         TRUE,
         NA
       )
     ) %>%
-    relocate({{ new_col_name }}, .before = dplyr::all_of(columns[1]))
+    dplyr::relocate({{ new_col_name }}, .before = dplyr::all_of(columns[1]))
 }
 
 #' @title check_box_convert
@@ -215,7 +215,7 @@ check_box_convert <- function(df, check_box_cols, title = NULL) {
 
 
 
-# desc table -------------------------------------------------------------------------
+# dplyr::desc table -------------------------------------------------------------------------
 
 
 #---- this is the main function ----
@@ -255,31 +255,12 @@ check_box_convert <- function(df, check_box_cols, title = NULL) {
 #'     \item `"meansd"`: Mean and standard deviation.
 #'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
 #'   }
-#' @param round_to_100 force rounded total to add up to 100% calculated using the largest remainder method for factor variables
+#' @param round_to_100 force rounded total to add up to 100 calculated using the largest remainder method for factor variables
 #' @param drop.unused.levels Removes factor variables with 0. Levels with zero are not included in statistical tests
 #' @param  kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
 #' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
 #' @examples
-#' set.seed(0)
-#' df<- data_frame(sex   = factor(c(rep("F", 90), rep("M", 900))),
-#'                 grade = factor(sample(c("A", "B", "C"), 990, replace= TRUE), c("A", "B", "C", "D")),
-#'                 income=  100 * (rnorm(990) + 5),
-#'                 dm= rbernoulli(990, p= .5),
-#'                 af= rbernoulli(990, p= .95)) %>%
-#'   mutate(weight= if_else( sex=="F" & income>500, 3, 1),
-#'          income= ifelse(income<456, NA, income),
-#'          sex   = ifelse(runif(990)<.2, NA, sex),
-#'          sex   = factor(sex, 1:2, labels = c("Female", "Male")),
-#'          grade = ifelse(runif(990)<.25, NA, grade),
-#'          grade   = factor(grade, 1:4, labels = c("A", "B", "C", "D")))
-#'
-#'  datadic<- data.frame(var_name= c("sex", "grade", "income", "dm", "af"),
-#'                       var_desp= c("Sex", "Grade", "Household income",
-#'                                   "Presence of diabetes mellitus", "African American"),
-#'                      stringsAsFactors = FALSE)
-#'
-#' table_one(df, sex)
-#' table_one(df, sex, datadic= datadic)
+#' table_one(df = cardio_data, group = Sex)
 #' @export
 #' @importFrom rlang enquo quo_is_missing
 #' @importFrom dplyr select
@@ -306,8 +287,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   var_name <- rlang::enquo(var_name)
   var_desp <- rlang::enquo(var_desp)
 
-  if (rlang::quo_is_missing(var_name)) var_name <- quo(var_name)
-  if (rlang::quo_is_missing(var_desp)) var_desp <- quo(var_desp)
+  if (rlang::quo_is_missing(var_name)) var_name <- rlang::quo(var_name)
+  if (rlang::quo_is_missing(var_desp)) var_desp <- rlang::quo(var_desp)
 
   if(rlang::quo_is_missing(group)) pval <- FALSE #No p-values without a grouping variable
   if(!pval) print_test <- FALSE #Can't print the test is there is no pvalue
@@ -323,7 +304,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   }
 
   #Overall name can not match a group name
-  if((!rlang::quo_is_missing(group) & include_overall %in% c("group","all")) & overall_label %in% (df %>% pull(!!group) %>% unique() %>% na.omit())) {
+  if((!rlang::quo_is_missing(group) & include_overall %in% c("group","all")) & overall_label %in% (df %>% dplyr::pull(!!group) %>% unique() %>% stats::na.omit())) {
     stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
   }
 
@@ -338,11 +319,11 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
     if(include_Missing){
-      summary_group <-   df %>% mutate(
+      summary_group <-   df %>% dplyr::mutate(
         {{ group }} := {{ group }} %>%
           forcats::fct_na_value_to_level(level = "Missing")) %>%
         table_one_stratify(group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels) %>%
-        left_join((summary_group %>% select(row_id,pval)),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
+        dplyr::left_join((summary_group %>% select(row_id,pval)),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
 
     }
 
@@ -353,7 +334,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   ##If include overall = "group" remove rows where the grouping variable is missing
   if(!rlang::quo_is_missing(group) & include_overall == "group"){
-    df <- df %>% filter(!is.na(!!group))
+    df <- df %>% dplyr::filter(!is.na(!!group))
   }
 
 
@@ -370,7 +351,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   # Combining summary tables together -------------------------------------------------------------------------
 
   if(!rlang::quo_is_missing(group) & (include_overall == "all" | include_overall == "group" )){
-    summary <- summary_overall %>% left_join(summary_group,by = c('row_id','variable','type'))
+    summary <- summary_overall %>% dplyr::left_join(summary_group,by = c('row_id','variable','type'))
   }else if(rlang::quo_is_missing(group)){
     summary <- summary_overall
   }else {
@@ -388,8 +369,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   if(!print_test ) summary$print_test  <- NULL
 
   #Optionally removing the continuous variables
-  if(!"meansd" %in% (continuous)) summary <- summary %>% filter(!grepl("_meansd$", row_id))
-  if(!"mediqr" %in% (continuous)) summary <- summary %>% filter(!grepl("_mediqr$", row_id))
+  if(!"meansd" %in% (continuous)) summary <- summary %>% dplyr::filter(!grepl("_meansd$", row_id))
+  if(!"mediqr" %in% (continuous)) summary <- summary %>% dplyr::filter(!grepl("_mediqr$", row_id))
 
 
   # Adding the datadic and cleaning the table -------------------------------------------------------------------------
@@ -398,49 +379,49 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   if (is.null(datadic)) {
     out <- summary %>%
       dplyr::select(row_id, variable, type,
-                    ends_with("n"), ends_with("stat"), everything()) %>%
+                    dplyr::ends_with("n"), dplyr::ends_with("stat"), dplyr::everything()) %>%
       # dplyr::select(-!!var_desp) %>%
-      mutate(type = ifelse(is.na(type) & row_id==variable,
+      dplyr::mutate(type = ifelse(is.na(type) & row_id==variable,
                            gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type),
              type = ifelse(type %in% c("meansd", "mediqr"),
                            gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type),
              type = ifelse(row_id==paste0(variable, "TRUE"),
                            gsub("(^[[:lower:]])", "\\U\\1", variable, perl=TRUE), type)) %>%
-      rename(`var_desp`= type)
+      dplyr::rename(`var_desp`= type)
   } else {
     out <- summary %>%
-      left_join(dplyr::select(datadic, !!var_name, !!var_desp),
-                by = c("variable"= quo_name(var_name))) %>%
-      mutate(type = ifelse(is.na(type) & row_id==variable, !!var_desp, type), # factor
+      dplyr::left_join(dplyr::select(datadic, !!var_name, !!var_desp),
+                by = c("variable"= rlang::quo_name(var_name))) %>%
+      dplyr::mutate(type = ifelse(is.na(type) & row_id==variable, !!var_desp, type), # factor
              type = ifelse(type %in% c("meansd", "mediqr"), !!var_desp, type), # continuous
              type = ifelse(row_id==paste0(variable, "TRUE"), !!var_desp, type), # logical
       ) %>%
       dplyr::select(row_id, variable, type,
-                    ends_with("n"), ends_with("stat"), everything()) %>%
+                    dplyr::ends_with("n"), dplyr::ends_with("stat"), dplyr::everything()) %>%
       dplyr::select(-!!var_desp) %>%
-      rename(`var_desp`= type)
+      dplyr::rename(`var_desp`= type)
   }
 
   ##Formatting check box rows to indent
   out <- out   %>%
-    mutate(across(
-      ends_with("_n"),
-      ~ if_else(variable %in% Check_box, NA, .)
+    dplyr::mutate(dplyr::across(
+      dplyr::ends_with("_n"),
+      ~ dplyr::if_else(variable %in% Check_box, NA, .)
     ))
 
   ##Formatting title rows to
   out <- out   %>%
-    mutate(across(
-      ends_with("_stat"),
-      ~ if_else(variable %in% Check_box_title, NA, .)
+    dplyr::mutate(dplyr::across(
+      dplyr::ends_with("_stat"),
+      ~ dplyr::if_else(variable %in% Check_box_title, NA, .)
     ))
 
 
 
   # out <- out %>%
-  #   mutate(across(
+  #   dplyr::mutate(dplyr::across(
   #     c(test, pval),
-  #     ~ if_else(variable %in% Check_box_title, NA, .)
+  #     ~ dplyr::if_else(variable %in% Check_box_title, NA, .)
   #   ))
 
 
@@ -507,9 +488,9 @@ extract_atrisk<- function(fit, time.list, time.scale= 1) {
     colnames(atRiskPts)<- strata_lab
     atRiskPts<- as.data.frame(atRiskPts) %>%
       dplyr::mutate_all(as.integer) %>%
-      # rownames_to_column("time") %>%
+      # tibble::rownames_to_column("time") %>%
       dplyr::mutate(time= time.list) %>%
-      dplyr::select(time, everything())
+      dplyr::select(time, dplyr::everything())
   }
   else {
     x<- data.frame(time = fit$time/time.scale,
@@ -523,7 +504,7 @@ extract_atrisk<- function(fit, time.list, time.scale= 1) {
     atRiskPts<- data.frame(time= time.list, Overall= as.integer(atRiskPts))
   }
 
-  atRiskPts<- if (any(names(fit)=="start.time")) filter(atRiskPts, time >= fit$start.time) else atRiskPts
+  atRiskPts<- if (any(names(fit)=="start.time")) dplyr::filter(atRiskPts, time >= fit$start.time) else atRiskPts
 
   return(atRiskPts)
 }
@@ -549,7 +530,7 @@ prepare_survfit<- function(surv_obj) {
       stemp <- factor(stemp, 1:nstrat, strata_lab)
     }
 
-    out<- tibble(strata   = stemp,
+    out<- tibble::tibble(strata   = stemp,
                  # state    = rep(surv_obj$state, each= length(surv_obj$time)),
                  state    = rep(replace(surv_obj$state, nchar(surv_obj$state)==0 | grepl("0", surv_obj$state), "0"),
                                 each= length(surv_obj$time)),
@@ -558,7 +539,7 @@ prepare_survfit<- function(surv_obj) {
                  conf_low = as.numeric(surv_obj$lower),
                  conf_high= as.numeric(surv_obj$upper))
     if (class(out$strata)!= 'factor') out$strata<- factor(out$strata)
-    if (class(out$state) != 'factor') out$state <- relevel(factor(out$state), ref= '0')
+    if (class(out$state) != 'factor') out$state <- stats::relevel(factor(out$state), ref= '0')
     out
   }
 
@@ -577,7 +558,7 @@ prepare_survfit<- function(surv_obj) {
       stemp <- factor(rep(1:nstrat, surv_obj$strata), 1:nstrat, strata_lab)
     }
 
-    tibble(strata   = stemp,
+    tibble::tibble(strata   = stemp,
            time     = surv_obj$time,
            prob     = surv_obj$surv,
            conf_low = surv_obj$lower,
@@ -596,34 +577,34 @@ prepare_survfit<- function(surv_obj) {
 
     surv_obj %>%
       prepare_cmprisk() %>%
-      group_by(strata, state) %>%
-      nest() %>%
-      dplyr::mutate(plot_prob_d= map2(state, data,
+      dplyr::group_by(strata, state) %>%
+      tidyr::nest() %>%
+      dplyr::mutate(plot_prob_d= purrr::map2(state, data,
                                       function(state, df) {
                                         df<- df %>%
-                                          dplyr::select(one_of("time", "prob")) %>%
-                                          bind_rows(tribble(~time, ~prob,
+                                          dplyr::select(dplyr::one_of("time", "prob")) %>%
+                                          dplyr::bind_rows(tibble::tribble(~time, ~prob,
                                                             0, as.numeric(state=="0")))
 
                                         df %>%
-                                          arrange(time, if (state!="0") prob else desc(prob))
+                                          dplyr::arrange(time, if (state!="0") prob else  dplyr::desc(prob))
                                       }))
   } else {
 
     surv_obj %>%
       prepare_surv() %>%
-      group_by(strata) %>%
-      nest() %>%
-      dplyr::mutate(data= map(data,
+      dplyr::group_by(strata) %>%
+      tidyr::nest() %>%
+      dplyr::mutate(data= purrr::map(data,
                               function(df) {
                                 remove<- duplicated(df$prob)
                                 if (remove[length(remove)]) remove[length(remove)]<- FALSE
                                 df[!remove,]
                               }),
-                    plot_prob_d= map(data,
+                    plot_prob_d= purrr::map(data,
                                      function(df) {
                                        df<- df %>%
-                                         dplyr::select(one_of("time", "prob"))
+                                         dplyr::select(dplyr::one_of("time", "prob"))
 
                                        df<- if (is.na(match(0, df$time))) {
                                          # if time 0 is not included in the estimate
@@ -631,20 +612,20 @@ prepare_survfit<- function(surv_obj) {
                                          # then add time = 0 and prob = 1
 
                                          df %>%
-                                           bind_rows(
-                                             tribble(~time, ~prob,
+                                           dplyr::bind_rows(
+                                             tibble::tribble(~time, ~prob,
                                                      0, 1)
                                            )
                                        } else df
 
                                        df %>%
-                                         arrange(time)
+                                         dplyr::arrange(time)
 
                                      }))
   }
 
   out<- out %>%
-    dplyr::mutate(plot_ci_d= map(data,
+    dplyr::mutate(plot_ci_d= purrr::map(data,
                                  function(df) {
                                    nn<- nrow(df)
                                    # check http://stackoverflow.com/questions/33874909/how-do-i-add-shading-and-color-to-the-confidence-intervals-in-ggplot-2-generated
@@ -652,10 +633,10 @@ prepare_survfit<- function(surv_obj) {
                                    xs<- c( 1, rep( 2:nn, each = 2))
 
                                    df %$%
-                                     tibble(time     = time[xs],
+                                     tibble::tibble(time     = time[xs],
                                             conf_low = conf_low[ys],
                                             conf_high= conf_high[ys]) #%>%
-                                   # filter(!(is.na(conf_low) & is.na(conf_high)))
+                                   # dplyr::filter(!(is.na(conf_low) & is.na(conf_high)))
                                  }))
   return(out)
 }
@@ -694,7 +675,7 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
 
   risk_tbl<- extract_atrisk(surv_obj, time.list= x_break)
   nstrata <- ncol(risk_tbl)-1
-  # as_tibble(risk_tbl)
+  # tibble::as_tibble(risk_tbl)
 
   # to include the at-risk table in the existing figure, I specified the location
   # (x- and y-position) for the "At-risk N:" label and for each cell entry of the
@@ -811,14 +792,14 @@ estimate_km <- function(df, evt_time, evt, group, ...) {
 
   out<- if (quo_is_missing(group)) {
     substitute(survfit(Surv(evt_time, evt) ~ 1, data= df, conf.type= "log-log", ...),
-               list(evt_time = quo_get_expr(evt_time),
-                    evt     = quo_get_expr(evt),
+               list(evt_time = rlang::quo_get_expr(evt_time),
+                    evt     = rlang::quo_get_expr(evt),
                     df      = df))
   } else {
     substitute(survfit(Surv(evt_time, evt) ~ grp, data= df, conf.type= "log-log", ...),
-               list(evt_time = quo_get_expr(evt_time),
-                    evt     = quo_get_expr(evt),
-                    grp     = quo_get_expr(group),
+               list(evt_time = rlang::quo_get_expr(evt_time),
+                    evt     = rlang::quo_get_expr(evt),
+                    grp     = rlang::quo_get_expr(group),
                     df      = df))
   }
   out<- eval(out)
@@ -839,7 +820,7 @@ run_logrank_test <- function(surv_obj) {
   tmp$conf.type <- NULL
   test <- eval(tmp, parent.frame())
 
-  pval<- pchisq(test$chisq, df= length(test$n) - 1, lower.tail = FALSE)
+  pval<- stats::pchisq(test$chisq, df= length(test$n) - 1, lower.tail = FALSE)
   pval
 }
 
@@ -854,7 +835,7 @@ show_surv <- function(surv_obj,
                       y_break= NULL,
                       color_scheme= c("brewer", "grey", "viridis", "manual"),
                       color_list= NULL, #required only if color_scheme= 'manual'. eg color_list= list(values= c('red', 'blue'))
-                      plot_theme= theme_minimal(),
+                      plot_theme= ggplot2::theme_minimal(),
 
                       add_ci= TRUE,
                       add_atrisk= TRUE,
@@ -903,7 +884,7 @@ show_surv <- function(surv_obj,
 
   plot_prob_d <- surv_mat %>%
     dplyr::select(strata, plot_prob_d) %>%
-    unnest(cols = c(plot_prob_d)) %>%
+    tidyr::unnest(cols = c(plot_prob_d)) %>%
     dplyr::mutate(prob= if (plot_cdf) 1-prob else prob)
 
   if (y_lim[2]< 1) {
@@ -911,15 +892,15 @@ show_surv <- function(surv_obj,
       dplyr::mutate(prob= pmin(prob, y_lim[2], na.rm= TRUE),
                     # prob= pmax(prob, min(y_lim, na.rm = TRUE), na.rm= TRUE)
       ) %>%
-      group_by(strata)
+      dplyr::group_by(strata)
   }
 
-  out <- ggplot() +
-    geom_step(data= plot_prob_d,
-              aes(x= time, y= prob, group= strata, color= strata),
+  out <- ggplot2::ggplot() +
+    ggplot2::geom_step(data= plot_prob_d,
+              ggplot2::aes(x= time, y= prob, group= strata, color= strata),
               size= 1.1, show.legend = add_legend) +
     eval(color_fun) +
-    scale_x_continuous(name  = x_lab,
+    ggplot2::scale_x_continuous(name  = x_lab,
                        breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                        expand= c(0.01, 0.005),
                        labels= function(x) scales::comma(x, accuracy = 1))
@@ -927,38 +908,38 @@ show_surv <- function(surv_obj,
   if (add_ci) {
     plot_ci_d <- surv_mat %>%
       dplyr::select(strata, plot_ci_d) %>%
-      unnest(cols = c(plot_ci_d))
+      tidyr::unnest(cols = c(plot_ci_d))
 
     if (plot_cdf) {
       plot_ci_d <- plot_ci_d %>%
-        dplyr::mutate_at(vars(starts_with('conf')), function(x) 1-x) %>%
-        rename(conf_high= conf_low,
+        dplyr::mutate_at(dplyr::vars(dplyr::starts_with('conf')), function(x) 1-x) %>%
+        dplyr::rename(conf_high= conf_low,
                conf_low = conf_high)
     }
 
     # if (y_lim[2]< 1) {
     #   plot_ci_d<- plot_ci_d %>%
-    #     filter(conf_low <= y_lim[2],
+    #     dplyr::filter(conf_low <= y_lim[2],
     #            conf_high>= y_lim[1]) %>%
     #     dplyr::mutate(conf_high= replace(conf_high, conf_high> y_lim[2], y_lim[2]),
     #            conf_low = replace(conf_low, conf_low< y_lim[1], y_lim[1]))
     # }
 
     out <- out +
-      geom_ribbon(data= plot_ci_d,
-                  aes(x= time, ymin= conf_low, ymax= conf_high, fill= strata),
+      ggplot2::geom_ribbon(data= plot_ci_d,
+                  ggplot2::aes(x= time, ymin= conf_low, ymax= conf_high, fill= strata),
                   alpha= .2, show.legend = FALSE) +
       eval(fill_fun)
   }
 
-  out <- out + scale_y_continuous(name  = y_lab,
+  out <- out + ggplot2::scale_y_continuous(name  = y_lab,
                                   # name  = if (is.null(y_lab)) "Freedom from death" else y_lab,
                                   breaks= if (is.null(y_break)) scales::pretty_breaks(6) else y_break,
                                   # expand= c(0.01, 0.005),
                                   expand= c(0.005, 0),
                                   labels= function(x) scales::percent(x, accuracy = 1))
 
-  out <- if (!is.null(y_lim)) out + coord_cartesian(ylim = y_lim, clip = "on") else out
+  out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "on") else out
 
   if (add_pvalue) {
     pval <- run_logrank_test(surv_obj) %>%
@@ -1088,26 +1069,26 @@ estimate_cif <- function(df, evt_time, evt, group, ...) {
 
   # out<- if (quo_is_missing(group)) {
   #   substitute(survfit(Surv(evt_time, evt, type= "mstate") ~ 1, data= df, ...),
-  #              list(evt_time= quo_get_expr(evt_time),
-  #                   evt     = quo_get_expr(evt),
+  #              list(evt_time= rlang::quo_get_expr(evt_time),
+  #                   evt     = rlang::quo_get_expr(evt),
   #                   df      = df))
   # } else {
   #   substitute(survfit(Surv(evt_time, evt, type= "mstate") ~ grp, data= df, ...),
-  #              list(evt_time= quo_get_expr(evt_time),
-  #                   evt     = quo_get_expr(evt),
-  #                   grp     = quo_get_expr(group),
+  #              list(evt_time= rlang::quo_get_expr(evt_time),
+  #                   evt     = rlang::quo_get_expr(evt),
+  #                   grp     = rlang::quo_get_expr(group),
   #                   df      = df))
   # }
   out<- if (quo_is_missing(group)) {
     substitute(survfit(Surv(evt_time, evt) ~ 1, data= df, ...),
-               list(evt_time= quo_get_expr(evt_time),
-                    evt     = quo_get_expr(evt),
+               list(evt_time= rlang::quo_get_expr(evt_time),
+                    evt     = rlang::quo_get_expr(evt),
                     df      = df))
   } else {
     substitute(survfit(Surv(evt_time, evt) ~ grp, data= df, ...),
-               list(evt_time= quo_get_expr(evt_time),
-                    evt     = quo_get_expr(evt),
-                    grp     = quo_get_expr(group),
+               list(evt_time= rlang::quo_get_expr(evt_time),
+                    evt     = rlang::quo_get_expr(evt),
+                    grp     = rlang::quo_get_expr(group),
                     df      = df))
   }
   out<- eval(out)
@@ -1120,7 +1101,7 @@ run_gray_test <- function(surv_obj, evt_type= 1:2) {
 
   df<- as.list(eval(surv_obj$call$data, parent.frame()))
   df<- all.vars(surv_obj$call$formula) %>%
-    setNames(c("ftime", "fstatus", "group")) %>%
+    stats::setNames (c("ftime", "fstatus", "group")) %>%
     lapply(function(x) df[[x]])
 
   test<- do.call('cuminc', df)
@@ -1144,7 +1125,7 @@ run_gray_test <- function(surv_obj, evt_type= 1:2) {
 #' @param add_pvalue Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).
 #' @param atrisk_init_pos Character; position of the "At-risk N:" label.
 #' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
-#' @param plot_theme A \code{ggplot2} theme object to customize the appearance of the plot (default = \code{theme_minimal()}).
+#' @param plot_theme A \code{ggplot2} theme object to customize the appearance of the plot (default = \code{ggplot2::theme_minimal()}).
 #' @param x_lab Character; label for the x-axis (default = "Time").
 #' @param y_lab Character; label for the y-axis (default = "Proportion of subjects").
 #' @param x_lim Numeric vector of length 2 specifying x-axis limits.
@@ -1160,71 +1141,12 @@ run_gray_test <- function(surv_obj, evt_type= 1:2) {
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
 #'
 #' @return A \code{ggplot} object representing the cumulative incidence function plot.
-#'
-
-#' @examples
-#' my_plot_theme<- theme_bw() +
-#' theme(axis.title  = element_text(size= 14, family="Arial"),
-#'       axis.title.x= element_text(margin= unit(c(t= 1, r = 0, b = 0, l = 0), "lines"), family="Arial"),
-#'       axis.title.y= element_text(margin= unit(c(t= 0, r = 1, b = 0, l = 0), "lines"), family="Arial"),
-#'       axis.text   = element_text(size= 12, family="Arial"),
-#'       # set the axis line (i.e. bty= "l" in traditional plot)
-#'       axis.line.x = element_line(color="black", size = 1),
-#'       axis.line.y = element_line(color="black", size = 1),
-#'
-#'       # specify the legend (e.g. position, color, justification)
-#'       legend.title= element_blank(),
-#'       legend.background= element_rect(fill= "transparent"),
-#'       legend.text      = element_text(family= "Arial", size = 12),
-#'       legend.margin    = margin(t = 0, r = 0, b = 0, l = 0,"bigpts"),
-#'       legend.key       = element_rect(fill= "transparent", color= "transparent", linetype= "blank"),
-#'       legend.key.size  = unit(24, "bigpts"),
-#'       # legend.position= c(0.98, 0.02),
-#'       # legend.justification= c(1, 0),
-#'
-#'       #eliminates background, gridlines, and chart border
-#'       panel.border = element_blank(),
-#'       # plot.background = element_blank(),
-#'       # panel.grid.major = element_blank(),
-#'       panel.grid.minor = element_blank(),
-#'       panel.spacing = unit(1, "lines"),
-#'
-#'       strip.background = element_rect(fill = "black", color= "white"),
-#'       strip.text = element_text(family = "Arial", color= "white", size = 12, face= "bold"),
-#'
-#'       # plot margin. Sufficient margins must be specified for printing at-risk patients.
-#'       plot.margin= unit(c(top= 0.1, right= 0.05, bottom= .3, left= .2), "npc"))
-#'
-#' # read in the example data
-#' cmprisk_df<- read.csv2("http://www.stat.unipg.it/luca/misc/bmt.csv")
-#' admin_censor_cmprisk(cmprisk_df, ftime, status, evt_label = c("0"= "Event free", "1"= "Event", "2"= "Competing event"), adm_cnr_time= 10)
-#' p<- cmprisk_df %>%
-#' admin_censor_cmprisk(ftime, status,
-#'                      adm_cnr_time= 30,
-#'                      overwrite_var = TRUE) %>%
-#'   estimate_cif(ftime, status) %>%
-#'   show_cif(evt_type = 1,
-#'            plot_theme= my_plot_theme,
-#'            x_break= seq(0, 10, by= 1),
-#'            y_break= seq(0, .8, by= .1),
-#'            add_pvalue = TRUE,
-#'            add_atrisk = TRUE,
-#'            add_ci = TRUE,
-#'            add_legend = FALSE,
-#'            color_scheme = "manual",
-#'            color_list = list(values= c('blue', 'blue')),
-#'            pvalue_pos= "topleft")
-#'
-#' #---- To show the at risk information ----
-#' gt <- ggplot_gtable(ggplot_build(p))
-#' gt$layout$clip[gt$layout$name == 'panel'] <- "off"
-#' grid.draw(gt)
 #' @export
 show_cif <- function(surv_obj,
                      evt_type = 1,
                      # evt_label= identity, # identity function
                      evt_label= function(x) {
-                       recode_factor(x,
+                       forcats::recode_factor(x,
                                      `1`= "Event",
                                      `2`= "Competing event",
                                      .default= "Event free")
@@ -1236,7 +1158,7 @@ show_cif <- function(surv_obj,
                      atrisk_init_pos= NULL,
                      pvalue_pos= c("bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom"),
 
-                     plot_theme= theme_minimal(),
+                     plot_theme= ggplot2::theme_minimal(),
                      x_lab= 'Time',
                      y_lab= 'Proportion of subjects',
                      x_lim= NULL,
@@ -1258,15 +1180,15 @@ show_cif <- function(surv_obj,
   #---- prepare survfit for plot ----
   cmprisk_mat<- prepare_survfit(surv_obj)
   cmprisk_mat<- cmprisk_mat %>%
-    filter(state %in% evt_type) %>%
+    dplyr::filter(state %in% evt_type) %>%
     dplyr::mutate(state_label = evt_label(state),
-                  state_label = fct_drop(state_label),
-                  state       = fct_drop((state)),
+                  state_label = forcats::fct_drop(state_label),
+                  state       = forcats::fct_drop((state)),
                   state_strata= interaction(state_label, strata, drop= TRUE, sep= ": "))
 
   plot_prob_d <- cmprisk_mat %>%
     dplyr::select(strata, state, state_label, state_strata, plot_prob_d) %>%
-    unnest(cols = c(plot_prob_d))
+    tidyr::unnest(cols = c(plot_prob_d))
 
   add_pvalue <- if (nlevels(plot_prob_d$strata)==1) FALSE else add_pvalue
   add_legend <- if ((nlevels(plot_prob_d$strata)==1 &
@@ -1291,48 +1213,48 @@ show_cif <- function(surv_obj,
   # x_break<- if (is.null(x_break)) scales::pretty_breaks(6) else x_break
   # y_break<- if (is.null(y_break)) scales::pretty_breaks(6) else y_break
 
-  out<- ggplot()
+  out<- ggplot2::ggplot()
   out<- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
     out +
-      geom_step(data= plot_prob_d,
-                aes(x= time, y= prob, group= state_label, color= state_label),
+      ggplot2::geom_step(data= plot_prob_d,
+                ggplot2::aes(x= time, y= prob, group= state_label, color= state_label),
                 size= 1.1, show.legend = add_legend)
   } else if (nlevels(plot_prob_d$strata)>1 & nlevels(plot_prob_d$state)==1) {
     out +
-      geom_step(data= plot_prob_d,
-                aes(x= time, y= prob, group= strata, color= strata),
+      ggplot2::geom_step(data= plot_prob_d,
+                ggplot2::aes(x= time, y= prob, group= strata, color= strata),
                 size= 1.1, show.legend = add_legend)
   } else {
     out +
-      geom_step(data= plot_prob_d,
-                aes(x= time, y= prob, group= state_strata, color= state_strata),
+      ggplot2::geom_step(data= plot_prob_d,
+                ggplot2::aes(x= time, y= prob, group= state_strata, color= state_strata),
                 size= 1.1, show.legend = add_legend)
   }
   out<- out +
     eval(color_fun) +
-    scale_x_continuous(name  = x_lab,
+    ggplot2::scale_x_continuous(name  = x_lab,
                        breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                        expand= c(0.01, 0.005),
                        # limits = x_lim,
                        labels= function(x) scales::comma(x, accuracy = 1)) +
-    scale_y_continuous(name  = y_lab,
+    ggplot2::scale_y_continuous(name  = y_lab,
                        breaks= if (is.null(y_break)) scales::pretty_breaks(6) else y_break,
                        expand= c(0.01, 0),
                        # limits= y_lim,
                        labels= function(x) scales::percent(x, accuracy = 1))
 
-  out<- if (!is.null(x_lim) | !is.null(y_lim)) out + coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "on") else out
+  out<- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "on") else out
 
   if (add_ci) {
     plot_ci_d <- cmprisk_mat %>%
       dplyr::select(strata, state, state_label, state_strata, plot_ci_d) %>%
-      unnest(cols = c(plot_ci_d))
+      tidyr::unnest(cols = c(plot_ci_d))
 
     out <- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
 
       out +
-        geom_ribbon(data= plot_ci_d,
-                    aes(x   = time,
+        ggplot2::geom_ribbon(data= plot_ci_d,
+                    ggplot2::aes(x   = time,
                         ymin= conf_low,
                         ymax= conf_high,
                         group= state_label,
@@ -1343,8 +1265,8 @@ show_cif <- function(surv_obj,
     } else if (nlevels(plot_prob_d$strata)>1 & nlevels(plot_prob_d$state)==1) {
 
       out +
-        geom_ribbon(data= plot_ci_d,
-                    aes(x= time,
+        ggplot2::geom_ribbon(data= plot_ci_d,
+                    ggplot2::aes(x= time,
                         ymin = conf_low,
                         ymax = conf_high,
                         group= strata,
@@ -1355,8 +1277,8 @@ show_cif <- function(surv_obj,
     } else {
 
       out +
-        geom_ribbon(data= plot_ci_d,
-                    aes(x= time,
+        ggplot2::geom_ribbon(data= plot_ci_d,
+                    ggplot2::aes(x= time,
                         ymin= conf_low,
                         ymax= conf_high,
                         group= state_strata,
@@ -1469,8 +1391,8 @@ show_cif <- function(surv_obj,
   out <- out + plot_theme
 
   if(add_atrisk) {
-    p <- out + theme(plot.margin= unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
-    gt <- ggplot_gtable(ggplot_build(p))
+    p <- out + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
+    gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
     gt$layout$clip[gt$layout$name == 'panel'] <- "off"
     out <- gt
     #grid.draw(gt)
@@ -1507,13 +1429,13 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
   ##
   make_univariate_fml <- function(x, y= NULL) {
     sapply(x, function(x){
-      if (is.null(y)) formula(paste0("~", x)) else formula(paste0(y, "~", x))
+      if (is.null(y)) stats::formula(paste0("~", x)) else stats::formula(paste0(y, "~", x))
     })
   }
 
   make_bivariate_fml <- function(x, z, y= NULL) {
     sapply(x, function(x){
-      if (is.null(y)) formula(paste0("~", x, " + ", z)) else formula(paste0(y, "~", x, " + ", z))
+      if (is.null(y)) stats::formula(paste0("~", x, " + ", z)) else stats::formula(paste0(y, "~", x, " + ", z))
     })
   }
 
@@ -1521,12 +1443,12 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
     pct  <- prop.table(freq)
     var_name <- names(dimnames(freq))
     freq <- freq %>%
-      addmargins() %>%
+      stats::addmargins() %>%
       as.data.frame(row.names= names(dimnames(.)),
                     responseName = "freq",
                     stringsAsFactors = FALSE) %>%
-      rownames_to_column("level") %>%
-      mutate(n   = ifelse(level=="Sum", freq, NA),
+      tibble::rownames_to_column("level") %>%
+      dplyr::mutate(n   = ifelse(level=="Sum", freq, NA),
              freq= ifelse(level=="Sum", NA, freq),
              n   = ifelse(!is.na(n), formatC(n, format= "d", big.mark = ","), NA_character_),
              freq= ifelse(!is.na(freq), formatC(freq, format= "d", big.mark = ","), NA_character_)
@@ -1537,22 +1459,22 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
       as.data.frame(row.names= names(dimnames(.)),
                     responseName = "pct",
                     stringsAsFactors = FALSE) %>%
-      rownames_to_column("level")  %>%
-      mutate(pct = if (round_to_100) formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f") else formatC(pct * 100, digits = pct_digits, format = "f"))%>%
+      tibble::rownames_to_column("level")  %>%
+      dplyr::mutate(pct = if (round_to_100) formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f") else formatC(pct * 100, digits = pct_digits, format = "f"))%>%
       dplyr::select(level, pct)
 
     freq <- freq %>%
-      mutate_all(as.character)
+      dplyr::mutate_all(as.character)
 
     pct <- pct %>%
-      mutate_all(as.character)
+      dplyr::mutate_all(as.character)
 
-    out <- full_join(freq, pct, by = c("level")) %>%
-      mutate(stat= paste0(freq, " (", pct, "%)"),
+    out <- dplyr::full_join(freq, pct, by = c("level")) %>%
+      dplyr::mutate(stat= paste0(freq, " (", pct, "%)"),
              stat= ifelse(level=="Sum", NA_character_, stat),
              level= ifelse(level=="Sum", ".", level)) %>%
       dplyr::select(level, n, stat) %>%
-      mutate_all(as.character)
+      dplyr::mutate_all(as.character)
 
     out[match(c('.', levels(df[[var_name]])), out$level),]
   }
@@ -1562,53 +1484,53 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
     pct  <- prop.table(freq, margin = 2)
 
     # fisher exact test
-    test <- try(fisher.test(freq[rowSums(freq) != 0, ], hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
+    test <- try(stats::fisher.test(freq[rowSums(freq) != 0, ], hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
     test <- if (class(test)=="try-error") NA else test$p.value
 
     # total
     total <- margin.table(freq, 2) %>%
       as.data.frame(responseName = "n", stringsAsFactors = FALSE) %>%
-      mutate(n= ifelse(!is.na(n), formatC(n, format= "d", big.mark = ","), NA_character_)) %>%
-      dcast(as.formula( paste0(". ~ ", tbl_var_name[2])), value.var = "n") %>%
-      bind_cols(pval= format_pvalue(test))  %>%  mutate(test = "Fisher")
+      dplyr::mutate(n= ifelse(!is.na(n), formatC(n, format= "d", big.mark = ","), NA_character_)) %>%
+      reshape2::dcast(stats::as.formula( paste0(". ~ ", tbl_var_name[2])), value.var = "n") %>%
+      dplyr::bind_cols(pval= format_pvalue(test))  %>%  dplyr::mutate(test = "Fisher")
 
     freq <- freq %>%
       as.data.frame(responseName = "freq", stringsAsFactors = FALSE) %>%
-      mutate(freq= ifelse(!is.na(freq), formatC(freq, format= "d", big.mark = ","), NA_character_))
+      dplyr::mutate(freq= ifelse(!is.na(freq), formatC(freq, format= "d", big.mark = ","), NA_character_))
 
     if(round_to_100){
       pct <- pct %>%
         as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
-        mutate(pct = ifelse(is.nan(pct),0,pct)) %>%
-        group_by(!!sym(tbl_var_name[2])) %>%
-        mutate(pct=  formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f"))
+        dplyr::mutate(pct = ifelse(is.nan(pct),0,pct)) %>%
+        dplyr::group_by(!!rlang::sym(tbl_var_name[2])) %>%
+        dplyr::mutate(pct=  formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f"))
 
 
     }else {
       pct <- pct %>%
         as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
-        mutate(pct = ifelse(is.nan(pct),0,pct)) %>%
-        mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
+        dplyr::mutate(pct = ifelse(is.nan(pct),0,pct)) %>%
+        dplyr::mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
     }
 
 
 
     freq <- freq %>%
-      mutate_all(as.character)
+      dplyr::mutate_all(as.character)
 
     pct <- pct %>%
-      mutate_all(as.character)
+      dplyr::mutate_all(as.character)
 
-    out <- full_join(freq, pct, by= tbl_var_name) %>%
-      mutate(stat= paste0(freq, " (", pct, "%)")) %>%
-      # bind_rows(total) %>%
+    out <- dplyr::full_join(freq, pct, by= tbl_var_name) %>%
+      dplyr::mutate(stat= paste0(freq, " (", pct, "%)")) %>%
+      # dplyr::bind_rows(total) %>%
       dplyr::select(-freq, -pct) %>%
-      dcast(as.formula(paste0(tbl_var_name, collapse= " ~ ")),
+      reshape2::dcast(stats::as.formula(paste0(tbl_var_name, collapse= " ~ ")),
             value.var = "stat") %>%
-      mutate_all(as.character)
+      dplyr::mutate_all(as.character)
 
     names(out)[1]<- names(total)[1]<- "level"
-    out <- full_join(total, out, by= "level", suffix= c("_n", "_stat"))
+    out <- dplyr::full_join(total, out, by= "level", suffix= c("_n", "_stat"))
     out[match(c('.', levels(df[[tbl_var_name[1]]])), out$level),]
     # out
   }
@@ -1620,8 +1542,8 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
   # 1 - select variables of factor class
   if (rlang::quo_is_missing(group)) {
     df <- df %>%
-      ungroup() %>%
-      select_if(is.factor)
+      dplyr::ungroup() %>%
+      dplyr::select_if(is.factor)
 
     fml <- make_univariate_fml(names(df))
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
@@ -1631,11 +1553,11 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
 
   } else {
     df <- df %>%
-      group_by(!!group) %>%
-      select_if(is.factor)
+      dplyr::group_by(!!group) %>%
+      dplyr::select_if(is.factor)
 
-    fml <- make_bivariate_fml(grep(paste0("^", quo_name(group), "$"), names(df), value= TRUE, invert = TRUE),
-                              z= quo_name(group))
+    fml <- make_bivariate_fml(grep(paste0("^", rlang::quo_name(group), "$"), names(df), value= TRUE, invert = TRUE),
+                              z= rlang::quo_name(group))
 
     # 2 - create table object for ALL selected factor variables (not sure if it is a good idea but ...)
     # here we are going to drop unused levels (drop.unused.levels = TRUE)
@@ -1644,8 +1566,8 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
   }
 
   out <- out %>%
-    bind_rows(.id= "variable") %>%
-    mutate(level= ifelse(level==".", NA_character_, level))
+    dplyr::bind_rows(.id= "variable") %>%
+    dplyr::mutate(level= ifelse(level==".", NA_character_, level))
   out
 
 }
@@ -1686,12 +1608,12 @@ factor_dist<- function(table_obj, col_var, pct_digits= 1, removeNA= TRUE) {
                    pct  <- prop.table(freq)
 
                    freq<- freq %>%
-                     addmargins() %>%
+                     stats::addmargins() %>%
                      as.data.frame(row.names= names(dimnames(.)),
                                    responseName = "freq",
                                    stringsAsFactors = FALSE) %>%
-                     rownames_to_column("level") %>%
-                     mutate(n   = ifelse(level=="Sum", freq, NA_integer_),
+                     tibble::rownames_to_column("level") %>%
+                     dplyr::mutate(n   = ifelse(level=="Sum", freq, NA_integer_),
                             n   = ifelse(!is.na(n), formatC(n, format= "d", big.mark = ","), NA_character_),
                             freq= ifelse(level=="Sum", NA_integer_, freq),
                             freq= ifelse(!is.na(freq), formatC(freq, format= "d", big.mark = ","), NA_character_),
@@ -1703,24 +1625,24 @@ factor_dist<- function(table_obj, col_var, pct_digits= 1, removeNA= TRUE) {
 
                                    responseName = "pct",
                                    stringsAsFactors = FALSE) %>%
-                     rownames_to_column("level") %>%
-                     mutate(pct= formatC(pct*100, digits= pct_digits, format= "f")) %>%
+                     tibble::rownames_to_column("level") %>%
+                     dplyr::mutate(pct= formatC(pct*100, digits= pct_digits, format= "f")) %>%
                      dplyr::select(level, pct)
 
-                   full_join(freq, pct, by = c("level")) %>%
-                     mutate(stat= paste0(freq, " (", pct, "%)"),
+                   dplyr::full_join(freq, pct, by = c("level")) %>%
+                     dplyr::mutate(stat= paste0(freq, " (", pct, "%)"),
                             stat= ifelse(level=="Sum", NA_character_, stat),
                             level= ifelse(level=="Sum", ".", level)) %>%
                      dplyr::select(level, n, stat) %>%
-                     arrange(level)
+                     dplyr::arrange(level)
 
                  }) %>%
-      setNames(fct_var_name)
+      stats::setNames (fct_var_name)
 
   } else {
     # column is the grouping variable
-    col_idx <- grep(quo_name(col_var), fct_var_name)
-    row_vars<- grep(quo_name(col_var), fct_var_name, invert = TRUE, value= TRUE)
+    col_idx <- grep(rlang::quo_name(col_var), fct_var_name)
+    row_vars<- grep(rlang::quo_name(col_var), fct_var_name, invert = TRUE, value= TRUE)
 
     out<- lapply(row_vars,
                  function(x) {
@@ -1735,40 +1657,40 @@ factor_dist<- function(table_obj, col_var, pct_digits= 1, removeNA= TRUE) {
                    pct  <- prop.table(freq, margin = 2)
 
                    # fisher exact test
-                   test<- try(fisher.test(freq, hybrid = TRUE, conf.int = FALSE), silent = TRUE)
+                   test<- try(stats::fisher.test(freq, hybrid = TRUE, conf.int = FALSE), silent = TRUE)
                    test<- if (class(test)=="try-error") NA else test$p.value
 
                    # total
                    total<- margin.table(freq, 2) %>%
                      as.data.frame(responseName = "n", stringsAsFactors = FALSE) %>%
-                     mutate(n= formatC(n, format= "d", big.mark = ",")) %>%
-                     dcast(as.formula( paste0(". ~ ", quo_name(col_var))), value.var = "n") %>%
-                     bind_cols(pval= format_pvalue(test))
+                     dplyr::mutate(n= formatC(n, format= "d", big.mark = ",")) %>%
+                     reshape2::dcast(stats::as.formula( paste0(". ~ ", rlang::quo_name(col_var))), value.var = "n") %>%
+                     dplyr::bind_cols(pval= format_pvalue(test))
 
 
                    freq<- freq %>%
                      as.data.frame(responseName = "freq", stringsAsFactors = FALSE) %>%
-                     mutate(freq= formatC(freq, format= "d", big.mark = ","))
+                     dplyr::mutate(freq= formatC(freq, format= "d", big.mark = ","))
 
                    pct<- pct %>%
                      as.data.frame(responseName = "pct", stringsAsFactors = FALSE) %>%
-                     mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
+                     dplyr::mutate(pct= formatC(pct*100, digits= pct_digits, format= "f"))
 
-                   out<- full_join(freq, pct, by= c(x, quo_name(col_var))) %>%
-                     mutate(stat= paste0(freq, " (", pct, "%)")) %>%
-                     # bind_rows(total) %>%
+                   out<- dplyr::full_join(freq, pct, by= c(x, rlang::quo_name(col_var))) %>%
+                     dplyr::mutate(stat= paste0(freq, " (", pct, "%)")) %>%
+                     # dplyr::bind_rows(total) %>%
                      dplyr::select(-freq, -pct) %>%
-                     dcast(as.formula(paste(x, quo_name(col_var), sep= " ~ ")), value.var = "stat")
+                     reshape2::dcast(stats::as.formula(paste(x, rlang::quo_name(col_var), sep= " ~ ")), value.var = "stat")
 
                    names(out)[1]<- names(total)[1]<- "level"
-                   out<- full_join(total, out, by= "level", suffix= c("_n", "_stat"))
+                   out<- dplyr::full_join(total, out, by= "level", suffix= c("_n", "_stat"))
                    out
                  }) %>%
-      setNames(row_vars)
+      stats::setNames (row_vars)
   }
   out %>%
-    bind_rows(.id= "variable") %>%
-    mutate(level= ifelse(level==".", NA_character_, level))
+    dplyr::bind_rows(.id= "variable") %>%
+    dplyr::mutate(level= ifelse(level==".", NA_character_, level))
 }
 
 
@@ -1869,25 +1791,27 @@ format_pvalue <- function(x, eps = 0.001, trim = TRUE,
 
 
 
-#'@title Round a Vector of Percentages to 100%
+
+#' @title Round a Vector of Percentages to 100
 #'
-#'@description Rounds a vector of values to a 100% value using the largest remainder method
+#' @description Rounds a vector of values to a 100% value using the largest remainder method
 #'
-#' @param percentages A numeric vector of percentages that should approximately sum to the total
+#' @param values A numeric vector of percentages that should approximately sum to 100
 #' @param digits An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).
 #'
-#' @return A numeric vector of the same length as `percentages`, rounded to the specified number of digits, and summing to exactly 100.
+#' @return A numeric vector of the same length as `values`, rounded to the specified number of digits, and summing to exactly 100.
 #'
 #' @examples
-#' exact_round_100(c(33.3, 33.3, 33.4),digits = 0)
+#' exact_round_100(c(33.3, 33.3, 33.4), digits = 0)
 #' # Returns: 33 33 34
 #'
 #' exact_round_100(c(33.33, 33.33, 33.34), digits = 1)
 #' # Returns: 33.3 33.3 33.4
 #'
 #' @export
-# Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits
+
 exact_round_100 <- function(values,digits = 1){
+  # Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits
 
   scaleFactor <- 10^digits
   values_scaled <- values * scaleFactor
@@ -1901,7 +1825,7 @@ exact_round_100 <- function(values,digits = 1){
     difference <-  values_scaled - floor_values_scaled
 
     remainder <- 100*scaleFactor - sum(floor_values_scaled)
-    i <- tail(order(difference), remainder)
+    i <- utils::tail(order(difference), remainder)
     floor_values_scaled[i] <- floor_values_scaled[i] + 1
     out <- floor_values_scaled
   }
@@ -1963,18 +1887,6 @@ recode_missing <- function(x, na.value= NULL) {
 #' @param patid the variable indicating subject/patient id
 #' @param surv_varname an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
 #' @return A data frame with patid, evt_time and evt.
-#' @examples
-#' set.seed(0)
-#' nn<- 100
-#' test<- data.frame(idx_dt= as.Date("1970-01-01"),
-#'                   evt_dt= c(sample((-30:70), nn-1, replace= TRUE), 0) + as.Date("1970-01-01"),
-#'                   end_dt= sample((0:99), nn, replace= TRUE) + as.Date("1970-01-01")) %>%
-#'   dplyr::mutate(flag= evt_dt > end_dt,
-#'          evt_dt= replace(evt_dt, flag, NA),
-#'          end_dt= replace(end_dt, !flag, NA),
-#'          patid= 1:n())
-#' test %>% construct_surv_var(idx_dt, evt_dt, end_dt, patid)
-#' test %>% construct_surv_var(idx_dt, evt_dt, end_dt, patid, surv_varname= c("day_dth", "dth"))
 #' @export
 construct_surv_var <- function(df, patid, idx_dt, evt_dt, end_dt, surv_varname = NULL, append = FALSE) {
 
@@ -2008,12 +1920,12 @@ construct_surv_var <- function(df, patid, idx_dt, evt_dt, end_dt, surv_varname =
                                                 tmp_end_dt - tmp_idx_dt,
                                                 tmp_evt_dt - tmp_idx_dt)),
     ) %>%
-    dplyr::select(!!patid, time2evt, evt, matches("^tmp_(idx|evt|end)_dt$"))
+    dplyr::select(!!patid, time2evt, evt, dplyr::matches("^tmp_(idx|evt|end)_dt$"))
 
   flag<- FALSE
 
   flag_df <- tmp_df %>%
-    dplyr::filter(time2evt <= 0) %>%
+     dplyr::filter(time2evt <= 0) %>%
     dplyr::mutate(flag_evt_time_zero = (time2evt == 0),
                   flag_evt_time_neg = (time2evt< 0))
 
@@ -2032,20 +1944,20 @@ construct_surv_var <- function(df, patid, idx_dt, evt_dt, end_dt, surv_varname =
   if (flag) print(as.data.frame(flag_df))
 
   tmp_df<- if (is.null(surv_varname)) {
-    dplyr::dplyr:rename(tmp_df,
+    dplyr::rename(tmp_df,
                         evt_time= time2evt)
   } else {
-    dplyr::dplyr:rename(tmp_df,
+    dplyr::rename(tmp_df,
                         !!surv_varname[1]:= time2evt,
                         !!surv_varname[2]:= evt)
   }
 
   if (append) {
     df %>%
-      dplyr::dplyr:inner_join(dplyr::select(tmp_df, -matches("^tmp_(idx|evt|end)_dt$")), by= as_name(patid))
+      dplyr::inner_join(dplyr::select(tmp_df, -dplyr::matches("^tmp_(idx|evt|end)_dt$")), by= rlang::as_name(patid))
   } else {
     tmp_df %>%
-      dplyr::select(-matches("^tmp_(idx|evt|end)_dt$"))
+      dplyr::select(-dplyr::matches("^tmp_(idx|evt|end)_dt$"))
   }
 
 }
@@ -2069,14 +1981,14 @@ construct_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk_var
   if (rlang::quo_is_missing(patid))  stop("Please provide subject id")
 
   n_cmp_evt<- length(cmp_evt_dt)
-  names(cmp_evt_dt)<- sapply(cmp_evt_dt, lazyeval::as_name) # without, dplyr::select(df, !!!cmp_evt_dt) changes the variable name in the output data
+  names(cmp_evt_dt)<- sapply(cmp_evt_dt, rlang::as_name) # without, dplyr::select(df, !!!cmp_evt_dt) changes the variable name in the output data
 
   cmp_evt_desc<- paste0('cmp_evt_', seq_len(n_cmp_evt) + 1)
   evt_desc<- c('evt_1', cmp_evt_desc, 'censored_0')
 
   tmp_df<- df %>%
     dplyr::select(!!patid, !!idx_dt, !!evt_dt, !!!cmp_evt_dt, !!end_dt) %>%
-    dplyr::group_by(!!patid) %>%
+     dplyr::group_by(!!patid) %>%
     # dplyr::mutate(first_evt_dt= pmin(!!evt_dt, !!!cmp_evt_dt, !!end_dt, na.rm= TRUE))
     dplyr::mutate(first_evt= ifelse(rlang::is_empty((evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt, !!end_dt))])),
                                     NA, (evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt, !!end_dt))])),
@@ -2108,7 +2020,7 @@ construct_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk_var
 
   flag<- FALSE
   flag_df<- tmp_df %>%
-    dplyr::filter(time2evt<=0) %>%
+     dplyr::filter(time2evt<=0) %>%
     dplyr::mutate(flag_evt_time_zero= (time2evt==0),
                   flag_evt_time_neg = (time2evt< 0))
 
@@ -2129,19 +2041,19 @@ construct_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk_var
   tmp_df <- if (is.null(cmprisk_varname)) {
     tmp_df %>%
       select(!!patid, time2evt, evt) %>%
-      dplyr:rename(evt_time= time2evt)
+      dplyr::rename(evt_time= time2evt)
   } else {
     tmp_df %>%
       select(!!patid, time2evt, evt) %>%
-      dplyr:rename(!!cmprisk_varname[1]:= time2evt,
+      dplyr::rename(!!cmprisk_varname[1]:= time2evt,
                    !!cmprisk_varname[2]:= evt)
   }
 
-  # tmp_df<- dplyr::select(tmp_df, !!patid, one_of(c(cmprisk_varname, 'evt_time', 'evt')))
+  # tmp_df<- dplyr::select(tmp_df, !!patid, dplyr::one_of(c(cmprisk_varname, 'evt_time', 'evt')))
 
   if (!append) tmp_df else {
     df %>%
-      dplyr:inner_join(tmp_df, by= as_name(patid))
+      dplyr::inner_join(tmp_df, by= rlang::as_name(patid))
   }
 }
 # debug(construct_cmprisk_var)
@@ -2170,10 +2082,6 @@ construct_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk_var
 #' @param adm_cnr_time a numeric scalar specifying the time point at which administrative censoring is applied.
 #' @param overwrite_var a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.
 #' @return The input data plus censored time-to-event variables.
-#' @examples
-#' aml %>% admin_censor_surv(evt_time= time, evt= status) # No admin censoring
-#' aml %>% admin_censor_surv(evt_time= time, evt= status, adm_cnr_time= 30)
-#' aml %>% admin_censor_surv(evt_time= time, evt= status, adm_cnr_time= 30, overwrite_var= TRUE)
 #' @export
 admin_censor_surv<- function(df, evt_time, evt, adm_cnr_time= NULL, overwrite_var= FALSE) {
   ######################################################################################
@@ -2191,11 +2099,11 @@ admin_censor_surv<- function(df, evt_time, evt, adm_cnr_time= NULL, overwrite_va
   if (!is.null(adm_cnr_time)) {
 
     if (overwrite_var) {
-      cnr_evt_time_name<- lazyeval::as_name(evt_time)
-      cnr_evt_name     <- lazyeval::as_name(evt)
+      cnr_evt_time_name<- rlang::as_name(evt_time)
+      cnr_evt_name     <- rlang::as_name(evt)
     } else {
-      cnr_evt_time_name<- paste0(lazyeval::as_name(evt_time), "_adm")
-      cnr_evt_name     <- paste0(lazyeval::as_name(evt), "_adm")
+      cnr_evt_time_name<- paste0(rlang::as_name(evt_time), "_adm")
+      cnr_evt_name     <- paste0(rlang::as_name(evt), "_adm")
     }
 
     df<- df %>%
@@ -2221,9 +2129,6 @@ admin_censor_surv<- function(df, evt_time, evt, adm_cnr_time= NULL, overwrite_va
 #' @param evt_label a numeric vector specifying the time point at which administrative censoring is applied.
 #' @param overwrite_var a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.
 #' @return The input data plus censored time-to-event variables.
-#' @examples
-#' cmprisk_df<- read.csv2("http://www.stat.unipg.it/luca/misc/bmt.csv")
-#' admin_censor_cmprisk(cmprisk_df, ftime, status, evt_label = c("0"= "Event free", "1"= "Event", "2"= "Competing event"), adm_cnr_time= 10)
 #' @export
 #' @importFrom magrittr %>%
 #' @importFrom data.table :=
@@ -2237,19 +2142,19 @@ admin_censor_cmprisk<- function(df, evt_time, evt, adm_cnr_time= NULL, evt_label
     stop("No administrative censor time is given.")
     # if (!is.null(evt_label)) {
     #   # df<- df %>%
-    #   #   dplyr::mutate(!!lazyeval::as_name(evt):= factor(!!evt, as.integer(names(evt_label)), labels = evt_label))
-    #   # df[[as_name(evt)]]<- evt_label[levels(df[[as_name(evt)]])]
-    #   df$as_name(evt)<- evt_label[levels(df$as_name(evt))]
+    #   #   dplyr::mutate(!!rlang::as_name(evt):= factor(!!evt, as.integer(names(evt_label)), labels = evt_label))
+    #   # df[[rlang::as_name(evt)]]<- evt_label[levels(df[[rlang::as_name(evt)]])]
+    #   df$rlang::as_name(evt)<- evt_label[levels(df$rlang::as_name(evt))]
     # }
 
   } else {
 
     if (overwrite_var) {
-      cnr_evt_time_name<- lazyeval::as_name(evt_time)
-      cnr_evt_name     <- lazyeval::as_name(evt)
+      cnr_evt_time_name<- rlang::as_name(evt_time)
+      cnr_evt_name     <- rlang::as_name(evt)
     } else {
-      cnr_evt_time_name<- paste0(lazyeval::as_name(evt_time), "_adm")
-      cnr_evt_name     <- paste0(lazyeval::as_name(evt), "_adm")
+      cnr_evt_time_name<- paste0(rlang::as_name(evt_time), "_adm")
+      cnr_evt_name     <- paste0(rlang::as_name(evt), "_adm")
     }
 
     df<- if (is.null(evt_label)) {
@@ -2267,7 +2172,7 @@ admin_censor_cmprisk<- function(df, evt_time, evt, adm_cnr_time= NULL, evt_label
   }
 
   # df<- if (overwrite_var | is.null(evt_label)) df else dplyr::mutate(df,
-  #                                                             !!quo_name(evt):= factor(!!evt, as.integer(names(evt_label)), labels = evt_label))
+  #                                                             !!rlang::quo_name(evt):= factor(!!evt, as.integer(names(evt_label)), labels = evt_label))
   df
 }
 
@@ -2293,41 +2198,41 @@ summarize_km<- function(fit, times= NULL, failure_fun= FALSE) {
   out<- if (any(names(fit)=="strata")) {
 
     ss %$%
-      map2(.x= c('surv', 'conf_low', 'conf_high'),
+      purrr::map2(.x= c('surv', 'conf_low', 'conf_high'),
            .y= list(surv= surv, lower= lower, upper= upper),
            .f= function(var, mat, ...) {
              mat %>%
                as.data.frame() %>%
                dplyr::mutate(strata= strata,
                              times = time) %>%
-               melt(id.vars= c('strata', 'times'),
+               reshape2::melt(id.vars= c('strata', 'times'),
                     value.name = var) %>%
                dplyr::select(-variable)
            }) %>%
-      reduce(full_join, by = c('strata', 'times')) %>%
-      dplyr::mutate_at(vars(one_of('surv', 'conf_low', 'conf_high')),
+      purrr::reduce(dplyr::full_join, by = c('strata', 'times')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('surv', 'conf_low', 'conf_high')),
                        function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
       dplyr::mutate(stat= paste0(surv, " [", conf_low, ", ", conf_high, "]")) %>%
-      dcast(times ~ strata, value.var = 'stat')
+      reshape2::dcast(times ~ strata, value.var = 'stat')
 
   } else {
 
     ss %$%
-      map2(.x= c('surv', 'conf_low', 'conf_high'),
+      purrr::map2(.x= c('surv', 'conf_low', 'conf_high'),
            .y= list(surv= surv, lower= lower, upper= upper),
            .f= function(var, mat, ...) {
              mat %>%
                as.data.frame() %>%
                dplyr::mutate(times = time) %>%
-               melt(id.vars= c('times'),
+               reshape2::melt(id.vars= c('times'),
                     value.name = var) %>%
                dplyr::select(-variable)
            }) %>%
-      reduce(full_join, by = c('times')) %>%
-      dplyr::mutate_at(vars(one_of('surv', 'conf_low', 'conf_high')),
+      purrr::reduce(dplyr::full_join, by = c('times')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('surv', 'conf_low', 'conf_high')),
                        function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
       dplyr::mutate(stat= paste0(surv, " [", conf_low, ", ", conf_high, "]")) %>%
-      dcast(times ~ 'Overall', value.var = 'stat')
+      reshape2::dcast(times ~ 'Overall', value.var = 'stat')
 
   }
   out
@@ -2349,41 +2254,41 @@ summarize_cif<- function(fit, times= NULL) {
   out<- if (any(names(fit)=="strata")) {
 
     ss %$%
-      map2(.x= c('pstate', 'conf_low', 'conf_high'),
+      purrr::map2(.x= c('pstate', 'conf_low', 'conf_high'),
            .y= list(pstate= pstate, lower= lower, upper= upper),
            .f= function(var, mat, ...) {
              mat %>%
                as.data.frame() %>%
                dplyr::mutate(strata= strata,
                              times = time) %>%
-               melt(id.vars= c('strata', 'times'),
+               reshape2::melt(id.vars= c('strata', 'times'),
                     value.name = var,
                     variable.name = 'states')
            }) %>%
-      reduce(full_join, by = c('strata', 'times', 'states')) %>%
-      dplyr::mutate_at(vars(one_of('pstate', 'conf_low', 'conf_high')),
+      purrr::reduce(dplyr::full_join, by = c('strata', 'times', 'states')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('pstate', 'conf_low', 'conf_high')),
                        function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
       dplyr::mutate(stat= paste0(pstate, " [", conf_low, ", ", conf_high, "]")) %>%
-      dcast(times ~ states + strata, value.var = 'stat')
+      reshape2::dcast(times ~ states + strata, value.var = 'stat')
 
   } else {
 
     ss %$%
-      map2(.x= c('pstate', 'conf_low', 'conf_high'),
+      purrr::map2(.x= c('pstate', 'conf_low', 'conf_high'),
            .y= list(pstate= pstate, lower= lower, upper= upper),
            .f= function(var, mat, ...) {
              mat %>%
                as.data.frame() %>%
                dplyr::mutate(times = time) %>%
-               melt(id.vars= c('times'),
+               reshape2::melt(id.vars= c('times'),
                     value.name = var,
                     variable.name = 'states')
            }) %>%
-      reduce(full_join, by = c('times', 'states')) %>%
-      dplyr::mutate_at(vars(one_of('pstate', 'conf_low', 'conf_high')),
+      purrr::reduce(dplyr::full_join, by = c('times', 'states')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('pstate', 'conf_low', 'conf_high')),
                        function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
       dplyr::mutate(stat= paste0(pstate, " [", conf_low, ", ", conf_high, "]")) %>%
-      dcast(times ~ states, value.var = 'stat')
+      reshape2::dcast(times ~ states, value.var = 'stat')
   }
   out
 }
@@ -2401,18 +2306,18 @@ summarize_coxph<- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05) 
 
   out<- summary(mdl, maxlabel= maxlabel)$coefficient %>%
     as.data.frame() %>%
-    rownames_to_column("term")
+    tibble::rownames_to_column("term")
 
   if (any(class(mdl)== "coxph.penal")) {
-    out<- dplyr:rename(out, se= 'se(coef)')
+    out<- dplyr::rename(out, se= 'se(coef)')
   } else if (all(class(mdl)== "coxph")) {
-    out<- dplyr:rename(out, se= 'se(coef)', p= 'Pr(>|z|)')
+    out<- dplyr::rename(out, se= 'se(coef)', p= 'Pr(>|z|)')
     # names(out)[grep("^p", names(out), ignore.case = TRUE)]<- "p"
   }
 
   out<- out %>%
-    dplyr::mutate(conf_low = coef - qnorm(1-alpha/2) * se,
-                  conf_high= coef + qnorm(1-alpha/2) * se,
+    dplyr::mutate(conf_low = coef - stats::qnorm(1-alpha/2) * se,
+                  conf_high= coef + stats::qnorm(1-alpha/2) * se,
                   coef     = if (exponentiate) exp(coef) else coef,
                   conf_low = if (exponentiate) exp(conf_low) else conf_low,
                   conf_high= if (exponentiate) exp(conf_high) else conf_high,
@@ -2421,10 +2326,10 @@ summarize_coxph<- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05) 
                                       formatC(conf_low, format= "f", digits= 3, flag= "#"), ", ",
                                       formatC(conf_high, format= "f", digits= 3, flag= "#"), "]")),
                   pval= format_pvalue(p)) %>%
-    dplyr::select(one_of(c("term", "stat", "pval")))
+    dplyr::select(dplyr::one_of(c("term", "stat", "pval")))
 
   type3_coxph<- function(mdl, beta_var= vcov(mdl)) {
-    x<- model.matrix(mdl)
+    x<- stats::model.matrix(mdl)
     varseq <- attr(x, "assign")
     out<- lapply(unique(varseq),
                  function(i){
@@ -2439,9 +2344,9 @@ summarize_coxph<- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05) 
 
                    # calculate Wald's test statistics and p-value
                    wald_stat<- as.numeric( t(cc) %*% solve(vv) %*% cc )
-                   pval<- pchisq(wald_stat,
+                   pval<- stats::pchisq(wald_stat,
                                  df= if (any(class(mdl)=="coxph.penal") && !is.na(mdl$df[i])) mdl$df[i] else df,
-                                 lower.tail = FALSE)
+                                 lower.tail  = FALSE)
 
                    data.frame(df= round(df, 0), stat= wald_stat, chisq_p= pval)
                  })
@@ -2465,12 +2370,12 @@ summarize_coxph<- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05) 
   type3_out<- type3_coxph(mdl)
 
   out<- type3_out %>%
-    dplyr::filter(df> 1) %>%
+     dplyr::filter(df> 1) %>%
     dplyr::mutate(pval= format_pvalue(chisq_p)) %>%
     dplyr::select(variable, pval) %>%
-    dplyr:rename(term= variable) %>%
-    bind_rows(out) %>%
-    arrange(term) %>%
+    dplyr::rename(term= variable) %>%
+    dplyr::bind_rows(out) %>%
+    dplyr::arrange(term) %>%
     dplyr::select(term, stat, pval)
 
   out
@@ -2489,20 +2394,20 @@ calculate_type3_mi<- function(mira_obj, vcov_fun= NULL) {
   # to calulate the type 3 error
   # Li, Meng, Raghunathan and Rubin. Significance levels from repeated p-values with multiply-imputed data. Statistica Sinica (1991)
   # x<- model.matrix(mira_obj$analyses[[1]])
-  x<- model.matrix(tmp<- getfit(mira_obj, 1L))
+  x<- stats::model.matrix(tmp <- mice::getfit(mira_obj, 1L))
   varseq<- attr(x, "assign")
   df<- sapply(split(varseq, varseq), length)
   m <- length(mira_obj$analyses)
 
   # coef estimate and its vcov for each MI model
-  betas<- MIextract(mira_obj$analyses, fun= coef)
-  vars <- MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)
+  betas <- mice::MIextract(mira_obj$analyses, fun= coef)
+  vars <- mice::MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)
 
   # average betas and vcov cross MI mdls
-  mean_betas<- purrr::reduce(betas, .f= `+`)/m
-  with_var<- purrr::reduce(vars, .f= `+`)/m # with MI
+  mean_betas <- purrr::reduce(betas, .f= `+`)/m
+  with_var <- purrr::reduce(vars, .f= `+`)/m # with MI
   # between-MI vcov
-  btwn_var<- lapply(betas, function(cc) (cc - mean_betas) %*% t(cc - mean_betas)) %>%
+  btwn_var <- lapply(betas, function(cc) (cc - mean_betas) %*% t(cc - mean_betas)) %>%
     purrr::reduce(.f= `+`)/(m-1)
 
   out<- lapply(unique(varseq),
@@ -2527,7 +2432,7 @@ calculate_type3_mi<- function(mira_obj, vcov_fun= NULL) {
                    0.5*(m-1)*(df+1)*(1+1/(rm/df))^2
                  }
 
-                 pval<- pf(wald_stat, df1= df, df2= df_denominator, lower.tail= FALSE)
+                 pval<- stats::pf(wald_stat, df1= df, df2= df_denominator, lower.tail = FALSE)
 
                  out<- data.frame(var= if (i==0) '(Intercept)' else attr(tmp$terms, "term.labels")[i],
                                   rid = i,
@@ -2556,8 +2461,8 @@ summarize_mi_glm<- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun=
   # m <- length(mira_obj$analyses)
   #
   # # coef estimate and its vcov for each MI model
-  # betas<- MIextract(mira_obj$analyses, fun= coef)
-  # vars <- MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)
+  # betas<- mice::MIextract(mira_obj$analyses, fun= coef)
+  # vars <- mice::MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)
   #
   # # average betas and vcov cross MI mdls
   # mean_betas<- purrr::reduce(betas, .f= `+`)/m
@@ -2588,7 +2493,7 @@ summarize_mi_glm<- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun=
   #                  0.5*(m-1)*(df+1)*(1+1/(rm/df))^2
   #                }
   #
-  #                pval<- pf(wald_stat, df1= df, df2= df_denominator, lower.tail= FALSE)
+  #                pval<- stats::pf(wald_stat, df1= df, df2= df_denominator, lower.utils::tail= FALSE)
   #
   #                data.frame(rid = i,
   #                           df= round(df, 0),
@@ -2601,27 +2506,27 @@ summarize_mi_glm<- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun=
   # the order of the variables in the output
   out_tmp<- out %>%
     lapply(function(x) attr(x, "col_in_X")) %>%
-    bind_rows()
+    dplyr::bind_rows()
 
   type3_out<- out %>%
-    bind_rows() %>%
+    dplyr::bind_rows() %>%
     dplyr::mutate(pval= format_pvalue(chisq_p))
 
-  glm_out<- MIcombine(MIextract(mira_obj$analyses, fun= coef),
-                      MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)) %$%
+  glm_out<- mice::MIcombine(mice::MIextract(mira_obj$analyses, fun= coef),
+                      mice::MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)) %$%
     data.frame(est= coefficients,
                se = sqrt(diag(variance))) %>%
-    rownames_to_column(var= "term") %>%
-    right_join(out_tmp, by= "term") %>%
-    dplyr::mutate(conf_low = est - qnorm(1-alpha/2) * se,
-                  conf_high= est + qnorm(1-alpha/2) * se,
+    tibble::rownames_to_column(var= "term") %>%
+    dplyr::right_join(out_tmp, by= "term") %>%
+    dplyr::mutate(conf_low = est - stats::qnorm(1-alpha/2) * se,
+                  conf_high= est + stats::qnorm(1-alpha/2) * se,
                   est      = if (exponentiate) exp(est) else est,
                   conf_low = if (exponentiate) exp(conf_low) else conf_low,
                   conf_high= if (exponentiate) exp(conf_high) else conf_high,
                   stat = sprintf("%4.3f [%4.3f, %4.3f]", est, conf_low, conf_high),
                   pval= type3_out$pval[charmatch(gsub("TRUE$", "", term), type3_out$var)]) %>%
-    select(term, stat, pval, rid, everything())  %>%
-    dplyr:rename(var= term)
+    select(term, stat, pval, rid, dplyr::everything())  %>%
+    dplyr::rename(var= term)
 
   # dplyr::mutate(var= as.character(term),
   #        # est      = if (exponentiate) exp(est) else est,
@@ -2630,22 +2535,22 @@ summarize_mi_glm<- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun=
   #        stat = sprintf("%4.3f [%4.3f, %4.3f]", est, conf_low, conf_high),
   #        pval= format_pvalue(pval)) %>%
   # dplyr::select(var, stat, pval, est, conf_low, conf_high) %>%
-  # full_join(out_tmp, by= c("var" = "term"))
+  # dplyr::full_join(out_tmp, by= c("var" = "term"))
 
 
   type3_out<- type3_out %>%
-    dplyr::filter(df>1) %>%
+     dplyr::filter(df>1) %>%
     dplyr::select(var, pval, rid)
 
   glm_out %>%
-    bind_rows(type3_out) %>%
-    arrange(rid, var) %>%
-    select(var, stat, pval, everything())
+    dplyr::bind_rows(type3_out) %>%
+    dplyr::arrange(rid, var) %>%
+    select(var, stat, pval, dplyr::everything())
 
   # type3_out<- out %>%
-  #   bind_rows(.id= "var") %>%
+  #   dplyr::bind_rows(.id= "var") %>%
   #   dplyr::mutate(pval= format_pvalue(chisq_p)) %>%
-  #   dplyr::filter(df>1) %>%
+  #    dplyr::filter(df>1) %>%
   #   dplyr::select(var, pval)
   #
   # type3_out$rid<- sapply(type3_out$var,
@@ -2653,8 +2558,8 @@ summarize_mi_glm<- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun=
   #
   # glm_out %>%
   #   dplyr::mutate(rid= 1:n()) %>%
-  #   bind_rows(type3_out) %>%
-  #   arrange(rid, var) %>%
+  #   dplyr::bind_rows(type3_out) %>%
+  #   dplyr::arrange(rid, var) %>%
   #   select(-rid)
 }
 
@@ -2670,8 +2575,8 @@ summarize_mi_coxph<- function(cox_mira, exponentiate= TRUE, alpha= .05) {
   # m <- length(cox_mira$analyses)
   #
   # # coef estimate and its vcov for each MI model
-  # betas<- MIextract(cox_mira$analyses, fun= coef)
-  # vars <- MIextract(cox_mira$analyses, fun= vcov)
+  # betas<- mice::MIextract(cox_mira$analyses, fun= coef)
+  # vars <- mice::MIextract(cox_mira$analyses, fun= vcov)
   #
   # # average betas and vcov cross MI mdls
   # mean_betas<- purrr::reduce(betas, .f= `+`)/m
@@ -2702,7 +2607,7 @@ summarize_mi_coxph<- function(cox_mira, exponentiate= TRUE, alpha= .05) {
   #                  0.5*(m-1)*(df+1)*(1+1/(rm/df))^2
   #                }
   #
-  #                pval<- pf(wald_stat, df1= df, df2= df_denominator, lower.tail= FALSE)
+  #                pval<- stats::pf(wald_stat, df1= df, df2= df_denominator, lower.utils::tail= FALSE)
   #
   #                data.frame(rid = i,
   #                           df= round(df, 0),
@@ -2714,24 +2619,24 @@ summarize_mi_coxph<- function(cox_mira, exponentiate= TRUE, alpha= .05) {
   # the order of the variables in the output
   out_tmp<- out %>%
     lapply(function(x) attr(x, "col_in_X")) %>%
-    bind_rows()
+    dplyr::bind_rows()
 
   type3_out<- out %>%
-    bind_rows() %>%
+    dplyr::bind_rows() %>%
     dplyr::mutate(pval= format_pvalue(chisq_p)) %>%
-    dplyr::filter(df>1) %>%
+     dplyr::filter(df>1) %>%
     dplyr::select(var, pval, rid)
 
   cox_out<- cox_mira %>%
-    # pool() %>%
+    # mice::pool() %>%
     # see https://github.com/amices/mice/issues/246#
-    pool(dfcom = getfit(., 1L)$nevent - length(coef(getfit(., 1L)))) %>%
+    mice::pool(dfcom = mice::getfit(., 1L)$nevent - length(coef(mice::getfit(., 1L)))) %>%
     summary(conf.int = TRUE,
             conf.level = 1-alpha,
             exponentiate= exponentiate) %>%
     # as.data.frame() %>%
-    # rownames_to_column("var") %>%
-    dplyr:rename(est      = estimate,
+    # tibble::rownames_to_column("var") %>%
+    dplyr::rename(est      = estimate,
                  pval     = p.value,
                  conf_low = `2.5 %`,
                  conf_high= `97.5 %`) %>%
@@ -2739,13 +2644,13 @@ summarize_mi_coxph<- function(cox_mira, exponentiate= TRUE, alpha= .05) {
                   stat = sprintf("%4.3f [%4.3f, %4.3f]", est, conf_low, conf_high),
                   pval= format_pvalue(pval)) %>%
     dplyr::select(var, stat, pval, est, conf_low, conf_high) %>%
-    full_join(out_tmp, by= c("var" = "term"))
+    dplyr::full_join(out_tmp, by= c("var" = "term"))
 
   cox_out %>%
-    bind_rows(type3_out) %>%
-    arrange(rid, var) %>%
-    select(var, stat, pval, everything())
-  # bind_rows(cox_out, type3_out) %>% arrange(rid, var)
+    dplyr::bind_rows(type3_out) %>%
+    dplyr::arrange(rid, var) %>%
+    select(var, stat, pval, dplyr::everything())
+  # dplyr::bind_rows(cox_out, type3_out) %>% dplyr::arrange(rid, var)
 }
 
 #' @export
@@ -2754,11 +2659,11 @@ generate_mi_glm_termplot_df<- function(mira_obj,
                                        center_at= NULL,
                                        vcov_fun= NULL, ...) {
   require(mitools)
-  dummy_mdl<- getfit(mira_obj, 1L)
+  dummy_mdl<- mice::getfit(mira_obj, 1L)
   tt<- stats::terms(dummy_mdl)
   terms<- if (is.null(terms)) 1:length(labels(tt)) else terms
   cn<- attr(tt, "term.labels")[terms]
-  varseq<- attr(mm_orig<- model.matrix(dummy_mdl), "assign")
+  varseq<- attr(mm_orig<- stats::model.matrix(dummy_mdl), "assign")
 
   carrier.name <- function(term) {
     if (length(term) > 1L)
@@ -2766,17 +2671,17 @@ generate_mi_glm_termplot_df<- function(mira_obj,
     else as.character(term)
   }
 
-  betas <- MIextract(mira_obj$analyses,
+  betas <- mice::MIextract(mira_obj$analyses,
                      fun = coef)
 
-  vars  <- MIextract(mira_obj$analyses,
+  vars  <- mice::MIextract(mira_obj$analyses,
                      fun = if (is.null(vcov_fun)) vcov else vcov_fun)
 
-  mi_res<- MIcombine(betas, vars)
+  mi_res<- mice::MIcombine(betas, vars)
 
   dummy_mdl$coefficients<- mi_res$coefficients
 
-  plot_d<- termplot(dummy_mdl, terms= terms, plot= FALSE)
+  plot_d<- stats::termplot(dummy_mdl, terms= terms, plot= FALSE)
 
   plot_d<- mapply(function(df, cc, var, tt) {
 
@@ -2802,12 +2707,12 @@ generate_mi_glm_termplot_df<- function(mira_obj,
     # now calculate the standard error
     tmp<- df
     names(tmp)<- gsub("x", sapply(str2expression(var), carrier.name), names(tmp))
-    mm[, tt == varseq]<- (model.matrix(as.formula(paste("~ ", var)), data= tmp)[,-1])
+    mm[, tt == varseq]<- (stats::model.matrix(stats::as.formula(paste("~ ", var)), data= tmp)[,-1])
     df$se<- sqrt(diag(mm %*% mi_res$variance %*% t(mm)))
 
     df %>%
-      dplyr::mutate(conf_low= y - qnorm(0.975) * se,
-                    conf_high= y + qnorm(0.975) * se)
+      dplyr::mutate(conf_low= y - stats::qnorm(0.975) * se,
+                    conf_high= y + stats::qnorm(0.975) * se)
   },
   df= plot_d,
   cc= if (is.null(center_at)) vector("list", length(terms)) else center_at,
@@ -2862,60 +2767,60 @@ logical_desp <- function(df, group) {
 
   group <- rlang::enquo(group)
   df <- df %>%
-    ungroup()
+    dplyr::ungroup()
 
   # fisher exact test
-  # test<- try(fisher.test(freq, hybrid = TRUE, conf.int = FALSE), silent = TRUE)
+  # test<- try(stats::fisher.test(freq, hybrid = TRUE, conf.int = FALSE), silent = TRUE)
   # test<- if (class(test)=="try-error") NA else test$p.value
   test_fun <- fisher_test
 
   if (rlang::quo_is_missing(group)) {
 
     sum_stat <- df %>%
-      summarise_if(is.logical, funs(binary_desp),
+      dplyr::summarise_if(is.logical, dplyr::funs(binary_desp),
                    pct_digits= if (nrow(.)>= 200) 1 else 0) %>%
-      rownames_to_column() %>%
-      melt(id.vars= "rowname", value.name = "stat") %>%
-      mutate(type= "freq") %>%
+      tibble::rownames_to_column() %>%
+      reshape2::melt(id.vars= "rowname", value.name = "stat") %>%
+      dplyr::mutate(type= "freq") %>%
       dplyr::select(variable, type, stat)
 
     n_var <- df %>%
-      summarise_if(is.logical, funs(n_avail)) %>%
-      rownames_to_column() %>%
-      melt(id.vars= "rowname", value.name = "n") %>%
+      dplyr::summarise_if(is.logical, dplyr::funs(n_avail)) %>%
+      tibble::rownames_to_column() %>%
+      reshape2::melt(id.vars= "rowname", value.name = "n") %>%
       dplyr::select(-rowname)
 
   } else {
 
     df <- df %>%
-      # ungroup() %>%
-      group_by(!!group)
+      # dplyr::ungroup() %>%
+      dplyr::group_by(!!group)
 
     sum_stat <- df %>%
-      summarise_if(is.logical, funs(binary_desp),
+      dplyr::summarise_if(is.logical, dplyr::funs(binary_desp),
                    pct_digits= if (nrow(.)>= 200) 1 else 0) %>%
-      melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
-      dcast(as.formula(paste("variable", quo_name(group), sep= " ~ "))) %>%
-      mutate(type= "freq") %>%
-      # left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
-      left_join(test_fun(df, !!group), by= c("variable", "type"))
+      reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE) %>%
+      reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ "))) %>%
+      dplyr::mutate(type= "freq") %>%
+      # dplyr::left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
+      dplyr::left_join(test_fun(df, !!group), by= c("variable", "type"))
 
     n_var <- df %>%
-      summarise_if(is.logical, funs(n_avail)) %>%
-      melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
-      dcast(as.formula(paste("variable", quo_name(group), sep= " ~ ")))
+      dplyr::summarise_if(is.logical, dplyr::funs(n_avail)) %>%
+      reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE) %>%
+      reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ ")))
   }
 
   n_var <- n_var %>%
-    mutate_all(as.character)
+    dplyr::mutate_all(as.character)
 
   sum_stat <- sum_stat %>%
-    mutate_all(as.character)
+    dplyr::mutate_all(as.character)
 
-  left_join(n_var, sum_stat, by= "variable", suffix= c("_n", "_stat")) %>%
-    dplyr::select(variable, type, everything()) %>%
-    mutate(type= NA_character_) %>%
-    arrange(variable, type)
+  dplyr::left_join(n_var, sum_stat, by= "variable", suffix= c("_n", "_stat")) %>%
+    dplyr::select(variable, type, dplyr::everything()) %>%
+    dplyr::mutate(type= NA_character_) %>%
+    dplyr::arrange(variable, type)
 }
 
 
@@ -2926,28 +2831,28 @@ logical_desp <- function(df, group) {
 #'
 #' @param df Dataframe
 #' @return a dataframe of a single column of character variables indicating p-values.
-fisher_test<- function(df, group) {
+fisher_test <- function(df, group) {
 
-  group<- enquo(group)
-  df<- df %>%
-    ungroup() %>%
-    group_by(!!group)
+  group <- enquo(group)
+  df <- df %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(!!group)
 
-  # fisher_test<- function(...) try(fisher.test(..., hybrid = TRUE, conf.int= FALSE), silent = TRUE)
-  fisher_test<- if (n_groups(df)==2) {
-    function(...) try(fisher.test(..., conf.int= FALSE), silent = TRUE)
+  # fisher_test<- function(...) try(stats::fisher.test(..., hybrid = TRUE, conf.int= FALSE), silent = TRUE)
+  fisher_test <- if (dplyr::n_groups(df)==2) {
+    function(...) try(stats::fisher.test(..., conf.int= FALSE), silent = TRUE)
   } else {
-    function(...) try(fisher.test(..., hybrid = TRUE, conf.int= FALSE), silent = TRUE)
+    function(...) try(stats::fisher.test(..., hybrid = TRUE, conf.int= FALSE), silent = TRUE)
   }
 
   df %>%
-    select_if(is.logical) %>%
-    melt(id.vars= quo_name(group),
+    dplyr::select_if(is.logical) %>%
+    reshape2::melt(id.vars= rlang::quo_name(group),
          factorsAsStrings= TRUE,
          na.rm= TRUE) %>%
-    group_by(variable) %>%
-    nest() %>%
-    mutate(freq= map(data,
+    dplyr::group_by(variable) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(freq= purrr::map(data,
                      function(df) {
 
                        res<- df %>%
@@ -2956,10 +2861,10 @@ fisher_test<- function(df, group) {
 
                        # res<- if (class(res)=="try-error") NA else res$p.value
                        res<- if (class(res)=="try-error") {
-                         fisher_test<- if (n_groups(df)==2) {
-                           function(...) try(fisher.test(..., conf.int= FALSE, simulate.p.value = TRUE, B=5000), silent = TRUE)
+                         fisher_test<- if (dplyr::n_groups(df)==2) {
+                           function(...) try(stats::fisher.test(..., conf.int= FALSE, simulate.p.value = TRUE, B=5000), silent = TRUE)
                          } else {
-                           function(...) try(fisher.test(..., hybrid = TRUE, conf.int= FALSE, simulate.p.value = TRUE, B=5000), silent = TRUE)
+                           function(...) try(stats::fisher.test(..., hybrid = TRUE, conf.int= FALSE, simulate.p.value = TRUE, B=5000), silent = TRUE)
                          }
                          res_try<- df %>%
                            table() %>%
@@ -2969,10 +2874,10 @@ fisher_test<- function(df, group) {
                        res
                      })) %>%
     dplyr::select(-data) %>%
-    unnest() %>%
-    melt(id.vars= "variable", variable.name= "type", value.name = "pval") %>%
-    mutate(pval= format_pvalue(pval)) %>%
-    mutate_all(as.character) %>% mutate(test = "Fisher")
+    tidyr::unnest() %>%
+    reshape2::melt(id.vars= "variable", variable.name= "type", value.name = "pval") %>%
+    dplyr::mutate(pval= format_pvalue(pval)) %>%
+    dplyr::mutate_all(as.character) %>% dplyr::mutate(test = "Fisher")
 
   #   variable  type       pval
   # 1       dm  freq 0.04608804
@@ -2998,38 +2903,38 @@ fisher_test<- function(df, group) {
 numeric_desp<- function(df, group) {
   group<- rlang::enquo(group)
   df<- df %>%
-    ungroup()
+    dplyr::ungroup()
 
   if (rlang::quo_is_missing(group)) {
 
     df<- df %>%
-      select_if(is.numeric)
+      dplyr::select_if(is.numeric)
 
-    n_var<- df %>%
-      summarise_if(is.numeric, list(~ n_avail(.))) %>%
-      rownames_to_column() %>%
-      melt(id.vars= "rowname", value.name = "n") %>%
+    n_var <- df %>%
+      dplyr::summarise_if(is.numeric, list(~ n_avail(.))) %>%
+      tibble::rownames_to_column() %>%
+      reshape2::melt(id.vars= "rowname", value.name = "n") %>%
       dplyr::select(-rowname)
 
-    sum_stat<- if (ncol(df)==1) {
+    sum_stat <- if (ncol(df)==1) {
       # the naming rule changes when there is only one numeric variable
       df %>%
-        summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
-        rename_at(vars(mean_sd, med_iqr),
+        dplyr::summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
+        dplyr::rename_at(dplyr::vars(mean_sd, med_iqr),
                   function(x) paste(names(df), x, sep= "_")) %>%
-        rownames_to_column() %>%
-        melt(id.vars= "rowname", value.name = "stat") %>%
-        mutate(type= ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
-               variable= gsub("(_mean_sd|_med_iqr)$", "", variable)) %>%
+        tibble::rownames_to_column() %>%
+        reshape2::melt(id.vars = "rowname", value.name = "stat") %>%
+        dplyr::mutate(type = ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
+               variable = gsub("(_mean_sd|_med_iqr)$", "", variable)) %>%
         dplyr::select(variable, type, stat)
 
     } else {
       df %>%
-        summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
-        rownames_to_column() %>%
-        melt(id.vars= "rowname", value.name = "stat") %>%
-        mutate(type= ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
-               variable= gsub("(_mean_sd|_med_iqr)$", "", variable)) %>%
+        dplyr::summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
+        tibble::rownames_to_column() %>%
+        reshape2::melt(id.vars = "rowname", value.name = "stat") %>%
+        dplyr::mutate(type = ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
+               variable = gsub("(_mean_sd|_med_iqr)$", "", variable)) %>%
         dplyr::select(variable, type, stat)
 
     }
@@ -3037,50 +2942,50 @@ numeric_desp<- function(df, group) {
   } else {
 
     df<- df %>%
-      group_by(!!group) %>%
-      select_if(is.numeric)
+      dplyr::group_by(!!group) %>%
+      dplyr::select_if(is.numeric)
 
     n_var<- df %>%
-      summarise_if(is.numeric, list(~ n_avail(.))) %>%
-      melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
-      dcast(as.formula(paste("variable", quo_name(group), sep= " ~ ")))
+      dplyr::summarise_if(is.numeric, list(~ n_avail(.))) %>%
+      reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE) %>%
+      reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ ")))
 
-    sum_stat<- if (length(grep(group_vars(df), names(df), invert = TRUE))==1) {
+    sum_stat <- if (length(grep(dplyr::group_vars(df), names(df), invert = TRUE))==1) {
       df %>%
-        summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
-        rename_at(vars(mean_sd, med_iqr),
-                  function(x) paste(grep(group_vars(df), names(df), invert = TRUE, value= TRUE), x, sep= "_")) %>%
-        melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
-        dcast(as.formula(paste("variable", quo_name(group), sep= " ~ "))) %>%
-        mutate(type= ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
+        dplyr::summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
+        dplyr::rename_at(dplyr::vars(mean_sd, med_iqr),
+                  function(x) paste(grep(dplyr::group_vars(df), names(df), invert = TRUE, value= TRUE), x, sep= "_")) %>%
+        reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE) %>%
+        reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ "))) %>%
+        dplyr::mutate(type= ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
                variable= gsub("(_mean_sd|_med_iqr)$", "", variable))
     } else {
       df %>%
-        summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
-        melt(id.vars= quo_name(group), factorsAsStrings= TRUE) %>%
-        dcast(as.formula(paste("variable", quo_name(group), sep= " ~ "))) %>%
-        mutate(type= ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
+        dplyr::summarise_if(is.numeric, list(~ mean_sd(.), ~ med_iqr(.))) %>%
+        reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE) %>%
+        reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ "))) %>%
+        dplyr::mutate(type= ifelse(grepl("mean_sd$", variable), "meansd", "mediqr"),
                variable= gsub("(_mean_sd|_med_iqr)$", "", variable))
     }
 
     # adding the p-values
-    test_fun<- if (n_groups(df)==2) two_sample_test else if (n_groups(df)>2) k_sample_test
+    test_fun<- if (dplyr::n_groups(df)==2) two_sample_test else if (dplyr::n_groups(df)>2) k_sample_test
 
     sum_stat<- sum_stat %>%
-      # left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
-      left_join(test_fun(df, !!group), by= c("variable", "type"))
+      # dplyr::left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
+      dplyr::left_join(test_fun(df, !!group), by= c("variable", "type"))
 
   }
 
   n_var<- n_var %>%
-    mutate_all(as.character)
+    dplyr::mutate_all(as.character)
 
   sum_stat<- sum_stat %>%
-    mutate_all(as.character)
+    dplyr::mutate_all(as.character)
 
-  left_join(n_var, sum_stat, by= "variable", suffix= c("_n", "_stat")) %>%
-    dplyr::select(variable, type, everything()) %>%
-    arrange(variable, type)
+  dplyr::left_join(n_var, sum_stat, by= "variable", suffix= c("_n", "_stat")) %>%
+    dplyr::select(variable, type, dplyr::everything()) %>%
+    dplyr::arrange(variable, type)
 }
 
 
@@ -3102,10 +3007,10 @@ n_avail<- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.mar
 #' @param x Numeric variable
 #' @return a character reporting the mean plus/minus standard deviation
 #' @export
-mean_sd<- function(x) {
-  n_dec<- decimalplaces(x)
+mean_sd <- function(x) {
+  n_dec <- decimalplaces(x)
 
-  funs<- c(mean, sd)
+  funs<- c(mean, stats::sd)
   out<- sapply(funs,
                function(f) {
                  res<- try(f(x, na.rm= TRUE), silent = TRUE)
@@ -3135,16 +3040,16 @@ mean_sd<- function(x) {
 #' @param x Numeric variable
 #' @return a character reporting the median (Q1 - Q3)
 #' @export
-med_iqr<- function(x) {
-  q1<- function(x, ...) quantile(x, probs = .25, ...)
-  q3<- function(x, ...) quantile(x, probs = .75, ...)
+med_iqr <- function(x) {
+  q1 <- function(x, ...) stats::quantile(x, probs = .25, ...)
+  q3 <- function(x, ...) stats::quantile(x, probs = .75, ...)
 
   n_dec<- decimalplaces(x)
-  funs<- c(median, q1, q3)
+  funs<- c(stats::median, q1, q3)
   out<- sapply(funs,
                function(f) {
-                 res<- try(f(x, na.rm= TRUE), silent = TRUE)
-                 res<- if (class(res)== "try-error") NA else res
+                 res <- try(f(x, na.rm= TRUE), silent = TRUE)
+                 res <- if (class(res)== "try-error") NA else res
                  return(res)
                })
   if (length(x[!is.na(x)])==0) {
@@ -3179,33 +3084,33 @@ two_sample_test<- function(df, group) {
   group<- enquo(group)
 
   df %>%
-    ungroup() %>%
-    # group_by(rlang::UQ(group)) %>%
-    group_by(!!group) %>%
-    select_if(is.numeric) %>%
-    melt(id.vars= quo_name(group), factorsAsStrings= TRUE, na.rm= TRUE) %>%
-    group_by(variable) %>%
-    nest() %>%
-    mutate(ttest= map_dbl(data,
+    dplyr::ungroup() %>%
+    # dplyr::group_by(rlang::UQ(group)) %>%
+    dplyr::group_by(!!group) %>%
+    dplyr::select_if(is.numeric) %>%
+    reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE, na.rm= TRUE) %>%
+    dplyr::group_by(variable) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(ttest= purrr::map_dbl(data,
                           function(df) {
-                            fml<- as.formula(paste0("value ~ factor(", quo_name(group), ")"))
+                            fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                             res<- try(stats::t.test(fml, data= df, var.equal = FALSE), silent = FALSE)
                             if (class(res)=="try-error") NA_real_ else res$p.value
                           }),
-           wilcox= map_dbl(data,
+           wilcox= purrr::map_dbl(data,
                            function(df) {
-                             # if (!is.factor(df[quo_name(group)])) df[quo_name(group)]<- factor(df[quo_name(group)])
-                             fml<- as.formula(paste0("value ~ factor(", quo_name(group), ")"))
+                             # if (!is.factor(df[rlang::quo_name(group)])) df[rlang::quo_name(group)]<- factor(df[rlang::quo_name(group)])
+                             fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                              res<- try(stats::wilcox.test(fml, data= df), silent = FALSE)
                              if (class(res)=="try-error") NA_real_ else res$p.value
                            })) %>%
     dplyr::select(-data) %>%
-    # unnest(cols = c(ttest, wilcox)) %>%
-    melt(id.vars= "variable", variable.name= "test", value.name = "pval") %>%
-    mutate(type= ifelse(grepl("^ttest", test), "meansd", "mediqr"),
+    # tidyr::unnest(cols = c(ttest, wilcox)) %>%
+    reshape2::melt(id.vars= "variable", variable.name= "test", value.name = "pval") %>%
+    dplyr::mutate(type= ifelse(grepl("^ttest", test), "meansd", "mediqr"),
            pval= format_pvalue(pval)
     ) %>%
-    mutate_all(as.character)
+    dplyr::mutate_all(as.character)
   #   variable   type   pval
   # 1   income meansd   0.52
   # 2   weight meansd <0.001
@@ -3229,31 +3134,31 @@ k_sample_test<- function(df, group) {
   group<- enquo(group)
 
   df %>%
-    ungroup() %>%
-    group_by(!!group) %>%
-    select_if(is.numeric) %>%
-    melt(id.vars= quo_name(group), factorsAsStrings= TRUE, na.rm= TRUE) %>%
-    group_by(variable) %>%
-    nest() %>%
-    mutate(oneway= map_dbl(data,
+    dplyr::ungroup() %>%
+    dplyr::group_by(!!group) %>%
+    dplyr::select_if(is.numeric) %>%
+    reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE, na.rm= TRUE) %>%
+    dplyr::group_by(variable) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(oneway= purrr::map_dbl(data,
                            function(df) {
-                             fml<- as.formula(paste0("value ~ factor(", quo_name(group), ")"))
+                             fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                              res<- try(stats::oneway.test(fml, data= df, var.equal = FALSE), silent = FALSE)
                              if (class(res)=="try-error") NA_real_ else res$p.value
                            }),
-           kruskal= map_dbl(data,
+           kruskal= purrr::map_dbl(data,
                             function(df) {
-                              fml<- as.formula(paste0("value ~ factor(", quo_name(group), ")"))
+                              fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                               res<- try(stats::kruskal.test(fml, data= df), silent = FALSE)
                               if (class(res)=="try-error") NA_real_ else res$p.value
                             })) %>%
     dplyr::select(-data) %>%
-    # unnest(cols = c(ttest, wilcox)) %>%
-    melt(id.vars= "variable", variable.name= "test", value.name = "pval") %>%
-    mutate(type= ifelse(grepl("^oneway", test), "meansd", "mediqr"),
+    # tidyr::unnest(cols = c(ttest, wilcox)) %>%
+    reshape2::melt(id.vars= "variable", variable.name= "test", value.name = "pval") %>%
+    dplyr::mutate(type= ifelse(grepl("^oneway", test), "meansd", "mediqr"),
            pval= format_pvalue(pval)
     ) %>%
-    mutate_all(as.character)
+    dplyr::mutate_all(as.character)
 }
 
 

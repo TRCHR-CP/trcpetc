@@ -8,24 +8,11 @@ Description: Miscellaneous functions that Steve wrote to facilitate TRCP
     data analysis project.
 License: What license is it under?
 Depends: 
-    Hmisc,
-    magrittr,
-    tidyverse,
-    rlang,
-    forcats,
-    lubridate,
-    reshape2,
-    survival,
-    cmprsk,
-    broom,
-    grid,
-    gridExtra,
-    viridis,
-    cowplot,
-    extrafont,
     R (>= 3.5)
 Imports: 
     dplyr,
+    ggplot2,
+    magrittr,
     kableExtra,
     lazyeval,
     mitools,
@@ -34,7 +21,11 @@ Imports:
     sandwich,
     scales,
     stats,
-    tidyr
+    tidyr,
+    data.table,
+    rlang,
+    lubridate,
+    reshape2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
