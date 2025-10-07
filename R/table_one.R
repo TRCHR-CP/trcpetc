@@ -83,9 +83,17 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   }
 
   #Overall name can not match a group name
-  if((!rlang::quo_is_missing(group) & include_overall %in% c("group","all")) & overall_label %in% (df %>% dplyr::pull(!!group) %>% unique() %>% stats::na.omit())) {
-    stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
+  if((!rlang::quo_is_missing(group) & include_overall %in% c("group","all"))){
+    if(overall_label %in% (df %>% dplyr::pull(!!group) %>% unique() %>% stats::na.omit())){
+      stop(paste0("`overall_label` ('", overall_label, "') cannot match an existing level in the grouping variable `"))
+    }
+
   }
+
+
+
+
+
 
 
   #Grouped summary table -------------------------------------------------------------------------
