@@ -1355,7 +1355,7 @@ construct_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk_var
 #' @param overwrite_var a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.
 #' @return The input data plus censored time-to-event variables.
 #' @export
-admin_censor_surv<- function(df, evt_time, evt, adm_cnr_time= NULL, overwrite_var= FALSE) {
+admin_censor_surv <- function(df, evt_time, evt, adm_cnr_time= NULL, overwrite_var= FALSE) {
   ######################################################################################
   ## the function creates administrately censored version of event time and indicator ##
   ## for survival (binary) process                                                    ##
