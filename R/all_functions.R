@@ -532,182 +532,19 @@ show_cif <- function(surv_obj,
 
 
 
-# Factor order -------------------------------------------------------------------------
-
-#---- Order factor variables ----
-#' @title factor_order
-#'
-#' @details Automatically orders the levels of a factor variable by descending frequency, improving clarity in summary tables
-#'
-#' @param var A factor or character vector to be reordered.
-#' @return A factor vector with levels sorted in descending order of frequency.
-#' @export
-factor_order <- function(var){
-  factor(var, levels = names(sort(table(var), decreasing = TRUE)))
-}
-
-
-# Fan util fun -------------------------------------------------------------------------
-
-#---- utility functions ----
-
-#' @title decimalplaces
-#'
-#' @details
-#' An internal function that determines the number of digits in the summary of a continuous variable.
-#'
-#' @param x a continuous variable
-#' @return the most frequent number of digits in the variable
-#' @export
-decimalplaces <- function(x, max_dec= 4L) {
-  y<- x[!is.na(x)]
-  y<- round((y %% 1), 10)
-
-  if (length(y) == 0) {
-    out<- 0L
-  } else if (any((y %% 1) != 0)) {
-
-    # remove the trailing zero's
-    y<- gsub('0+$', '', as.character(y))
-
-    # split each number into 2 parts as characters - one before the decimal and the other after the decimal
-    # take the after-decimal part
-    info <- strsplit(y, ".", fixed=TRUE)
-    info <- info[ vapply(info, length, integer(1L) ) == 2]
-
-    n_dec <- nchar(unlist(info))[ 2 * (1:length(y)) ]
-    dec <- sort(table(n_dec))
-
-    # return( pmin.int(max_dec, as.integer( names(dec)[length(dec)])) )
-    out <- pmin.int(max_dec, as.integer( names(dec)[length(dec)]))
-
-  } else {
-    out<- 0L
-  }
-  out
-}
-
-#' @title format_pvalue
-#'
-#' @details An internal function that formats p-values according to the statistical guidelines of the Annals of Medicine.
-#'
-#' @param x Numeric variable
-#' @return character variables reporting p-values
-#' @export
-format_pvalue <- function(x, eps = 0.001, trim = TRUE,
-                          droptrailing0 = FALSE,
-                          # tex = TRUE,
-                          pad = FALSE, ...) {
-  p<- vector("character", length = length(x))
-
-  large<- !is.na(x) & x >= 0.1995 #Steve: if 0.2 then 0.196="0.200" and 0.201= "0.20"
-  p[large]<- base::format.pval(x[large],
-                               digits= 1,
-                               eps= 0.1995,
-                               na.form= "---",
-                               nsmall= 2,
-                               trim= trim,
-                               drop0trailing= droptrailing0,
-                               scientific = FALSE, ...)
-
-  p[!large]<- base::format.pval(x[!large],
-                                digits= 1,
-                                eps= eps,
-                                na.form= "---",
-                                nsmall= 3,
-                                trim= trim,
-                                drop0trailing= droptrailing0,
-                                scientific = FALSE, ...)
-
-  if (pad) p <- gsub("^([^<])", "  \\1", p)
-  p
-}
 
 
 
 
-#' @title Round a Vector of Percentages to 100
-#'
-#' @description Rounds a vector of values to a 100% value using the largest remainder method
-#'
-#' @param values A numeric vector of percentages that should approximately sum to 100
-#' @param digits An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).
-#'
-#' @return A numeric vector of the same length as `values`, rounded to the specified number of digits, and summing to exactly 100.
-#'
-#' @examples
-#' exact_round_100(c(33.3, 33.3, 33.4), digits = 0)
-#' # Returns: 33 33 34
-#'
-#' exact_round_100(c(33.33, 33.33, 33.34), digits = 1)
-#' # Returns: 33.3 33.3 33.4
-#'
-#' @export
-
-exact_round_100 <- function(values,digits = 1){
-  # Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits
-
-  scaleFactor <- 10^digits
-  values_scaled <- values * scaleFactor
-
-  #If the total is already 100 no need to apply any rounding
-  if (all(values_scaled%%1 == 0)) {
-    out <- values_scaled
-  }
-  else {
-    floor_values_scaled <- floor(values_scaled)
-    difference <-  values_scaled - floor_values_scaled
-
-    remainder <- 100*scaleFactor - sum(floor_values_scaled)
-    i <- utils::tail(order(difference), remainder)
-    floor_values_scaled[i] <- floor_values_scaled[i] + 1
-    out <- floor_values_scaled
-  }
-  return(out/scaleFactor)
-
-}
 
 
 
 
-#' @title updateWorksheet
-#'
-#' @details
-#' An internal function that adds a new worksheet or updates (remove and add) the existing worksheet in wb object.
-#'
-#' @param wb a \code{wb} object
-#' @param sheetName a name of the sheet to be updated
-#' @param x a dataframe to be write in the \code{wb} object
-#' @return a \code{wb} object
-#' @export
-updateWorksheet<- function(wb, sheetName, x, ...) {
-  if (!is.na(sheet_pos<- match(sheetName, names(wb), nomatch= NA))) {
-
-    sheetOrder<- openxlsx::worksheetOrder(wb)
-    names(sheetOrder)<- names(wb)
-    openxlsx::removeWorksheet(wb, sheetName)
-    openxlsx::addWorksheet(wb, sheetName );
-    openxlsx::writeData(wb, sheetName, x)
-    openxlsx::worksheetOrder(wb)<- sheetOrder[names(wb)]
-
-  } else {
-    openxlsx::addWorksheet(wb, sheetName );
-    openxlsx::writeData(wb, sheetName, x)
-  }
-  wb
-}
 
 
-#' @title recode_missing
-#'
-#' @details
-#' An internal function that replace missing value code with NA.
-#'
-#' @return input variable with NA
-recode_missing <- function(x, na.value= NULL) {
-  x[x %in% na.value]<- NA
-  x
-}
+
+
+
 
 
 

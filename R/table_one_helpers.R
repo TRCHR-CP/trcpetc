@@ -900,3 +900,55 @@ k_sample_test<- function(df, group) {
 
 
 
+#' @title Round a Vector of Percentages to 100
+#'
+#' @description Rounds a vector of values to a 100% value using the largest remainder method
+#'
+#' @param values A numeric vector of percentages that should approximately sum to 100
+#' @param digits An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).
+#'
+#' @return A numeric vector of the same length as `values`, rounded to the specified number of digits, and summing to exactly 100.
+#'
+#' @examples
+#' exact_round_100(c(33.3, 33.3, 33.4), digits = 0)
+#' # Returns: 33 33 34
+#'
+#' exact_round_100(c(33.33, 33.33, 33.34), digits = 1)
+#' # Returns: 33.3 33.3 33.4
+#'
+#' @export
+
+exact_round_100 <- function(values,digits = 1){
+  # Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits
+
+  scaleFactor <- 10^digits
+  values_scaled <- values * scaleFactor
+
+  #If the total is already 100 no need to apply any rounding
+  if (all(values_scaled%%1 == 0)) {
+    out <- values_scaled
+  }
+  else {
+    floor_values_scaled <- floor(values_scaled)
+    difference <-  values_scaled - floor_values_scaled
+
+    remainder <- 100*scaleFactor - sum(floor_values_scaled)
+    i <- utils::tail(order(difference), remainder)
+    floor_values_scaled[i] <- floor_values_scaled[i] + 1
+    out <- floor_values_scaled
+  }
+  return(out/scaleFactor)
+
+}
+
+
+#' @title recode_missing
+#'
+#' @details
+#' An internal function that replace missing value code with NA.
+#'
+#' @return input variable with NA
+recode_missing <- function(x, na.value= NULL) {
+  x[x %in% na.value]<- NA
+  x
+}
