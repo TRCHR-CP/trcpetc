@@ -1,4 +1,5 @@
 
+
 #' @title construct_surv_cmprisk_var
 #'
 #' @details
@@ -125,4 +126,3 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
   }
 
 }
-

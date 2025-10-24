@@ -1150,114 +1150,6 @@ recode_missing <- function(x, na.value= NULL) {
 
 
 
-#' @title admin_censor_surv
-#'
-#' @details
-#' The function creates time-to-event variables with the application of administrative censoring for a binary (survival) process.
-#' The newly created variables are named by the same variables names but with a suffix of '_adm' by default. The original
-#' variables can be overwritten by specifying overwrite_var= TRUE. Overwriting the original variables is not recommended, but
-#' it can be useful in some situations.
-#'
-#' @param df input data
-#' @param evt_time a numeric vector recording the time points at which the event occurs.
-#' @param evt an integer vector indicating right censoring (0= censored; 1= event).
-#' @param adm_cnr_time a numeric scalar specifying the time point at which administrative censoring is applied.
-#' @param overwrite_var a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.
-#' @return The input data plus censored time-to-event variables.
-#' @export
-admin_censor_surv <- function(df, evt_time, evt, adm_cnr_time= NULL, overwrite_var= FALSE) {
-  ######################################################################################
-  ## the function creates administrately censored version of event time and indicator ##
-  ## for survival (binary) process                                                    ##
-  ##   df - input dataframe                                                           ##
-  ##   evt_time - continuous time to event                                            ##
-  ##   evt - event indicator (1= event; 0= non-event)                                 ##
-  ##   adm_cnr_time - time at which admin censoring is applied                        ##
-  ######################################################################################
-
-  evt_time<- rlang::enquo(evt_time)
-  evt     <- rlang::enquo(evt)
-
-  if (!is.null(adm_cnr_time)) {
-
-    if (overwrite_var) {
-      cnr_evt_time_name<- rlang::as_name(evt_time)
-      cnr_evt_name     <- rlang::as_name(evt)
-    } else {
-      cnr_evt_time_name<- paste0(rlang::as_name(evt_time), "_adm")
-      cnr_evt_name     <- paste0(rlang::as_name(evt), "_adm")
-    }
-
-    df<- df %>%
-      dplyr::mutate(!!cnr_evt_name      := replace(!!evt, !!evt_time> adm_cnr_time & !!evt!=0, 0),
-                    !!cnr_evt_time_name := replace(!!evt_time, !!evt_time>adm_cnr_time, adm_cnr_time))
-  }
-
-  df
-}
-
-#' @title admin_censor_cmprisk
-#'
-#' @details
-#' The function creates time-to-event variables with the application of administrative censoring for a competing risk
-#' analysis. The newly created variables are named by the same variables names but with a suffix of '_adm' by default.
-#' The original variables can be overwritten by specifying overwrite_var= TRUE. Overwriting the original variables is
-#' not recommended, but it can be useful in some situation.
-#'
-#' @param df input data
-#' @param evt_time a numeric vector recording the time points at which the event occurs.
-#' @param evt a factor vector indicating right censoring (0= censored; 1= event of interest; other= competing risk(s)).
-#' @param adm_cnr_time a numeric vector specifying the time point at which administrative censoring is applied.
-#' @param evt_label a numeric vector specifying the time point at which administrative censoring is applied.
-#' @param overwrite_var a logical scalar (default= FALSE) indiciates if the existing time-to-event variables should be overwritten.
-#' @return The input data plus censored time-to-event variables.
-#' @export
-#' @importFrom magrittr %>%
-#' @importFrom data.table :=
-admin_censor_cmprisk<- function(df, evt_time, evt, adm_cnr_time= NULL, evt_label= NULL, overwrite_var= FALSE) {
-
-  evt_time<- rlang::enquo(evt_time)
-  evt<- rlang::enquo(evt)
-
-  if (is.null(adm_cnr_time)) {
-
-    stop("No administrative censor time is given.")
-    # if (!is.null(evt_label)) {
-    #   # df<- df %>%
-    #   #   dplyr::mutate(!!rlang::as_name(evt):= factor(!!evt, as.integer(names(evt_label)), labels = evt_label))
-    #   # df[[rlang::as_name(evt)]]<- evt_label[levels(df[[rlang::as_name(evt)]])]
-    #   df$rlang::as_name(evt)<- evt_label[levels(df$rlang::as_name(evt))]
-    # }
-
-  } else {
-
-    if (overwrite_var) {
-      cnr_evt_time_name<- rlang::as_name(evt_time)
-      cnr_evt_name     <- rlang::as_name(evt)
-    } else {
-      cnr_evt_time_name<- paste0(rlang::as_name(evt_time), "_adm")
-      cnr_evt_name     <- paste0(rlang::as_name(evt), "_adm")
-    }
-
-    df<- if (is.null(evt_label)) {
-      df %>%
-        dplyr::mutate(!!cnr_evt_name      := replace(!!evt, !!evt_time> adm_cnr_time & !!evt!= "0", "0"),
-                      !!cnr_evt_time_name := replace(!!evt_time, !!evt_time>adm_cnr_time, adm_cnr_time))
-    } else {
-      df %>%
-        dplyr::mutate(!!cnr_evt_name      := factor(replace(!!evt, !!evt_time> adm_cnr_time & !!evt!= "0", "0"),
-                                                    # as.integer(names(evt_label)),
-                                                    names(evt_label),
-                                                    labels = evt_label),
-                      !!cnr_evt_time_name := replace(!!evt_time, !!evt_time>adm_cnr_time, adm_cnr_time))
-    }
-  }
-
-  # df<- if (overwrite_var | is.null(evt_label)) df else dplyr::mutate(df,
-  #                                                             !!rlang::quo_name(evt):= factor(!!evt, as.integer(names(evt_label)), labels = evt_label))
-  df
-}
-
 
 #' @title summarize_km
 #'
@@ -1736,7 +1628,7 @@ summarize_mi_coxph<- function(cox_mira, exponentiate= TRUE, alpha= .05) {
 }
 
 #' @export
-generate_mi_glm_termplot_df<- function(mira_obj,
+generate_mi_glm_termplot_df <- function(mira_obj,
                                        terms= NULL,
                                        center_at= NULL,
                                        vcov_fun= NULL, ...) {
