@@ -21,4 +21,111 @@
 
 construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = FALSE ,cmprisk_varname = NULL, append = FALSE,
                                        units = "days",adm_cnr_time = NULL,
+                                       ...) {
+
+  patid <- rlang::enquo(patid)
+  idx_dt <- rlang::enquo(idx_dt)
+  evt_dt <- rlang::enquo(evt_dt)
+  end_dt <- rlang::enquo(end_dt)
+  cmp_evt_dt <- rlang::enquos(...)
+
+  if (rlang::quo_is_missing(idx_dt)) stop("No index date (time zero).")
+  if (rlang::quo_is_missing(evt_dt)) stop("No event date.")
+  if (rlang::quo_is_missing(end_dt)) stop("No date of the end of follow-up.")
+  if (rlang::quo_is_missing(patid))  stop("Please provide subject id")
+
+  n_cmp_evt <- length(cmp_evt_dt)
+
+  names(cmp_evt_dt) <- sapply(cmp_evt_dt, rlang::as_name)
+
+  cmp_evt_desc <- paste0('cmp_evt_', seq_len(n_cmp_evt) + 1)
+  evt_desc <- c('evt_1', cmp_evt_desc, 'censored_0')
+
+  if(!cmprisk) {
+    if(n_cmp_evt > 0) (warning(paste("Survival analyses being performed competing event(s)",paste0(names(cmp_evt_dt),collapse = ","),"will not be considered") ))
+    cmp_evt_dt <- NULL
+
+  }
+
+
+  tmp_df <- df %>%
+    dplyr::select(!!patid, !!idx_dt, !!evt_dt, !!!cmp_evt_dt, !!end_dt) %>%
+    dplyr::group_by(!!patid) %>%
+    dplyr::mutate(first_evt = ifelse(rlang::is_empty((evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt))])), NA, (evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt))])),
+                  first_evt = ifelse(is.na(first_evt) &  !rlang::is_empty(!!end_dt) ,'censored_0', first_evt),
+                  first_evt_dt =  dplyr::coalesce(pmin(!!evt_dt, !!!cmp_evt_dt, na.rm = TRUE), !!end_dt),
+                  time2evt = dplyr::case_when(is.infinite(first_evt_dt) | is.na(first_evt_dt) ~ NA_real_,TRUE ~ as.numeric(first_evt_dt - !!idx_dt)),
+                  evt = dplyr::case_when( is.na(time2evt) ~ NA_integer_, TRUE ~ as.integer(gsub('^(cmp_evt|evt|censored)_', '', first_evt))),
+                  time2evt = dplyr::case_when(units == "days"  ~ time2evt,
+                                              units == "weeks"  ~ time2evt/7,
+                                              units == "months"  ~ time2evt/30.44,
+                                              units == "years"  ~ time2evt/365.25)) %>%
+
+
+    dplyr::ungroup()
+
+  # ONLY FOR COMPETING RISKS
+  # per documentation, evt will be treated as a factor with the 1st level as censoring
+  # in the situtation in which no pts are censored, no observations have a value of zero.
+  # need to convert evt to a factor forcing 0 as the first level of the factor.
+
+  if(!cmprisk) {
+    tmp_df <- tmp_df %>%  dplyr::mutate(evt = factor(evt, 0:(n_cmp_evt + 1), labels = 0:(n_cmp_evt + 1)))
+
+    tmp_df <- tmp_df  %>% dplyr::mutate(evt = replace(evt, time2evt > adm_cnr_time & evt != "0", "0"),
+                                        time2evt = replace(time2evt, time2evt > adm_cnr_time, adm_cnr_time))
+
+  }else{
+
+    tmp_df <- tmp_df  %>% dplyr::mutate(evt = replace(evt, time2evt > adm_cnr_time & evt != 0, 0),
+                                        time2evt = replace(time2evt, time2evt > adm_cnr_time, adm_cnr_time))
+
+  }
+
+
+
+  # flags -------------------------------------------------------------------
+
+  flag <- FALSE
+
+  # IF if the time to event is less than or equal to zero flag
+  flag_df <- tmp_df %>%
+    dplyr::filter(time2evt <= 0) %>%
+    dplyr::mutate(flag_evt_time_zero = (time2evt == 0),
+                  flag_evt_time_neg = (time2evt < 0))
+
+  # Values equal to zero become 0.5 days
+  if (any(tmp_df$time2evt==0)) {
+    warning("Event at time zero")
+    tmp_df$time2evt <- replace(tmp_df$time2evt, tmp_df$time2evt==0, 0.5)
+    flag <- TRUE
+  }
+
+  # Values below zero are replaced with NA
+  if (any(tmp_df$time2evt < 0)) {
+    warning("Negative time-to-event!?")
+    tmp_df$time2evt <- replace(tmp_df$time2evt, tmp_df$time2evt < 0, NA)
+    flag <- TRUE
+  }
+  if (flag) print(as.data.frame(flag_df))
+
+  tmp_df <- if (is.null(cmprisk_varname)) {
+    tmp_df %>%
+      select(!!patid, time2evt, evt) %>%
+      dplyr::rename(evt_time = time2evt)
+  } else {
+    tmp_df %>%
+      select(!!patid, time2evt, evt) %>%
+      dplyr::rename(!!cmprisk_varname[1]:= time2evt,
+                    !!cmprisk_varname[2]:= evt)
+  }
+
+
+  if (!append) tmp_df else {
+    df %>%
+      dplyr::inner_join(tmp_df, by = rlang::as_name(patid))
+  }
+
+}
+
 
