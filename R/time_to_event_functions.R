@@ -69,7 +69,7 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
   # in the situtation in which no pts are censored, no observations have a value of zero.
   # need to convert evt to a factor forcing 0 as the first level of the factor.
 
-  if(!cmprisk) {
+  if(cmprisk) {
     tmp_df <- tmp_df %>%  dplyr::mutate(evt = factor(evt, 0:(n_cmp_evt + 1), labels = 0:(n_cmp_evt + 1)))
 
     tmp_df <- tmp_df  %>% dplyr::mutate(evt = replace(evt, time2evt > adm_cnr_time & evt != "0", "0"),
@@ -129,3 +129,57 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 }
 
 
+
+#' @title estimate_cif_km
+#' @description Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable.
+#' @param df A data frame containing the survival data.
+#' @param evt_time A numeric vector representing the time to event or censoring.
+#' @param evt A binary event indicator (1 = event occurred, 0 = censored).
+#' @param group A grouping variable for stratified survival curves.
+#' @param conf.type The type of confidence interval used by   \code{survival::survfit()}. When "default" is inputted uses log-log for Kaplan-Meier and log for CIF
+#' @param ... Additional arguments passed to \code{survival::survfit()}.
+#' @return A \code{survfit} object containing the survival estimates.
+#' @details
+#' The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
+#' transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
+#' run_logrank_test().
+#'
+#'The function analyzes the competing data (df) using Andersen-Johansen method in estimating cumulative incidence
+#' function.The function store the input data in the call(), which can be used in run_gray_test().
+#'
+#' @export
+#'
+#'
+estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...){
+
+  evt_time <- enquo(evt_time)
+  evt     <- enquo(evt)
+  group   <- enquo(group)
+
+  cmp <- is.factor(df %>% dplyr::pull(!!evt))
+  surv <- is.numeric(df %>% dplyr::pull(!!evt))
+
+  if(cmp == TRUE & surv == TRUE) warning("evt must be either a factor or numeric")
+  if(cmp == FALSE & surv == FALSE) warning("evt must be either a factor or numeric")
+
+  conf.type = case_when(conf.type == "default" & cmp ~ "log",
+                        conf.type == "default" & surv  ~ "log-log",
+                        TRUE ~ conf.type)
+
+
+  out <- if (quo_is_missing(group)) {
+    substitute( survival::survfit(survival::Surv(evt_time, evt) ~ 1, data= df, conf.type= conf.type, ...),
+                list(evt_time = rlang::quo_get_expr(evt_time),
+                     evt     = rlang::quo_get_expr(evt),
+                     df      = df))
+  } else {
+    substitute(survival::survfit(survival::Surv(evt_time, evt) ~ grp, data= df, conf.type= conf.type, ...),
+               list(evt_time = rlang::quo_get_expr(evt_time),
+                    evt     = rlang::quo_get_expr(evt),
+                    grp     = rlang::quo_get_expr(group),
+                    df      = df))
+  }
+  out <- eval(out)
+  out
+
+}

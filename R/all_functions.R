@@ -69,7 +69,7 @@ extract_atrisk <- function(fit, time.list, time.scale= 1) {
 #' @export
 prepare_survfit <- function(surv_obj) {
 
-  prepare_cmprisk<- function(surv_obj) {
+  prepare_cmprisk <- function(surv_obj) {
 
     # set up strata
     if (is.null(surv_obj$strata)) {
@@ -322,43 +322,6 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
   out
 }
 
-#' @title estimate_km
-#' @description Computes Kaplan-Meier survival estimates from a dataset, optionally stratified by a grouping variable.
-#' @param df A data frame containing the survival data.
-#' @param evt_time A numeric vector representing the time to event or censoring.
-#' @param evt A binary event indicator (1 = event occurred, 0 = censored).
-#' @param group A grouping variable for stratified survival curves.
-#' @param ... Additional arguments passed to \code{survival::survfit()}.
-#' @return A \code{survfit} object containing the survival estimates.
-#' @details
-#' The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
-#' transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
-#' run_logrank_test().
-#'
-#' @export
-#'
-#'
-estimate_km <- function(df, evt_time, evt, group, ...) {
-
-  evt_time<- enquo(evt_time)
-  evt     <- enquo(evt)
-  group   <- enquo(group)
-
-  out<- if (quo_is_missing(group)) {
-    substitute(survfit(Surv(evt_time, evt) ~ 1, data= df, conf.type= "log-log", ...),
-               list(evt_time = rlang::quo_get_expr(evt_time),
-                    evt     = rlang::quo_get_expr(evt),
-                    df      = df))
-  } else {
-    substitute(survfit(Surv(evt_time, evt) ~ grp, data= df, conf.type= "log-log", ...),
-               list(evt_time = rlang::quo_get_expr(evt_time),
-                    evt     = rlang::quo_get_expr(evt),
-                    grp     = rlang::quo_get_expr(group),
-                    df      = df))
-  }
-  out<- eval(out)
-  out
-}
 
 
 #' @title Run Log-Rank Test for Survival Differences
@@ -609,45 +572,6 @@ show_surv <- function(surv_obj,
 
 #' @title estimate_cif
 #'
-#' @details
-#' The function analyzes the competing data (df) using Andersen-Johansen method in estimating cumulative incidence
-#' function.The function store the input data in the call(), which can be used in run_gray_test().
-#'
-#'
-#' @export
-estimate_cif <- function(df, evt_time, evt, group, ...) {
-
-  evt_time<- enquo(evt_time)
-  evt     <- enquo(evt)
-  group   <- enquo(group)
-
-  # out<- if (quo_is_missing(group)) {
-  #   substitute(survfit(Surv(evt_time, evt, type= "mstate") ~ 1, data= df, ...),
-  #              list(evt_time= rlang::quo_get_expr(evt_time),
-  #                   evt     = rlang::quo_get_expr(evt),
-  #                   df      = df))
-  # } else {
-  #   substitute(survfit(Surv(evt_time, evt, type= "mstate") ~ grp, data= df, ...),
-  #              list(evt_time= rlang::quo_get_expr(evt_time),
-  #                   evt     = rlang::quo_get_expr(evt),
-  #                   grp     = rlang::quo_get_expr(group),
-  #                   df      = df))
-  # }
-  out<- if (quo_is_missing(group)) {
-    substitute(survfit(Surv(evt_time, evt) ~ 1, data= df, ...),
-               list(evt_time= rlang::quo_get_expr(evt_time),
-                    evt     = rlang::quo_get_expr(evt),
-                    df      = df))
-  } else {
-    substitute(survfit(Surv(evt_time, evt) ~ grp, data= df, ...),
-               list(evt_time= rlang::quo_get_expr(evt_time),
-                    evt     = rlang::quo_get_expr(evt),
-                    grp     = rlang::quo_get_expr(group),
-                    df      = df))
-  }
-  out<- eval(out)
-  out
-}
 
 
 #' @export
@@ -1157,7 +1081,7 @@ recode_missing <- function(x, na.value= NULL) {
 #' The function summarize the fitted KM at the time points specified by a user.
 #'
 #' @export
-summarize_km<- function(fit, times= NULL, failure_fun= FALSE) {
+summarize_km <- function(fit, times= NULL, failure_fun= FALSE) {
   ss<- summary(fit, times= if (is.null(times)) pretty(fit$time) else times)
   if (failure_fun) {
     ff<- 1 - ss$surv
@@ -1220,7 +1144,7 @@ summarize_km<- function(fit, times= NULL, failure_fun= FALSE) {
 #' The function summarizes the fitted CIF at the time points specified by a user.
 #'
 #' @export
-summarize_cif<- function(fit, times= NULL) {
+summarize_cif <- function(fit, times= NULL) {
   ss<- summary(fit, times= if (is.null(times)) pretty(fit$time) else times)
   colnames(ss$pstate)<- colnames(ss$lower)<- colnames(ss$upper)<- replace(ss$state, sapply(ss$states, nchar)==0, "0")
   # if (is.null(ss$prev)) ss$prev<- ss$pstate
