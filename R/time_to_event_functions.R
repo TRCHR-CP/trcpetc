@@ -183,3 +183,9 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
   out
 
 }
+
+
+
+
+
+
