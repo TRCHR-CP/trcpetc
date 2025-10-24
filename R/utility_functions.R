@@ -76,13 +76,11 @@ extract_atrisk <- function(fit, time.list, time.scale= 1) {
 #' @return A numeric value representing the p-value from the log-rank test.
 #' @export
 run_logrank_test <- function(surv_obj) {
-
   tmp <- surv_obj$call
   tmp[[1]] <- quote(survival::survdiff)
   tmp$rho <- 0
   tmp$conf.type <- NULL
   test <- eval(tmp, parent.frame())
-
   pval <- stats::pchisq(test$chisq, df= length(test$n) - 1, lower.tail = FALSE)
   pval
 }

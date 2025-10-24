@@ -226,8 +226,6 @@ show_surv <- function(surv_obj,
 }
 
 
-
-
 #' @title Plot Cumulative Incidence Function for Competing Risks
 #' @description Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization.
 #'
