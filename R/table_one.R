@@ -49,7 +49,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,
                       kable_output =TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE,
-                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE) {
+                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE, bold_variables = TRUE) {
 
   set.seed(seed)
 
@@ -227,7 +227,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if(kable_output){
 
-    out <-  kable_table_one(out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total,caption=caption)
+    out <-  kable_table_one(out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total,caption=caption,bold_variables=bold_variables)
 
   }
 

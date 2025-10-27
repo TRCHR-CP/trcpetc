@@ -148,7 +148,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 #' @export
 #'
 
-kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
+kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bold_variables){
   indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
     dplyr::mutate(row_number = dplyr::row_number()) %>%
     dplyr::select(dplyr::matches("_n$"),row_number)  %>%
@@ -169,7 +169,12 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
     }
 
   out <- out %>%
-    dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE)) %>%
+    mutate(bold = bold_variables) %>%
+    dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE))  %>%
+    mutate(var_desp = ifelse(
+      (!seq_along(var_desp) %in% indent) & bold,
+      kableExtra::cell_spec(var_desp, bold = TRUE),
+      var_desp)) %>%
     dplyr::select(
       dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
       dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
