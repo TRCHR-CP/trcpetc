@@ -87,7 +87,7 @@ format_pvalue <- function(x, eps = 0.001, trim = TRUE,
 #' @param x a dataframe to be write in the \code{wb} object
 #' @return a \code{wb} object
 #' @export
-updateWorksheet<- function(wb, sheetName, x, ...) {
+updateWorksheet <- function(wb, sheetName, x, ...) {
   if (!is.na(sheet_pos<- match(sheetName, names(wb), nomatch= NA))) {
 
     sheetOrder<- openxlsx::worksheetOrder(wb)

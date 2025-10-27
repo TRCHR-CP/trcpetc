@@ -48,7 +48,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,
                       kable_output =TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE,
-                      Check_box = NULL,Check_box_title = NULL) {
+                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE) {
 
   set.seed(seed)
 
@@ -90,6 +90,13 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   }
 
+  if(print_unused){
+
+   print(paste("Unused columns include:", paste0(df %>%
+      dplyr::ungroup() %>%
+      dplyr::select(where(~ is.character(.) || lubridate::is.Date(.))) %>% colnames(),collapse = ", ")))
+
+  }
 
 
 
