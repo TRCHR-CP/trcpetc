@@ -23,7 +23,8 @@ table_one(
   overall_label = "Overall",
   include_Missing = FALSE,
   Check_box = NULL,
-  Check_box_title = NULL
+  Check_box_title = NULL,
+  print_unused = FALSE
 )
 }
 \arguments{

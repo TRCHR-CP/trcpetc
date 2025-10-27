@@ -167,7 +167,7 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
                         TRUE ~ conf.type)
 
 
-  out <- if (quo_is_missing(group)) {
+  out <- if (rlang::quo_is_missing(group)) {
     substitute( survival::survfit(survival::Surv(evt_time, evt) ~ 1, data= df, conf.type= conf.type, ...),
                 list(evt_time = rlang::quo_get_expr(evt_time),
                      evt     = rlang::quo_get_expr(evt),

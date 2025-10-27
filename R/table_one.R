@@ -1,3 +1,5 @@
+
+
 #' @title table_one
 #' @description Generates a table of summary statistics for descriptive analysis.
 #' @details
@@ -41,8 +43,7 @@
 #' @examples
 #' table_one(df = cardio_data, group = Sex)
 #' @export
-#' @importFrom rlang enquo quo_is_missing
-#' @importFrom dplyr select
+#' @importFrom magrittr %>%
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
@@ -117,7 +118,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
         {{ group }} := {{ group }} %>%
           forcats::fct_na_value_to_level(level = "Missing")) %>%
         table_one_stratify(group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels) %>%
-        dplyr::left_join((summary_group %>% select(row_id,pval)),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
+        dplyr::left_join((summary_group %>% dplyr::select(row_id,pval)),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
 
     }
 
@@ -134,7 +135,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   ##Remove the grouping variable from the overall table
   if(!rlang::quo_is_missing(group)){
-    df <- df %>% select(-!!group)
+    df <- df %>% dplyr::select(-!!group)
   }
 
   if(rlang::quo_is_missing(group) |include_overall == "all" | include_overall == "group" ){

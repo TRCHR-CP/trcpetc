@@ -117,7 +117,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
       dplyr::count(!!group) %>%
       tidyr::pivot_wider(names_from = !!group, values_from = n, values_fill = 0) %>%
       dplyr::mutate(variable = "Total N") %>%
-      select(variable, dplyr::everything()) %>%
+      dplyr::select(variable, dplyr::everything()) %>%
       dplyr::mutate(dplyr::across(dplyr::where(is.integer), as.character))
 
     list(N = dplyr::left_join(n_var, n_var, by= "variable", suffix= c("_n", "_stat")) %>%
@@ -151,13 +151,13 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
   indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
     dplyr::mutate(row_number = dplyr::row_number()) %>%
-    select(dplyr::matches("_n$"),row_number)  %>%
+    dplyr::select(dplyr::matches("_n$"),row_number)  %>%
     dplyr::filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
     dplyr::pull(row_number)
 
 
   first_row <- out %>% utils::head(1)  %>%
-    select(dplyr::ends_with("_n"))
+    dplyr::select(dplyr::ends_with("_n"))
 
   variable_names <- gsub("_n", "", names(first_row))
   n_columns <- paste0(variable_names, "_n")
@@ -170,7 +170,7 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
 
   out <- out %>%
     dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE)) %>%
-    select(
+    dplyr::select(
       dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
       dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
       dplyr::any_of(if (print_test) "test" else NULL)
@@ -576,7 +576,7 @@ logical_desp <- function(df, group) {
 #' @return a dataframe of a single column of character variables indicating p-values.
 fisher_test <- function(df, group) {
 
-  group <- enquo(group)
+  group <- rlang::enquo(group)
   df <- df %>%
     dplyr::ungroup() %>%
     dplyr::group_by(!!group)
@@ -820,7 +820,7 @@ med_iqr <- function(x) {
 #' @export
 two_sample_test<- function(df, group) {
 
-  group<- enquo(group)
+  group <- rlang::enquo(group)
 
   df %>%
     dplyr::ungroup() %>%
@@ -870,7 +870,7 @@ two_sample_test<- function(df, group) {
 #' @export
 k_sample_test<- function(df, group) {
 
-  group<- enquo(group)
+  group<- rlang::enquo(group)
 
   df %>%
     dplyr::ungroup() %>%
