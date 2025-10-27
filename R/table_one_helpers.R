@@ -72,6 +72,9 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 
   group <- rlang::enquo(group)
 
+  if(drop.unused.levels) df <- df  %>%  dplyr::ungroup() %>% dplyr::mutate_if(is.factor, droplevels)
+
+
   df <- df %>%
     dplyr::ungroup() %>%
     dplyr::select_if(Negate(is.character)) %>%
@@ -79,7 +82,6 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
     dplyr::filter(!is.na(!!group)) %>%
     dplyr::group_by(!!group)
 
-  if(drop.unused.levels) df <- df %>% dplyr::mutate_if(is.factor, droplevels)
 
 
   group_var_idx <- match(dplyr::group_vars(df), names(df))
