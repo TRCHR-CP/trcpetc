@@ -190,6 +190,8 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption){
                               full_width = FALSE) %>%
     kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
     kableExtra::add_indent(indent)
+
+  out
 }
 
 #' @title titles_non_missing
