@@ -206,10 +206,11 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   ##Formatting title rows to
   out <- out   %>%
-    dplyr::mutate(dplyr::across(
-      dplyr::ends_with("_stat"),
-      ~ dplyr::if_else(variable %in% Check_box_title, NA, .)
+    mutate(across(
+      matches("(_stat$|^pval$)"),
+      ~ if_else(variable %in% Check_box_title, NA, .)
     ))
+
 
 
 
