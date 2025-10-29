@@ -61,7 +61,11 @@ Must be one of:
 \itemize{
   \item `"mediqr"`: Median and interquartile range.
   \item `"meansd"`: Mean and standard deviation.
+<<<<<<< HEAD
   \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
+=======
+  \item `"c(\"mediqr\",\"meansd\")"`: Both median/IQR and mean/SD.
+>>>>>>> 007013d6f7315809608f908f211409f20dea2d63
 }}
 
 \item{round_to_100}{Logical; force rounded total to add up to 100 using the largest remainder method for factor variables.}
@@ -98,6 +102,7 @@ logical, and factor variables. Factor variables with only two levels should be c
 Date and datetime variables should be excluded.
 }
 \examples{
+<<<<<<< HEAD
 
 library(dplyr)
 
@@ -107,6 +112,10 @@ Comorbidities  <- cardio_data \%>\% select(Diabetes:CAD) \%>\% names()
 ## Cleaning the data by putting SurgeryType in descending order
 ## Converting the Comorbidities columns to checkbox and including a title.
 
+=======
+Comorbidities  <- cardio_data \%>\% select(Diabetes:CAD) \%>\% names()
+
+>>>>>>> 007013d6f7315809608f908f211409f20dea2d63
 work_d <- cardio_data \%>\%
  mutate(SurgeryType = factor_order(SurgeryType)) \%>\%
  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
@@ -119,12 +128,20 @@ table_one(df = work_d  ,
          overall_label = "Overall",
          drop.unused.levels = FALSE,
          round_to_100 = TRUE,
+<<<<<<< HEAD
          kable_output = TRUE,
+=======
+         kable_output = T,
+>>>>>>> 007013d6f7315809608f908f211409f20dea2d63
          include_Missing = FALSE,
          print_unused = TRUE,
          Check_box = Comorbidities,
          Check_box_title = "Comorbidities¹")\%>\%
+<<<<<<< HEAD
  kableExtra::footnote(
+=======
+ footnote(
+>>>>>>> 007013d6f7315809608f908f211409f20dea2d63
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
    general_title = "",
    footnote_as_chunk = TRUE

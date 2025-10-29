@@ -32,7 +32,7 @@
 #'   \itemize{
 #'     \item `"mediqr"`: Median and interquartile range.
 #'     \item `"meansd"`: Mean and standard deviation.
-#'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
+#'     \item `"c(\"mediqr\",\"meansd\")"`: Both median/IQR and mean/SD.
 #'   }
 #' @param round_to_100 Logical; force rounded total to add up to 100 using the largest remainder method for factor variables.
 #' @param drop.unused.levels Logical; removes factor levels with zero counts. Levels with zero are not included in statistical tests.
@@ -47,8 +47,8 @@
 #'
 #' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`.
 #' @examples
-#'
-#'library(dplyr)
+
+#' library(dplyr)
 #'
 #' ## Pulling out the checkbox questions (More than one may be applicable for the same header)
 #' Comorbidities  <- cardio_data %>% select(Diabetes:CAD) %>% names()
