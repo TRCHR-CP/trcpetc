@@ -11,16 +11,16 @@
 #' @param idx_dt the index date
 #' @param evt_dt the date of the event occurrence. Its value should be NA for non-event subjects.
 #' @param end_dt the date of the last follow-up
-#' @param ... all competing event dates
-#' @param cmprisk Logical; whether to create variables for competing risks, when FALSE creates for survival process. Default is `TRUE`.
+#' @param cmprisk Logical; whether to create variables for competing risks, when FALSE creates for survival process. Default is `FALSE`.
+#' @param surv_varname 	an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
 #' @param units Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".
-#' @param surv_varname an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
 #' @param adm_cnr_time  a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).
+#' @param ... all competing event dates
 #' @return A data frame with patid, evt_time and evt.
 #' @export
 
-construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = FALSE ,cmprisk_varname = NULL, append = FALSE,
-                                       units = "days",adm_cnr_time = NULL,
+construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = FALSE ,surv_varname = NULL,units = "days", append = FALSE,
+                                       adm_cnr_time = NULL,
                                        ...) {
 
   patid <- rlang::enquo(patid)
@@ -109,15 +109,15 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
   }
   if (flag) print(as.data.frame(flag_df))
 
-  tmp_df <- if (is.null(cmprisk_varname)) {
+  tmp_df <- if (is.null(surv_varname)) {
     tmp_df %>%
       select(!!patid, time2evt, evt) %>%
       dplyr::rename(evt_time = time2evt)
   } else {
     tmp_df %>%
       select(!!patid, time2evt, evt) %>%
-      dplyr::rename(!!cmprisk_varname[1]:= time2evt,
-                    !!cmprisk_varname[2]:= evt)
+      dplyr::rename(!!surv_varname[1]:= time2evt,
+                    !!surv_varname[2]:= evt)
   }
 
 
