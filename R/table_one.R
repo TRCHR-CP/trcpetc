@@ -1,23 +1,21 @@
 
 
+
 #' @title table_one
 #' @description Generates a table of summary statistics for descriptive analysis.
 #' @details
 #' The `table_one` function computes summary statistics for continuous, logical, and factor variables,
 #' following the statistical reporting guidelines of the *Annals of Medicine*. If a grouping variable is provided,
-#' the function can also evaluates between-group differences. The input data frame should consist only of numeric,
+#' the function can also evaluate between-group differences. The input data frame should consist only of numeric,
 #' logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
 #' Date and datetime variables should be excluded.
-
 #'
-#' @param df A data frame consisting of numeric, logical, and factor variables with or without a grouping variable
+#' @param df A data frame consisting of numeric, logical, and factor variables with or without a grouping variable.
 #' @param group Name of the grouping variable (optional).
-#' @param datadic datadic A data frame serving as a data dictionary, containing variable names and their descriptions.
-#' @param var_name the column name of `data_dict` that
-#'   contains the variable names. Only required if the column name is not "var_name"
-#' @param var_desp the column name of `data_dict` that
-#'   contains the variable descriptions Only required if the column name is not "var_desp"
-#' @param seed An optional seed value for reproducibility of p-values
+#' @param datadic A data frame serving as a data dictionary, containing variable names and their descriptions.
+#' @param var_name The column name of `datadic` that contains the variable names. Only required if the column name is not "var_name".
+#' @param var_desp The column name of `datadic` that contains the variable descriptions. Only required if the column name is not "var_desp".
+#' @param seed An optional seed value for reproducibility of p-values.
 #' @param include_overall Character string specifying whether and how to include an overall summary.
 #'   Must be one of:
 #'   \itemize{
@@ -27,24 +25,55 @@
 #'   }
 #'   Default is `"none"`.
 #' @param total Logical; whether to report the total N. Default is `TRUE`.
-#' @param  pval Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.
+#' @param pval Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.
 #' @param print_test Logical. If TRUE, the output will include the type of statistical test applied to each variable. Default is `FALSE`.
-#' @param  continuous Character string specifying the summary statistics for continuous variables.
-#'  Must be one of:
+#' @param continuous Character string specifying the summary statistics for continuous variables.
+#'   Must be one of:
 #'   \itemize{
 #'     \item `"mediqr"`: Median and interquartile range.
 #'     \item `"meansd"`: Mean and standard deviation.
-#'     \item `"c("mediqr","meansd")"`: Both median/IQR and mean/SD.
+#'     \item `"c(\"mediqr\",\"meansd\")"`: Both median/IQR and mean/SD.
 #'   }
-#' @param round_to_100 force rounded total to add up to 100 calculated using the largest remainder method for factor variables
-#' @param drop.unused.levels Removes factor variables with 0. Levels with zero are not included in statistical tests
-#' @param  kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
-#' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`..
+#' @param round_to_100 Logical; force rounded total to add up to 100 using the largest remainder method for factor variables.
+#' @param drop.unused.levels Logical; removes factor levels with zero counts. Levels with zero are not included in statistical tests.
+#' @param kable_output Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.
+#' @param caption Optional character string for the table caption.
+#' @param overall_label Character string to label the overall summary column. Default is `"Overall"`.
+#' @param include_Missing Logical; whether to include missing value counts in the summary. Default is `FALSE`.
+#' @param Check_box Optional character vector of variable names from a checkbox-style question. In the output table, these variables will be displayed together as levels of a single item, but each level will be analyzed independently with its own statistical test.
+#' @param Check_box_title Optional character string to identify the checkbox column titles.
+#' @param print_unused Logical; whether to print variables that were excluded due to unsupported types. Default is `FALSE`.
+#' @param bold_variables Logical; whether to bold variable names in the output table. Default is `TRUE`.
+#'
+#' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`.
 #' @examples
-#' table_one(df = cardio_data, group = Sex)
+#' Comorbidities  <- cardio_data %>% select(Diabetes:CAD) %>% names()
+#'
+#'work_d <- cardio_data %>%
+#'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
+#'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+#'
+#'
+#'table_one(df = work_d  ,
+#'          group = Sex,
+#'          caption =  "Summary table overall and stratified by sex",
+#'          include_overall = "all",
+#'          overall_label = "Overall",
+#'          drop.unused.levels = FALSE,
+#'          round_to_100 = TRUE,
+#'          kable_output = T,
+#'          include_Missing = FALSE,
+#'          print_unused = TRUE,
+#'          Check_box = Comorbidities,
+#'          Check_box_title = "Comorbidities¹")%>%
+#'  footnote(
+#'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+#'    general_title = "",
+#'    footnote_as_chunk = TRUE
+#'  )
 #' @export
 #' @importFrom magrittr %>%
-#'
+
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,
