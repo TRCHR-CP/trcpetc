@@ -6,6 +6,52 @@
 \usage{
 check_box_convert(df, check_box_cols, title = NULL)
 }
+\arguments{
+\item{df}{A data frame containing the checkbox-style variables.}
+
+\item{check_box_cols}{Character vector of column names representing the checkbox-style question.}
+
+\item{title}{Optional character string used to label the checkbox group in the output table.}
+}
+\value{
+A modified data frame with checkbox columns converted to logical type and missingness handled. If `title` is provided, an additional column is added to group the checkbox variables.
+}
 \description{
-To add checkbox questions to a table 1 in R
+Converts checkbox-style variables into logical format for inclusion in a Table 1. Ensures that checkbox responses are treated as binary indicators and handles missingness appropriately.
+}
+\details{
+This function prepares checkbox-style questions (i.e., multiple binary columns representing selections) for descriptive analysis. It converts specified columns to logical type and sets all values to `NA` for rows where none of the checkbox options were selected. Optionally, it adds a title column to group these variables visually in the output table.
+}
+\examples{
+
+library(dplyr)
+
+## Pulling out the checkbox questions (More than one may be applicable for the same header)
+Comorbidities  <- cardio_data \%>\% select(Diabetes:CAD) \%>\% names()
+
+## Cleaning the data by putting SurgeryType in descending order
+## Converting the Comorbidities columns to checkbox and including a title.
+
+work_d <- cardio_data \%>\%
+ mutate(SurgeryType = factor_order(SurgeryType)) \%>\%
+ check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+
+
+table_one(df = work_d  ,
+         group = Sex,
+         caption =  "Summary table overall and stratified by sex",
+         include_overall = "all",
+         overall_label = "Overall",
+         drop.unused.levels = FALSE,
+         round_to_100 = TRUE,
+         kable_output = TRUE,
+         include_Missing = FALSE,
+         print_unused = TRUE,
+         Check_box = Comorbidities,
+         Check_box_title = "Comorbidities¹")\%>\%
+ kableExtra::footnote(
+   general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
+   general_title = "",
+   footnote_as_chunk = TRUE
+ )
 }

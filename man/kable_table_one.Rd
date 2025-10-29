@@ -4,7 +4,15 @@
 \alias{kable_table_one}
 \title{kable_table_one}
 \usage{
-kable_table_one(out, pval, include_Missing, total, print_test, caption)
+kable_table_one(
+  out,
+  pval,
+  include_Missing,
+  total,
+  print_test,
+  caption,
+  bold_variables
+)
 }
 \description{
 creates a kable table one for rmarkdown reports
