@@ -11,9 +11,9 @@ construct_surv_cmprisk_var(
   evt_dt,
   end_dt,
   cmprisk = FALSE,
-  cmprisk_varname = NULL,
-  append = FALSE,
+  surv_varname = NULL,
   units = "days",
+  append = FALSE,
   adm_cnr_time = NULL,
   ...
 )
@@ -29,15 +29,15 @@ construct_surv_cmprisk_var(
 
 \item{end_dt}{the date of the last follow-up}
 
-\item{cmprisk}{Logical; whether to create variables for competing risks, when FALSE creates for survival process. Default is `TRUE`.}
+\item{cmprisk}{Logical; whether to create variables for competing risks, when FALSE creates for survival process. Default is `FALSE`.}
+
+\item{surv_varname}{an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.}
 
 \item{units}{Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".}
 
 \item{adm_cnr_time}{a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).}
 
 \item{...}{all competing event dates}
-
-\item{surv_varname}{an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.}
 }
 \value{
 A data frame with patid, evt_time and evt.
@@ -47,4 +47,24 @@ construct_surv_cmprisk_var
 }
 \details{
 The function creates time-to-event variables for survival or competing risks process.
+}
+\examples{
+## For survival
+construct_surv_cmprisk_var(cardio_data,
+                          patid = PatientID,
+                          idx_dt = SurgeryDate,
+                          evt_dt = TransplantDate,
+                          end_dt = LastVisitDate,,
+                          append = TRUE)
+
+# For competing risks
+construct_surv_cmprisk_var(cardio_data,
+                          patid = PatientID,
+                          idx_dt = SurgeryDate,
+                          evt_dt = TransplantDate,
+                          end_dt = LastVisitDate,
+                          other_dt = DeathDate,
+                          append = TRUE,
+                          cmprisk = TRUE)
+
 }

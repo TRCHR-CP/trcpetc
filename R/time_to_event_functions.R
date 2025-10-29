@@ -16,6 +16,25 @@
 #' @param units Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".
 #' @param adm_cnr_time  a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).
 #' @param ... all competing event dates
+#' @examples
+#'## For survival
+#'construct_surv_cmprisk_var(cardio_data,
+#'                           patid = PatientID,
+#'                           idx_dt = SurgeryDate,
+#'                           evt_dt = TransplantDate,
+#'                           end_dt = LastVisitDate,,
+#'                           append = TRUE)
+#'
+#'# For competing risks
+#'construct_surv_cmprisk_var(cardio_data,
+#'                           patid = PatientID,
+#'                           idx_dt = SurgeryDate,
+#'                           evt_dt = TransplantDate,
+#'                           end_dt = LastVisitDate,
+#'                           other_dt = DeathDate,
+#'                           append = TRUE,
+#'                           cmprisk = TRUE)
+#'
 #' @return A data frame with patid, evt_time and evt.
 #' @export
 
