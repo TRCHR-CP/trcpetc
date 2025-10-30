@@ -220,7 +220,8 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #' @param caption Optional character string for the table caption (used if \code{kable_output = TRUE}).
 #' @param full_width Logical; passed to \code{kableExtra::kable_styling()} to control table width.
 #' @param time_lab Character string; label to use for the time column in the output table.
-#'
+#' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
+
 #' @return A data frame or a formatted \code{kableExtra} table summarizing survival or failure probabilities with confidence intervals.
 #'
 #' @details
@@ -229,7 +230,7 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #' If \code{failure_fun = TRUE}, the function returns failure probabilities instead of survival.
 
 summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
-                         kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Times") {
+                         kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Times",overall_label = "Overall") {
   ss <- summary(fit, times= if (is.null(times)) pretty(fit$time) else times)
   if (failure_fun) {
     ff <- 1 - ss$surv
@@ -278,7 +279,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
       dplyr::mutate_at(dplyr::vars(dplyr::one_of('surv', 'conf_low', 'conf_high')),
                        function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
       dplyr::mutate(stat= paste0(surv, " [", conf_low, ", ", conf_high, "]")) %>%
-      reshape2::dcast(times ~ 'Overall', value.var = 'stat')
+      reshape2::dcast(times ~ 'Overall', value.var = 'stat') %>% rename({{ overall_label }} := Overall)
 
   }
 
