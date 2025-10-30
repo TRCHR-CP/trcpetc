@@ -3,7 +3,8 @@
 
 #' @title construct_surv_cmprisk_var
 #'
-#' @details
+#' @description
+#'
 #' The function creates time-to-event variables for survival or competing risks process.
 #'
 #' @param df input data
@@ -206,6 +207,104 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 
 
 
+#' @title Summarize Kaplan-Meier Estimates
+#'
+#' @description
+#' Summarizes a fitted Kaplan-Meier survival object at specified time points, optionally transforming to failure probabilities,
+#' and formats the output as a table with confidence intervals.
+#'
+#' @param fit A fitted survival object of class \code{survfit}.
+#' @param times Optional numeric vector of time points at which to summarize the KM estimates. If \code{NULL}, uses \code{pretty(fit$time)}.
+#' @param failure_fun Logical; if \code{TRUE}, returns failure probabilities (1 - survival).
+#' @param kable_output Logical; if \code{TRUE}, formats the output using \code{kableExtra::kbl()}.
+#' @param caption Optional character string for the table caption (used if \code{kable_output = TRUE}).
+#' @param full_width Logical; passed to \code{kableExtra::kable_styling()} to control table width.
+#' @param time_lab Character string; label to use for the time column in the output table.
+#'
+#' @return A data frame or a formatted \code{kableExtra} table summarizing survival or failure probabilities with confidence intervals.
+#'
+#' @details
+#' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
+#' the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
+#' If \code{failure_fun = TRUE}, the function returns failure probabilities instead of survival.
+
+summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
+                         kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Times") {
+  ss <- summary(fit, times= if (is.null(times)) pretty(fit$time) else times)
+  if (failure_fun) {
+    ff <- 1 - ss$surv
+    ll <- 1 - ss$upper
+    uu <- 1 - ss$lower
+
+    ss$surv<- ff
+    ss$lower<- ll
+    ss$upper<- uu
+  }
+
+  out <- if (any(names(fit)=="strata")) {
+
+    ss %$%
+      purrr::map2(.x= c('surv', 'conf_low', 'conf_high'),
+                  .y= list(surv= surv, lower= lower, upper= upper),
+                  .f= function(var, mat, ...) {
+                    mat %>%
+                      as.data.frame() %>%
+                      dplyr::mutate(strata= strata,
+                                    times = time) %>%
+                      reshape2::melt(id.vars= c('strata', 'times'),
+                                     value.name = var) %>%
+                      dplyr::select(-variable)
+                  }) %>%
+      purrr::reduce(dplyr::full_join, by = c('strata', 'times')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('surv', 'conf_low', 'conf_high')),
+                       function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
+      dplyr::mutate(stat= paste0(surv, " [", conf_low, ", ", conf_high, "]")) %>%
+      reshape2::dcast(times ~ strata, value.var = 'stat')
+
+  } else {
+
+    ss %$%
+      purrr::map2(.x= c('surv', 'conf_low', 'conf_high'),
+                  .y= list(surv= surv, lower= lower, upper= upper),
+                  .f= function(var, mat, ...) {
+                    mat %>%
+                      as.data.frame() %>%
+                      dplyr::mutate(times = time) %>%
+                      reshape2::melt(id.vars= c('times'),
+                                     value.name = var) %>%
+                      dplyr::select(-variable)
+                  }) %>%
+      purrr::reduce(dplyr::full_join, by = c('times')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('surv', 'conf_low', 'conf_high')),
+                       function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
+      dplyr::mutate(stat= paste0(surv, " [", conf_low, ", ", conf_high, "]")) %>%
+      reshape2::dcast(times ~ 'Overall', value.var = 'stat')
+
+  }
+
+  names(out) <- sub("^[^=]*=", "", names(out))
+
+  out <- out %>% rename({{ time_lab }} := times)
+
+
+  if(kable_output){
+
+    out <-  out   %>% kableExtra::kbl(caption = caption,booktabs=TRUE,escape = FALSE, align= c('l', rep(c('c', 'c'), dim(out)[2]-1), 'r')) %>%
+      kableExtra::row_spec(row = 0, align = "c") %>%
+      kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                                full_width = full_width)
+
+  }
+
+  out
+
+
+
+}
+
+
+
+
 #' @title Plot Survival or Cumulative Death Function
 #' @description Displays either the survival function or the cumulative death function based on a \code{survfit} object, with optional customization and stratification.
 #'
@@ -229,7 +328,10 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
 #' @param plot_cdf Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).
 #' @param print_fig Logical; if \code{TRUE}, prints the plot (default = TRUE).
-#'
+#' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
+#' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
+#' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
+#' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
 #' @return A \code{ggplot} object representing the survival or cumulative death function plot.
 #' @export
 
@@ -251,7 +353,12 @@ show_surv <- function(surv_obj,
                       atrisk_init_pos= NULL,
                       pvalue_pos= c("topleft", "topright", "bottomleft", "bottomright", "left", "right", "top", "bottom"),
                       plot_cdf= FALSE,
-                      print_fig = TRUE) {
+                      print_fig = TRUE,
+
+                      top.margin = 18,
+                      right.margin = 18,
+                      bottom.margin = 96,
+                      left.margin = 96) {
 
   # no need to add pvalues for a single cohort
   add_pvalue<- if (all(names(surv_obj)!='strata')) FALSE else add_pvalue
@@ -450,7 +557,16 @@ show_surv <- function(surv_obj,
                                     atrisk_init_pos= atrisk_init_pos,
                                     plot_theme = plot_theme)
 
-  out<- out + plot_theme
+  out <- out + plot_theme
+
+  if(add_atrisk) {
+    p <- out + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
+    gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
+    gt$layout$clip[gt$layout$name == 'panel'] <- "off"
+    out <- gt
+    #grid.draw(gt)
+
+  }
 
   if (print_fig) print(out)
   # print(out, vp= viewport(width = unit(6.5, "inches"), height = unit(6.5, "inches")))
@@ -466,7 +582,7 @@ show_surv <- function(surv_obj,
 #' It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
 #' @param surv_obj  A \code{survfit} object, such as one returned by \code{estimate_cif()}.
 #' @param evt_type Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).
-#' @param evt_label A function to relabel event types for plotting (default uses \code{recode_factor()} to label 1 = "Event", 2 = "Competing event", others = "Event free").
+#' @param evt_label A function to relabel event types for plotting (default uses \code{fct_recode()} to label 1 = "Event", 2 = "Competing event", others = "Event free").
 #' @param add_ci Logical; if \code{TRUE}, adds confidence intervals to the CIF curves (default = TRUE).
 #' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
 #' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
@@ -494,7 +610,7 @@ show_cif <- function(surv_obj,
                      evt_type = 1,
                      # evt_label= identity, # identity function
                      evt_label= function(x) {
-                       forcats::recode_factor(x,
+                       forcats::fct_recode(x,
                                               `1`= "Event",
                                               `2`= "Competing event",
                                               .default= "Event free")
