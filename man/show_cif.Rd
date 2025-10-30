@@ -8,7 +8,7 @@ show_cif(
   surv_obj,
   evt_type = 1,
   evt_label = function(x) {
-     forcats::recode_factor(x, `1` = "Event", `2` =
+     forcats::fct_recode(x, `1` = "Event", `2` =
     "Competing event", .default = "Event free")
  },
   add_ci = TRUE,
@@ -39,7 +39,7 @@ show_cif(
 
 \item{evt_type}{Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).}
 
-\item{evt_label}{A function to relabel event types for plotting (default uses \code{recode_factor()} to label 1 = "Event", 2 = "Competing event", others = "Event free").}
+\item{evt_label}{A function to relabel event types for plotting (default uses \code{fct_recode()} to label 1 = "Event", 2 = "Competing event", others = "Event free").}
 
 \item{add_ci}{Logical; if \code{TRUE}, adds confidence intervals to the CIF curves (default = TRUE).}
 

@@ -11,7 +11,8 @@ kable_table_one(
   total,
   print_test,
   caption,
-  bold_variables
+  bold_variables,
+  full_width
 )
 }
 \description{

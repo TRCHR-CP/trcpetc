@@ -148,7 +148,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 #' @export
 #'
 
-kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bold_variables){
+kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bold_variables,full_width){
   indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
     dplyr::mutate(row_number = dplyr::row_number()) %>%
     dplyr::select(dplyr::matches("_n$"),row_number)  %>%
@@ -192,7 +192,7 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bo
                                   if (print_test) 'Statistical test' else character(0))) %>%
     kableExtra::row_spec(row = 0, align = "c") %>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                              full_width = FALSE) %>%
+                              full_width = full_width) %>%
     kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
     kableExtra::add_indent(indent)
 

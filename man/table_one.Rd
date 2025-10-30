@@ -25,7 +25,8 @@ table_one(
   Check_box = NULL,
   Check_box_title = NULL,
   print_unused = FALSE,
-  bold_variables = TRUE
+  bold_variables = TRUE,
+  full_width = NULL
 )
 }
 \arguments{
@@ -35,64 +36,66 @@ table_one(
 
 \item{datadic}{A data frame serving as a data dictionary, containing variable names and their descriptions.}
 
-\item{var_name}{The column name of `datadic` that contains the variable names. Only required if the column name is not "var_name".}
+\item{var_name}{The column name of \code{datadic} that contains the variable names. Only required if the column name is not \code{"var_name"}.}
 
-\item{var_desp}{The column name of `datadic` that contains the variable descriptions. Only required if the column name is not "var_desp".}
+\item{var_desp}{The column name of \code{datadic} that contains the variable descriptions. Only required if the column name is not \code{"var_desp"}.}
 
 \item{seed}{An optional seed value for reproducibility of p-values.}
 
 \item{include_overall}{Character string specifying whether and how to include an overall summary.
 Must be one of:
 \itemize{
-  \item `"none"`: Do not include an overall summary (default).
-  \item `"group"`: Include an overall summary only for observations with non-missing values in the grouping variable.
-  \item `"all"`: Include an overall summary for all observations, regardless of missingness in the grouping variable.
+  \item \code{"none"}: Do not include an overall summary (default).
+  \item \code{"group"}: Include an overall summary only for observations with non-missing values in the grouping variable.
+  \item \code{"all"}: Include an overall summary for all observations, regardless of missingness in the grouping variable.
 }
-Default is `"none"`.}
+Default is \code{"none"}.}
 
-\item{total}{Logical; whether to report the total N. Default is `TRUE`.}
+\item{total}{Logical; whether to report the total N. Default is \code{TRUE}.}
 
-\item{pval}{Logical; whether to report p-values for between-group comparisons. Default is `TRUE`.}
+\item{pval}{Logical; whether to report p-values for between-group comparisons. Default is \code{TRUE}.}
 
-\item{print_test}{Logical. If TRUE, the output will include the type of statistical test applied to each variable. Default is `FALSE`.}
+\item{print_test}{Logical. If \code{TRUE}, the output will include the type of statistical test applied to each variable. Default is \code{FALSE}.}
 
 \item{continuous}{Character string specifying the summary statistics for continuous variables.
 Must be one of:
 \itemize{
-  \item `"mediqr"`: Median and interquartile range.
-  \item `"meansd"`: Mean and standard deviation.
-  \item `"c(\"mediqr\",\"meansd\")"`: Both median/IQR and mean/SD.
+  \item \code{"mediqr"}: Median and interquartile range.
+  \item \code{"meansd"}: Mean and standard deviation.
+  \item \code{c("mediqr","meansd")}: Both median/IQR and mean/SD.
 }}
 
 \item{round_to_100}{Logical; force rounded total to add up to 100 using the largest remainder method for factor variables.}
 
 \item{drop.unused.levels}{Logical; removes factor levels with zero counts. Levels with zero are not included in statistical tests.}
 
-\item{kable_output}{Logical; if `TRUE`, outputs a formatted `kable` table including variable descriptions, N, statistics, and p-values.}
+\item{kable_output}{Logical; if \code{TRUE}, outputs a formatted \code{kable} table including variable descriptions, N, statistics, and p-values.}
 
 \item{caption}{Optional character string for the table caption.}
 
-\item{overall_label}{Character string to label the overall summary column. Default is `"Overall"`.}
+\item{overall_label}{Character string to label the overall summary column. Default is \code{"Overall"}.}
 
-\item{include_Missing}{Logical; whether to include missing value counts in the summary. Default is `FALSE`.}
+\item{include_Missing}{Logical; whether to include missing value counts in the summary. Default is \code{FALSE}.}
 
 \item{Check_box}{Optional character vector of variable names from a checkbox-style question. In the output table, these variables will be displayed together as levels of a single item, but each level will be analyzed independently with its own statistical test.}
 
 \item{Check_box_title}{Optional character string to identify the checkbox column titles.}
 
-\item{print_unused}{Logical; whether to print variables that were excluded due to unsupported types. Default is `FALSE`.}
+\item{print_unused}{Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.}
 
-\item{bold_variables}{Logical; whether to bold variable names in the output table. Default is `TRUE`.}
+\item{bold_variables}{Logical; whether to bold variable names in the output table. Default is \code{TRUE}.}
+
+\item{full_width}{Logical; passed to \code{kableExtra::kable_styling()} to control table width.}
 }
 \value{
-A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted kable table if `kable_output = TRUE`.
+A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted \code{kable} table if \code{kable_output = TRUE}.
 }
 \description{
 Generates a table of summary statistics for descriptive analysis.
 }
 \details{
-The `table_one` function computes summary statistics for continuous, logical, and factor variables,
-following the statistical reporting guidelines of the *Annals of Medicine*. If a grouping variable is provided,
+The \code{table_one} function computes summary statistics for continuous, logical, and factor variables,
+following the statistical reporting guidelines of the \emph{Annals of Medicine}. If a grouping variable is provided,
 the function can also evaluate between-group differences. The input data frame should consist only of numeric,
 logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
 Date and datetime variables should be excluded.

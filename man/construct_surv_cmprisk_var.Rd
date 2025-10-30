@@ -43,9 +43,6 @@ construct_surv_cmprisk_var(
 A data frame with patid, evt_time and evt.
 }
 \description{
-construct_surv_cmprisk_var
-}
-\details{
 The function creates time-to-event variables for survival or competing risks process.
 }
 \examples{

@@ -23,7 +23,11 @@ show_surv(
   pvalue_pos = c("topleft", "topright", "bottomleft", "bottomright", "left", "right",
     "top", "bottom"),
   plot_cdf = FALSE,
-  print_fig = TRUE
+  print_fig = TRUE,
+  top.margin = 18,
+  right.margin = 18,
+  bottom.margin = 96,
+  left.margin = 96
 )
 }
 \arguments{
@@ -60,6 +64,14 @@ show_surv(
 \item{plot_cdf}{Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).}
 
 \item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = TRUE).}
+
+\item{top.margin}{Numeric; top margin space for the at-risk table (default = 18).}
+
+\item{right.margin}{Numeric; right margin space for the at-risk table (default = 18).}
+
+\item{bottom.margin}{Numeric; bottom margin space for the at-risk table (default = 96).}
+
+\item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
 }
 \value{
 A \code{ggplot} object representing the survival or cumulative death function plot.
