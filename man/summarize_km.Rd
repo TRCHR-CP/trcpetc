@@ -11,7 +11,8 @@ summarize_km(
   kable_output = TRUE,
   caption = NULL,
   full_width = NULL,
-  time_lab = "Times"
+  time_lab = "Times",
+  overall_label = "Overall"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ summarize_km(
 \item{full_width}{Logical; passed to \code{kableExtra::kable_styling()} to control table width.}
 
 \item{time_lab}{Character string; label to use for the time column in the output table.}
+
+\item{overall_label}{Character string to label the overall summary column. Default is \code{"Overall"}.}
 }
 \value{
 A data frame or a formatted \code{kableExtra} table summarizing survival or failure probabilities with confidence intervals.

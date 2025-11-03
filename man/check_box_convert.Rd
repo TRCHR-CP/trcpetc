@@ -9,7 +9,7 @@ check_box_convert(df, check_box_cols, title = NULL)
 \arguments{
 \item{df}{A data frame containing the checkbox-style variables.}
 
-\item{check_box_cols}{Character vector of column names representing the checkbox-style question.}
+\item{check_box_cols}{Character vector of column names representing the checkbox-style question. The columns must be either logical or 0/1}
 
 \item{title}{Optional character string used to label the checkbox group in the output table.}
 }

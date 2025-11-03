@@ -46,6 +46,9 @@ A data frame with patid, evt_time and evt.
 The function creates time-to-event variables for survival or competing risks process.
 }
 \examples{
+
+library(dplyr)
+
 ## For survival
 construct_surv_cmprisk_var(cardio_data,
                           patid = PatientID,
