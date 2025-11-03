@@ -30,7 +30,7 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 #' @details
 #' This function prepares checkbox-style questions (i.e., multiple binary columns representing selections) for descriptive analysis. It converts specified columns to logical type and sets all values to `NA` for rows where none of the checkbox options were selected. Optionally, it adds a title column to group these variables visually in the output table.
 #' @param df A data frame containing the checkbox-style variables.
-#' @param check_box_cols Character vector of column names representing the checkbox-style question.
+#' @param check_box_cols Character vector of column names representing the checkbox-style question. The columns must be either logical or 0/1
 #' @param title Optional character string used to label the checkbox group in the output table.
 #'
 #' @return A modified data frame with checkbox columns converted to logical type and missingness handled. If `title` is provided, an additional column is added to group the checkbox variables.
@@ -71,6 +71,16 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 #' @export
 
 check_box_convert <- function(df, check_box_cols, title = NULL) {
+
+  # # Error check: ensure columns are logical or contain only 0/1
+  # for (col in check_box_cols) {
+  #   col_data <- df[[col]]
+  #   if (!is.logical(col_data) && !all(col_data %in% c(0, 1, NA))) {
+  #     stop(paste0("Column '", col, "' must be logical or contain only 0/1 values."))
+  #   }
+  # }
+
+
   out <- df %>%
     dplyr::mutate(dplyr::across(dplyr::all_of(check_box_cols), ~ as.logical(.x))) %>%
     dplyr::rowwise() %>%

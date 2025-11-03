@@ -18,6 +18,9 @@
 #' @param adm_cnr_time  a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).
 #' @param ... all competing event dates
 #' @examples
+#'
+#' library(dplyr)
+#'
 #'## For survival
 #'construct_surv_cmprisk_var(cardio_data,
 #'                           patid = PatientID,
@@ -283,12 +286,13 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 
   }
 
-  names(out) <- sub("^[^=]*=", "", names(out))
 
-  out <- out %>% rename({{ time_lab }} := times)
 
 
   if(kable_output){
+
+    names(out) <- sub("^[^=]*=", "", names(out))
+    out <- out %>% rename({{ time_lab }} := times)
 
     out <-  out   %>% kableExtra::kbl(caption = caption,booktabs=TRUE,escape = FALSE, align= c('l', rep(c('c', 'c'), dim(out)[2]-1), 'r')) %>%
       kableExtra::row_spec(row = 0, align = "c") %>%
@@ -303,6 +307,145 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 
 }
 
+
+#' @title Summarize Cumulative Incidence Function (CIF)
+#'
+#' @description
+#' Summarizes a fitted Cumulative Incidence Function (CIF) survival object at specified time points, optionally transforming to failure probabilities,
+#' and formats the output as a table with confidence intervals.
+#'
+#' @param fit A fitted survival object of class \code{survfit}.
+#' @param times Optional numeric vector of time points at which to summarize the CIF estimates. If \code{NULL}, uses \code{pretty(fit$time)}.
+#' @param kable_output Logical; if \code{TRUE}, formats the output using \code{kableExtra::kbl()}.
+#' @param caption Optional character string for the table caption (used if \code{kable_output = TRUE}).
+#' @param full_width Logical; passed to \code{kableExtra::kable_styling()} to control table width.
+#' @param time_lab Character string; label to use for the time column in the output table.
+#' @param evt_type Numeric; Indicate which events will be outputted in the kable table; default is all events
+#' @param labels Character string; labels for the events in the kable table when include_event_type is TRUE. Default is c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Other")
+#' @return A data frame or a formatted \code{kableExtra} table summarizing survival or failure probabilities with confidence intervals.
+#' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
+#' @details
+#' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
+#' the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
+
+
+summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Time",evt_type = NULL,
+                          labels = c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"), overall_label = "Overall") {
+
+
+
+
+  ss <- summary(fit, times= if(is.null(times)) pretty(fit$time) else times)
+  colnames(ss$pstate)<- colnames(ss$lower)<- colnames(ss$upper)<- replace(ss$state, sapply(ss$states, nchar)==0, "0")
+  # if (is.null(ss$prev)) ss$prev<- ss$pstate
+
+  out <- if(any(names(fit)=="strata")) {
+
+    ss %$%
+      purrr::map2(.x= c('pstate', 'conf_low', 'conf_high'),
+                  .y= list(pstate= pstate, lower= lower, upper= upper),
+                  .f= function(var, mat, ...) {
+                    mat %>%
+                      as.data.frame() %>%
+                      dplyr::mutate(strata= strata,
+                                    times = time) %>%
+                      reshape2::melt(id.vars= c('strata', 'times'),
+                                     value.name = var,
+                                     variable.name = 'states')
+                  }) %>%
+      purrr::reduce(dplyr::full_join, by = c('strata', 'times', 'states')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('pstate', 'conf_low', 'conf_high')),
+                       function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
+      dplyr::mutate(stat= paste0(pstate, " [", conf_low, ", ", conf_high, "]")) %>%
+      reshape2::dcast(times ~ states + strata, value.var = 'stat')
+
+  } else {
+
+    ss %$%
+      purrr::map2(.x= c('pstate', 'conf_low', 'conf_high'),
+                  .y= list(pstate= pstate, lower= lower, upper= upper),
+                  .f= function(var, mat, ...) {
+                    mat %>%
+                      as.data.frame() %>%
+                      dplyr::mutate(times = time) %>%
+                      reshape2::melt(id.vars= c('times'),
+                                     value.name = var,
+                                     variable.name = 'states')
+                  }) %>%
+      purrr::reduce(dplyr::full_join, by = c('times', 'states')) %>%
+      dplyr::mutate_at(dplyr::vars(dplyr::one_of('pstate', 'conf_low', 'conf_high')),
+                       function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
+      dplyr::mutate(stat= paste0(pstate, " [", conf_low, ", ", conf_high, "]")) %>%
+      reshape2::dcast(times ~ states, value.var = 'stat')
+  }
+
+  out <- out %>% mutate(across(where(is.character), ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .)))
+
+  if(kable_output){
+
+    if(!is.null(evt_type)){
+      evt_type <- as.character(evt_type)
+      evt_type[evt_type=="0"] <- "^\\("
+
+
+
+      out <- out %>% select(matches(paste0("^(", paste(c("times",evt_type), collapse = "|"), ")")))
+
+
+    }
+
+
+
+    events  <- sub("_.*", "", names(out))[-1]
+    events_clean <- recode(events, !!!labels)
+
+
+    if(any(names(fit)=="strata")) {
+      column_names = sub("^[^=]*=", "", names(out))[-1]
+
+      if (!all(events == sort(events))) {
+        stop("Error: Elements at positions 2=3, 4=5, 6=7, ... do not all match.")
+      }
+    }
+    else{
+
+      if(length(evt_type) > 1) {
+        column_names <- events_clean
+      }else{
+        column_names <- overall_label
+      }
+
+
+    }
+
+
+
+
+    out <- out %>% rename({{ time_lab }} := times)
+
+    names(out)[-1] <- column_names
+
+
+    out <- out  %>% kableExtra::kbl(caption = caption,booktabs=TRUE,escape = FALSE, align= c('l', rep(c('c', 'c'), dim(out)[2]-1), 'r')) %>%
+      kableExtra::row_spec(row = 0, align = "c") %>%
+      kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                                full_width = full_width)
+
+    if(any(names(fit)=="strata") & length(evt_type) > 1){
+
+      labels <- unique(events_clean)
+
+      if (!all(labels == events_clean[seq(1, length(events_clean), by = length(unique(column_names)))])) {
+        stop("Error: unique names do not match")
+      }
+
+      out <- out %>%  kableExtra::add_header_above(c("", stats::setNames(rep(length(unique(column_names)), length(labels)), labels)))
+
+
+    }
+  }
+  out
+}
 
 
 
