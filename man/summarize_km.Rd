@@ -44,3 +44,32 @@ The function summarizes the fitted Kaplan-Meier survival estimates at user-speci
 the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
 If \code{failure_fun = TRUE}, the function returns failure probabilities instead of survival.
 }
+\examples{
+
+library(dplyr)
+## Example without a covariate
+
+construct_surv_cmprisk_var(cardio_data,
+                          patid = PatientID,
+                          idx_dt = SurgeryDate,
+                          evt_dt = DeathDate,
+                          end_dt = LastVisitDate,
+                          append = TRUE,
+                          units = "months") \%>\%
+ estimate_cif_km(evt = evt,evt_time = evt_time) \%>\%
+ summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
+
+
+## Example with a covariate
+
+construct_surv_cmprisk_var(cardio_data,
+                          patid = PatientID,
+                          idx_dt = SurgeryDate,
+                          evt_dt = DeathDate,
+                          end_dt = LastVisitDate,
+                         append = TRUE,
+                          units = "months") \%>\%
+ estimate_cif_km(evt = evt,evt_time = evt_time,Sex)  \%>\%
+ summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
+
+}

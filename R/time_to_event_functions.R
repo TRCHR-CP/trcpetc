@@ -431,6 +431,8 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
       kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                                 full_width = full_width)
 
+
+    if(is.null(evt_type)) evt_type <- c(1,1)
     if(any(names(fit)=="strata") & length(evt_type) > 1){
 
       labels <- unique(events_clean)
