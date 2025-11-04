@@ -59,7 +59,7 @@ construct_surv_cmprisk_var(cardio_data,
                           end_dt = LastVisitDate,
                           append = TRUE,
                           cmprisk = TRUE,
-                          other = DeathDate,
+                          Death = DeathDate,
                           units = "months") \%>\%
  estimate_cif_km(evt = evt,evt_time = evt_time) \%>\%
  summarize_cif(evt_type = c(0,1,2),

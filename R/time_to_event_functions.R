@@ -1,7 +1,7 @@
 
 
 
-#' @title construct_surv_cmprisk_var
+#' @title construct survival or competing risks process
 #'
 #' @description
 #'
@@ -24,7 +24,7 @@
 #'construct_surv_cmprisk_var(cardio_data,
 #'                           patid = PatientID,
 #'                           idx_dt = SurgeryDate,
-#'                           evt_dt = TransplantDate,
+#'                           evt_dt = DeathDate,
 #'                           end_dt = LastVisitDate,,
 #'                           append = TRUE)
 #'
@@ -158,16 +158,20 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 
 
 
-#' @title estimate_cif_km
+#' @title Kaplan-Meier survival and cumulative incidence (CIF) estimates
 #' @description Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable.
 #' @param df A data frame containing the survival data.
 #' @param evt_time A numeric vector representing the time to event or censoring.
-#' @param evt A binary event indicator (1 = event occurred, 0 = censored).
+#' @param evt For survival data: a numeric event indicator (1 = event occurred, 0 = censored).
+#'            For competing risks data: a factor event indicator (0 = censored, 1 = Event 1, 2 = Event 2, ...).
 #' @param group A grouping variable for stratified survival curves.
 #' @param conf.type The type of confidence interval used by   \code{survival::survfit()}. When "default" is inputted uses log-log for Kaplan-Meier and log for CIF
 #' @param ... Additional arguments passed to \code{survival::survfit()}.
 #' @return A \code{survfit} object containing the survival estimates.
 #' @details
+#'
+#' The function will produce  Kaplan-Meier survival estimates when evt is numeric and will produce CIF estimates when evt is a factor
+#'
 #' The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
 #' transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
 #' run_logrank_test().
@@ -370,7 +374,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #'                           end_dt = LastVisitDate,
 #'                           append = TRUE,
 #'                           cmprisk = TRUE,
-#'                           other = DeathDate,
+#'                           Death = DeathDate,
 #'                           units = "months") %>%
 #'  estimate_cif_km(evt = evt,evt_time = evt_time) %>%
 #'  summarize_cif(evt_type = c(0,1,2),

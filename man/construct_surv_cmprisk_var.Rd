@@ -2,7 +2,7 @@
 % Please edit documentation in R/time_to_event_functions.R
 \name{construct_surv_cmprisk_var}
 \alias{construct_surv_cmprisk_var}
-\title{construct_surv_cmprisk_var}
+\title{construct survival or competing risks process}
 \usage{
 construct_surv_cmprisk_var(
   df,
@@ -10,7 +10,7 @@ construct_surv_cmprisk_var(
   idx_dt,
   evt_dt,
   end_dt,
-  cmprisk = FALSE,
+  cmprisk = NULL,
   surv_varname = NULL,
   units = "days",
   append = FALSE,
@@ -29,9 +29,7 @@ construct_surv_cmprisk_var(
 
 \item{end_dt}{the date of the last follow-up}
 
-\item{cmprisk}{Logical; whether to create variables for competing risks, when FALSE creates for survival process. Default is `FALSE`.}
-
-\item{surv_varname}{an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.}
+\item{cmprisk}{Logical; indicates whether to create variables for competing risks. Defaults to \code{FALSE} when no competing event is included, and \code{TRUE} when a competing event is present.#' @param surv_varname     an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.}
 
 \item{units}{Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".}
 
@@ -53,7 +51,7 @@ library(dplyr)
 construct_surv_cmprisk_var(cardio_data,
                           patid = PatientID,
                           idx_dt = SurgeryDate,
-                          evt_dt = TransplantDate,
+                          evt_dt = DeathDate,
                           end_dt = LastVisitDate,,
                           append = TRUE)
 
@@ -64,7 +62,6 @@ construct_surv_cmprisk_var(cardio_data,
                           evt_dt = TransplantDate,
                           end_dt = LastVisitDate,
                           other_dt = DeathDate,
-                          append = TRUE,
-                          cmprisk = TRUE)
+                          append = TRUE)
 
 }

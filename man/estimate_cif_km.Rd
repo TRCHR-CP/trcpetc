@@ -2,7 +2,7 @@
 % Please edit documentation in R/time_to_event_functions.R
 \name{estimate_cif_km}
 \alias{estimate_cif_km}
-\title{estimate_cif_km}
+\title{Kaplan-Meier survival and cumulative incidence (CIF) estimates}
 \usage{
 estimate_cif_km(df, evt_time, evt, group, conf.type = "default", ...)
 }
@@ -11,7 +11,8 @@ estimate_cif_km(df, evt_time, evt, group, conf.type = "default", ...)
 
 \item{evt_time}{A numeric vector representing the time to event or censoring.}
 
-\item{evt}{A binary event indicator (1 = event occurred, 0 = censored).}
+\item{evt}{For survival data: a numeric event indicator (1 = event occurred, 0 = censored).
+For competing risks data: a factor event indicator (0 = censored, 1 = Event 1, 2 = Event 2, ...).}
 
 \item{group}{A grouping variable for stratified survival curves.}
 
@@ -26,6 +27,8 @@ A \code{survfit} object containing the survival estimates.
 Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable.
 }
 \details{
+The function will produce  Kaplan-Meier survival estimates when evt is numeric and will produce CIF estimates when evt is a factor
+
 The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
 transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
 run_logrank_test().
