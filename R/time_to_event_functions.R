@@ -12,8 +12,7 @@
 #' @param idx_dt the index date
 #' @param evt_dt the date of the event occurrence. Its value should be NA for non-event subjects.
 #' @param end_dt the date of the last follow-up
-#' @param cmprisk Logical; whether to create variables for competing risks, when FALSE creates for survival process. Default is `FALSE`.
-#' @param surv_varname 	an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
+#' @param cmprisk Logical; indicates whether to create variables for competing risks. Defaults to \code{FALSE} when no competing event is included, and \code{TRUE} when a competing event is present.#' @param surv_varname 	an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
 #' @param units Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".
 #' @param adm_cnr_time  a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).
 #' @param ... all competing event dates
@@ -36,13 +35,12 @@
 #'                           evt_dt = TransplantDate,
 #'                           end_dt = LastVisitDate,
 #'                           other_dt = DeathDate,
-#'                           append = TRUE,
-#'                           cmprisk = TRUE)
+#'                           append = TRUE)
 #'
 #' @return A data frame with patid, evt_time and evt.
 #' @export
 
-construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = FALSE ,surv_varname = NULL,units = "days", append = FALSE,
+construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = NULL ,surv_varname = NULL,units = "days", append = FALSE,
                                        adm_cnr_time = NULL,
                                        ...) {
 
@@ -51,6 +49,13 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
   evt_dt <- rlang::enquo(evt_dt)
   end_dt <- rlang::enquo(end_dt)
   cmp_evt_dt <- rlang::enquos(...)
+
+  if(is.null(cmprisk)){
+
+    cmprisk <-  length(cmp_evt_dt) > 0
+
+  }
+
 
   if (rlang::quo_is_missing(idx_dt)) stop("No index date (time zero).")
   if (rlang::quo_is_missing(evt_dt)) stop("No event date.")
@@ -134,11 +139,11 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 
   tmp_df <- if (is.null(surv_varname)) {
     tmp_df %>%
-      select(!!patid, time2evt, evt) %>%
+      dplyr::select(!!patid, time2evt, evt) %>%
       dplyr::rename(evt_time = time2evt)
   } else {
     tmp_df %>%
-      select(!!patid, time2evt, evt) %>%
+      dplyr::select(!!patid, time2evt, evt) %>%
       dplyr::rename(!!surv_varname[1]:= time2evt,
                     !!surv_varname[2]:= evt)
   }
@@ -231,7 +236,36 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
 #' the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
 #' If \code{failure_fun = TRUE}, the function returns failure probabilities instead of survival.
+#' @examples
+#'
+#' library(dplyr)
+#' ## Example without a covariate
+#'
+#'construct_surv_cmprisk_var(cardio_data,
+#'                           patid = PatientID,
+#'                           idx_dt = SurgeryDate,
+#'                           evt_dt = DeathDate,
+#'                           end_dt = LastVisitDate,
+#'                           append = TRUE,
+#'                           units = "months") %>%
+#'  estimate_cif_km(evt = evt,evt_time = evt_time) %>%
+#'  summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
+#'
+#'
+#'## Example with a covariate
+#'
+#'construct_surv_cmprisk_var(cardio_data,
+#'                           patid = PatientID,
+#'                           idx_dt = SurgeryDate,
+#'                           evt_dt = DeathDate,
+#'                           end_dt = LastVisitDate,
+#'                          append = TRUE,
+#'                           units = "months") %>%
+#'  estimate_cif_km(evt = evt,evt_time = evt_time,Sex)  %>%
+#'  summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
+#'
 
+#' @export
 summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
                          kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Times",overall_label = "Overall") {
   ss <- summary(fit, times= if (is.null(times)) pretty(fit$time) else times)
@@ -324,10 +358,44 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #' @param labels Character string; labels for the events in the kable table when include_event_type is TRUE. Default is c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Other")
 #' @return A data frame or a formatted \code{kableExtra} table summarizing survival or failure probabilities with confidence intervals.
 #' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
+#' @examples
+#'
+#' library(dplyr)
+#' ## Example without a covariate
+#'
+#'construct_surv_cmprisk_var(cardio_data,
+#'                           patid = PatientID,
+#'                           idx_dt = SurgeryDate,
+#'                           evt_dt = TransplantDate,
+#'                           end_dt = LastVisitDate,
+#'                           append = TRUE,
+#'                           cmprisk = TRUE,
+#'                           other = DeathDate,
+#'                           units = "months") %>%
+#'  estimate_cif_km(evt = evt,evt_time = evt_time) %>%
+#'  summarize_cif(evt_type = c(0,1,2),
+#'                labels = c('(s0)' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+#'
+#'
+#'## Example with a covariate
+#'
+#'construct_surv_cmprisk_var(cardio_data,
+#'                           patid = PatientID,
+#'                           idx_dt = SurgeryDate,
+#'                           evt_dt = TransplantDate,
+#'                           end_dt = LastVisitDate,
+#'                          append = TRUE,
+#'                           cmprisk = TRUE,
+#'                           other = DeathDate,
+#'                           units = "months") %>%
+#'  estimate_cif_km(evt = evt,evt_time = evt_time,Sex) %>%
+#'  summarize_cif(evt_type = c(1,2),
+#'                labels = c('(s0)' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+#'
 #' @details
 #' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
 #' the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
-
+#' @export
 
 summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Time",evt_type = NULL,
                           labels = c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"), overall_label = "Overall") {
@@ -749,7 +817,6 @@ show_surv <- function(surv_obj,
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
-#'
 #' @return A \code{ggplot} object representing the cumulative incidence function plot.
 #' @export
 show_cif <- function(surv_obj,
