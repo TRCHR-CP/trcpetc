@@ -481,7 +481,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
     }
     else{
 
-      if(length(evt_type) > 1) {
+      if(length(evt_type) > 1 | is.null(evt_type)) {
         column_names <- events_clean
       }else{
         column_names <- overall_label
@@ -504,8 +504,8 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
                                 full_width = full_width)
 
 
-    if(is.null(evt_type)) evt_type <- c(1,1)
-    if(any(names(fit)=="strata") & length(evt_type) > 1){
+
+    if(any(names(fit)=="strata") & ((length(evt_type) > 1) | is.null(evt_type))){
 
       labels <- unique(events_clean)
 
@@ -520,7 +520,6 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
   }
   out
 }
-
 
 
 #' @title Plot Survival or Cumulative Death Function
