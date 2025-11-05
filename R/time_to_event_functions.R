@@ -12,8 +12,9 @@
 #' @param idx_dt the index date
 #' @param evt_dt the date of the event occurrence. Its value should be NA for non-event subjects.
 #' @param end_dt the date of the last follow-up
-#' @param cmprisk Logical; indicates whether to create variables for competing risks. Defaults to \code{FALSE} when no competing event is included, and \code{TRUE} when a competing event is present.#' @param surv_varname 	an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
-#' @param units Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".
+#' @param cmprisk Logical; indicates whether to create variables for competing risks. Defaults to \code{FALSE} when no competing event is included, and \code{TRUE} when a competing event is present.
+#' @param surv_varname 	an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
+#' @param units Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days (default) ", "weeks", "months", or "years".
 #' @param adm_cnr_time  a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).
 #' @param ... all competing event dates
 #' @examples
@@ -39,7 +40,7 @@
 #'
 #' @return A data frame with patid, evt_time and evt.
 #' @export
-
+#' @importFrom magrittr %>%
 construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = NULL ,surv_varname = NULL,units = "days", append = FALSE,
                                        adm_cnr_time = NULL,
                                        ...) {
@@ -180,13 +181,13 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 #' function.The function store the input data in the call(), which can be used in run_gray_test().
 #'
 #' @export
-#'
+#' @importFrom magrittr %>%
 #'
 estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...){
 
-  evt_time <- enquo(evt_time)
-  evt     <- enquo(evt)
-  group   <- enquo(group)
+  evt_time <- rlang::enquo(evt_time)
+  evt     <- rlang::enquo(evt)
+  group   <- rlang::enquo(group)
 
   cmp <- is.factor(df %>% dplyr::pull(!!evt))
   surv <- is.numeric(df %>% dplyr::pull(!!evt))
@@ -194,7 +195,7 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
   if(cmp == TRUE & surv == TRUE) warning("evt must be either a factor or numeric")
   if(cmp == FALSE & surv == FALSE) warning("evt must be either a factor or numeric")
 
-  conf.type = case_when(conf.type == "default" & cmp ~ "log",
+  conf.type = dplyr::case_when(conf.type == "default" & cmp ~ "log",
                         conf.type == "default" & surv  ~ "log-log",
                         TRUE ~ conf.type)
 
@@ -270,6 +271,8 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #'
 
 #' @export
+#' @importFrom magrittr %$%
+#' @importFrom magrittr %>%
 summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
                          kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Times",overall_label = "Overall") {
   ss <- summary(fit, times= if (is.null(times)) pretty(fit$time) else times)
@@ -320,7 +323,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
       dplyr::mutate_at(dplyr::vars(dplyr::one_of('surv', 'conf_low', 'conf_high')),
                        function(x) paste(formatC(round(x, 3)*100, format= "f", digits= 1, flag= "#"), "%", sep= "")) %>%
       dplyr::mutate(stat= paste0(surv, " [", conf_low, ", ", conf_high, "]")) %>%
-      reshape2::dcast(times ~ 'Overall', value.var = 'stat') %>% rename({{ overall_label }} := Overall)
+      reshape2::dcast(times ~ 'Overall', value.var = 'stat') %>% dplyr::rename({{ overall_label }} := Overall)
 
   }
 
@@ -330,7 +333,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
   if(kable_output){
 
     names(out) <- sub("^[^=]*=", "", names(out))
-    out <- out %>% rename({{ time_lab }} := times)
+    out <- out %>% dplyr::rename({{ time_lab }} := times)
 
     out <-  out   %>% kableExtra::kbl(caption = caption,booktabs=TRUE,escape = FALSE, align= c('l', rep(c('c', 'c'), dim(out)[2]-1), 'r')) %>%
       kableExtra::row_spec(row = 0, align = "c") %>%
@@ -400,7 +403,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
 #' the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
 #' @export
-
+#' @importFrom magrittr %>%
 summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Time",evt_type = NULL,
                           labels = c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"), overall_label = "Overall") {
 
@@ -493,7 +496,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 
 
 
-    out <- out %>% rename({{ time_lab }} := times)
+    out <- out %>% dplyr::rename({{ time_lab }} := times)
 
     names(out)[-1] <- column_names
 
@@ -551,7 +554,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
 #' @return A \code{ggplot} object representing the survival or cumulative death function plot.
 #' @export
-
+#' @importFrom magrittr %>%
 show_surv <- function(surv_obj,
                       x_lab= 'Time',
                       y_lab= if (plot_cdf) 'The proportion of deceased subjects' else 'The freedom from death',
@@ -586,14 +589,14 @@ show_surv <- function(surv_obj,
   if (color_scheme=='manual' & is.null(color_list)) stop("Please provide a list of color value(s).")
 
   fill_fun <- switch(color_scheme,
-                     'brewer' = quote(scale_fill_brewer(palette = "Set1")),
-                     'grey'   = quote(scale_fill_grey(start= 0, end= 0.65)),
-                     'viridis'= quote(scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE)),
+                     'brewer' = quote(ggplot2::scale_fill_brewer(palette = "Set1")),
+                     'grey'   = quote(ggplot2::scale_fill_grey(start= 0, end= 0.65)),
+                     'viridis'= quote(viridis::scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE)),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_fill_manual', args= color_list)))
   color_fun<- switch(color_scheme,
-                     'brewer' = quote(scale_color_brewer(palette = "Set1")),
-                     'grey'   = quote(scale_color_grey(start= 0, end= 0.65)),
-                     'viridis'= quote(scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE)),
+                     'brewer' = quote(ggplot2::scale_color_brewer(palette = "Set1")),
+                     'grey'   = quote(ggplot2::scale_color_grey(start= 0, end= 0.65)),
+                     'viridis'= quote(viridis::scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE)),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_color_manual', args= color_list)))
 
   if (!plot_cdf & !is.null(y_lim)) {
@@ -822,6 +825,7 @@ show_surv <- function(surv_obj,
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
 #' @return A \code{ggplot} object representing the cumulative incidence function plot.
 #' @export
+#' @importFrom magrittr %>%
 show_cif <- function(surv_obj,
                      evt_type = 1,
                      # evt_label= identity, # identity function
@@ -878,14 +882,14 @@ show_cif <- function(surv_obj,
   if (color_scheme=='manual' & is.null(color_list)) stop("Please provide a list of color value(s) when a manual color scheme is specified.")
 
   fill_fun <- switch(color_scheme,
-                     'brewer' = quote(scale_fill_brewer(palette = "Set1", guide_legend(title= ""))),
-                     'grey'   = quote(scale_fill_grey(start= 0, end= 0.65, guide_legend(title= ""))),
-                     'viridis'= quote(scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide_legend(title= ""))),
+                     'brewer' = quote(ggplot2::scale_fill_brewer(palette = "Set1", guide_legend(title= ""))),
+                     'grey'   = quote(ggplot2::scale_fill_grey(start= 0, end= 0.65, guide_legend(title= ""))),
+                     'viridis'= quote(viridis::scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide_legend(title= ""))),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_fill_manual', args= color_list)))
   color_fun<- switch(color_scheme,
-                     'brewer' = quote(scale_color_brewer(palette = "Set1", guide_legend(title= ""))),
-                     'grey'   = quote(scale_color_grey(start= 0, end= 0.65, guide_legend(title= ""))),
-                     'viridis'= quote(scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide_legend(title= ""))),
+                     'brewer' = quote(ggplot2::scale_color_brewer(palette = "Set1", guide_legend(title= ""))),
+                     'grey'   = quote(ggplot2::scale_color_grey(start= 0, end= 0.65, guide_legend(title= ""))),
+                     'viridis'= quote(viridis::scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide_legend(title= ""))),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_color_manual', args= color_list)))
 
   # x_lab<- if (is.null(x_lab)) "Time" else x_lab

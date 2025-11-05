@@ -1,7 +1,6 @@
 #' @title table_one_overall
 #' @description table one with no stratifying variable
 #' @keywords internal
-#' @export
 #'
 
 table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE,overall_label = "Overall"){
@@ -66,7 +65,6 @@ table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.l
 #' @title table_one_stratify
 #' @description table one with a stratifying variable
 #' @keywords internal
-#' @export
 #'
 table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE){
 
@@ -145,7 +143,6 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 #' @title kable_table_one
 #' @description creates a kable table one for rmarkdown reports
 #' @keywords internal
-#' @export
 #'
 
 kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bold_variables,full_width){
@@ -201,7 +198,6 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bo
 
 #' @title titles_non_missing
 #' @description Add a title to a dataframe
-#' @export
 #'
 
 # Factor desp -------------------------------------------------------------------------
@@ -214,7 +210,6 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bo
 #'
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
-#' @export
 factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.unused.levels = FALSE) {
 
   ##
@@ -496,7 +491,6 @@ factor_dist <- function(table_obj, col_var, pct_digits= 1, removeNA= TRUE) {
 #'
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
-#' @export
 logical_desp <- function(df, group) {
 
   binary_desp <- function(x, pct_digits= 1) {
@@ -645,7 +639,6 @@ fisher_test <- function(df, group) {
 #'
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables.
-#' @export
 numeric_desp<- function(df, group) {
   group<- rlang::enquo(group)
   df<- df %>%
@@ -743,7 +736,6 @@ numeric_desp<- function(df, group) {
 #'
 #' @param x Numeric variable
 #' @return a character reporting the number of non-missing observations
-#' @export
 n_avail<- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.mark = ",")
 
 #' @title mean_sd
@@ -752,7 +744,6 @@ n_avail<- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.mar
 #'
 #' @param x Numeric variable
 #' @return a character reporting the mean plus/minus standard deviation
-#' @export
 mean_sd <- function(x) {
   n_dec <- decimalplaces(x)
 
@@ -785,7 +776,7 @@ mean_sd <- function(x) {
 #'
 #' @param x Numeric variable
 #' @return a character reporting the median (Q1 - Q3)
-#' @export
+
 med_iqr <- function(x) {
   q1 <- function(x, ...) stats::quantile(x, probs = .25, ...)
   q3 <- function(x, ...) stats::quantile(x, probs = .75, ...)
@@ -824,7 +815,7 @@ med_iqr <- function(x) {
 #' @param x Numeric variable
 #' @param grp Factor variable
 #' @return a 2-tuple vectors reporting p-values
-#' @export
+
 two_sample_test<- function(df, group) {
 
   group <- rlang::enquo(group)
@@ -874,7 +865,7 @@ two_sample_test<- function(df, group) {
 #' @param x Numeric variable
 #' @param grp Factor variable
 #' @return a 2-tuple vectors reporting p-values
-#' @export
+
 k_sample_test<- function(df, group) {
 
   group<- rlang::enquo(group)
@@ -925,7 +916,6 @@ k_sample_test<- function(df, group) {
 #' exact_round_100(c(33.33, 33.33, 33.34), digits = 1)
 #' # Returns: 33.3 33.3 33.4
 #'
-#' @export
 
 exact_round_100 <- function(values,digits = 1){
   # Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits

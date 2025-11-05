@@ -25,7 +25,7 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 }
 
 
-#' @title check_box_convert
+#' @title check box convert
 #' @description Converts checkbox-style variables into logical format for inclusion in a Table 1. Ensures that checkbox responses are treated as binary indicators and handles missingness appropriately.
 #' @details
 #' This function prepares checkbox-style questions (i.e., multiple binary columns representing selections) for descriptive analysis. It converts specified columns to logical type and sets all values to `NA` for rows where none of the checkbox options were selected. Optionally, it adds a title column to group these variables visually in the output table.
@@ -101,7 +101,7 @@ check_box_convert <- function(df, check_box_cols, title = NULL) {
 # Factor order -------------------------------------------------------------------------
 
 #---- Order factor variables ----
-#' @title factor_order
+#' @title Order a factor variable by descending frequency
 #'
 #' @details Automatically orders the levels of a factor variable by descending frequency, improving clarity in summary tables
 #'

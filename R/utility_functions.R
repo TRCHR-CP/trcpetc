@@ -10,7 +10,6 @@
 #'
 #' @param x a continuous variable
 #' @return the most frequent number of digits in the variable
-#' @export
 decimalplaces <- function(x, max_dec= 4L) {
   y<- x[!is.na(x)]
   y<- round((y %% 1), 10)
@@ -120,7 +119,6 @@ updateWorksheet <- function(wb, sheetName, x, ...) {
 #' @param fit a survfit object
 #' @param time.list a numeric vector specifying the time points at which the number of at-risk subjects is calculated.
 #' @return A dataframe containing the number of at risk patients at time-, overall or by strata
-#' @export
 extract_atrisk <- function(fit, time.list, time.scale= 1) {
 
   if (any(names(fit)=="strata")){
@@ -178,7 +176,6 @@ extract_atrisk <- function(fit, time.list, time.scale= 1) {
 #' @description Performs a log-rank test to compare survival distributions between two or more groups.
 #' @param surv_obj A \code{survfit} object, such as one returned by \code{estimate_cif_km()}, containing grouped survival curves.
 #' @return A numeric value representing the p-value from the log-rank test.
-#' @export
 run_logrank_test <- function(surv_obj) {
   tmp <- surv_obj$call
   tmp[[1]] <- quote(survival::survdiff)
@@ -195,8 +192,6 @@ run_logrank_test <- function(surv_obj) {
 #' @param surv_obj A \code{survfit} object, such as one returned by \code{estimate_cif_km()}, containing grouped survival curves.
 #' @param evt_type The numeric vector of interest. Default is 1:2
 #' @return A numeric value representing the p-value from Grays test.
-#' @export
-#' @export
 run_gray_test <- function(surv_obj, evt_type= 1:2) {
 
   df <- as.list(eval(surv_obj$call$data, parent.frame()))
@@ -211,7 +206,8 @@ run_gray_test <- function(surv_obj, evt_type= 1:2) {
 }
 
 
-#' @export
+#' @title prepare survfit for survival table
+#' @importFrom magrittr %>%
 prepare_survfit <- function(surv_obj) {
 
   prepare_cmprisk <- function(surv_obj) {
@@ -340,7 +336,7 @@ prepare_survfit <- function(surv_obj) {
   return(out)
 }
 
-#' @export
+#' @title Create atrisk table
 add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_theme = NULL) {
 
   # ---- get font information ----
