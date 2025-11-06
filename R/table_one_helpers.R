@@ -637,13 +637,13 @@ fisher_test <- function(df, group) {
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables.
 numeric_desp <- function(df, group) {
-  group<- rlang::enquo(group)
-  df<- df %>%
+  group <- rlang::enquo(group)
+  df <- df %>%
     dplyr::ungroup()
 
   if (rlang::quo_is_missing(group)) {
 
-    df<- df %>%
+    df <- df %>%
       dplyr::select_if(is.numeric)
 
     n_var <- df %>%
@@ -677,11 +677,11 @@ numeric_desp <- function(df, group) {
 
   } else {
 
-    df<- df %>%
+    df <- df %>%
       dplyr::group_by(!!group) %>%
       dplyr::select_if(is.numeric)
 
-    n_var<- df %>%
+    n_var <- df %>%
       dplyr::summarise_if(is.numeric, list(~ n_avail(.))) %>%
       reshape2::melt(id.vars= rlang::quo_name(group), factorsAsStrings= TRUE) %>%
       reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ ")))
@@ -705,18 +705,18 @@ numeric_desp <- function(df, group) {
     }
 
     # adding the p-values
-    test_fun<- if (dplyr::n_groups(df)==2) two_sample_test else if (dplyr::n_groups(df)>2) k_sample_test
+    test_fun <- if (dplyr::n_groups(df)==2) two_sample_test else if (dplyr::n_groups(df)>2) k_sample_test
 
-    sum_stat<- sum_stat %>%
+    sum_stat <- sum_stat %>%
       # dplyr::left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
       dplyr::left_join(test_fun(df, !!group), by= c("variable", "type"))
 
   }
 
-  n_var<- n_var %>%
+  n_var <- n_var %>%
     dplyr::mutate_all(as.character)
 
-  sum_stat<- sum_stat %>%
+  sum_stat <- sum_stat %>%
     dplyr::mutate_all(as.character)
 
   dplyr::left_join(n_var, sum_stat, by= "variable", suffix= c("_n", "_stat")) %>%
@@ -733,7 +733,7 @@ numeric_desp <- function(df, group) {
 #'
 #' @param x Numeric variable
 #' @return a character reporting the number of non-missing observations
-n_avail<- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.mark = ",")
+n_avail <- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.mark = ",")
 
 #' @title mean_sd
 #'
@@ -744,8 +744,8 @@ n_avail<- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.mar
 mean_sd <- function(x) {
   n_dec <- decimalplaces(x)
 
-  funs<- c(mean, stats::sd)
-  out<- sapply(funs,
+  funs <- c(mean, stats::sd)
+  out <- sapply(funs,
                function(f) {
                  res<- try(f(x, na.rm= TRUE), silent = TRUE)
                  res<- if (class(res)== "try-error") NA else res
@@ -753,15 +753,15 @@ mean_sd <- function(x) {
                })
 
   if (length(x[!is.na(x)])==0) {
-    out<- "---"
+    out <- "---"
   } else if (length(x[!is.na(x)])==1) {
-    out<- formatC( out[1], digits= n_dec, format= "f", big.mark = ",", flag= "#")
+    out <- formatC( out[1], digits= n_dec, format= "f", big.mark = ",", flag= "#")
   } else {
-    out<- formatC( out, digits= n_dec, format= "f", big.mark = ",", flag= "#")
-    out<- paste0(out, collapse = " \u00B1 ") # plusminus sign
+    out <- formatC( out, digits= n_dec, format= "f", big.mark = ",", flag= "#")
+    out <- paste0(out, collapse = " \u00B1 ") # plusminus sign
   }
 
-  out<- c(stat= out)
+  out <- c(stat= out)
   out
 }
 
@@ -813,7 +813,7 @@ med_iqr <- function(x) {
 #' @param grp Factor variable
 #' @return a 2-tuple vectors reporting p-values
 
-two_sample_test<- function(df, group) {
+two_sample_test <- function(df, group) {
 
   group <- rlang::enquo(group)
 
@@ -845,11 +845,6 @@ two_sample_test<- function(df, group) {
                   pval= format_pvalue(pval)
     ) %>%
     dplyr::mutate_all(as.character)
-  #   variable   type   pval
-  # 1   income meansd   0.52
-  # 2   weight meansd <0.001
-  # 3   income mediqr   0.47
-  # 4   weight mediqr <0.001
 }
 
 
@@ -863,9 +858,9 @@ two_sample_test<- function(df, group) {
 #' @param grp Factor variable
 #' @return a 2-tuple vectors reporting p-values
 
-k_sample_test<- function(df, group) {
+k_sample_test <- function(df, group) {
 
-  group<- rlang::enquo(group)
+  group <- rlang::enquo(group)
 
   df %>%
     dplyr::ungroup() %>%
