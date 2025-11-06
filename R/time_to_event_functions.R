@@ -41,6 +41,7 @@
 #' @return A data frame with patid, evt_time and evt.
 #' @export
 #' @importFrom magrittr %>%
+#' @importFrom data.table :=
 construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmprisk = NULL ,surv_varname = NULL,units = "days", append = FALSE,
                                        adm_cnr_time = NULL,
                                        ...) {
@@ -404,6 +405,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #' the output is stratified accordingly. Confidence intervals are included, and results are formatted as percentages with one decimal place.
 #' @export
 #' @importFrom magrittr %>%
+#' @importFrom data.table :=
 summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Time",evt_type = NULL,
                           labels = c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"), overall_label = "Overall") {
 
@@ -454,7 +456,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
       reshape2::dcast(times ~ states, value.var = 'stat')
   }
 
-  out <- out %>% mutate(across(where(is.character), ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .)))
+  out <- out %>% dplyr::mutate(dplyr::across(dplyr::where(is.character), ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .)))
 
   if(kable_output){
 
@@ -464,7 +466,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 
 
 
-      out <- out %>% select(matches(paste0("^(", paste(c("times",evt_type), collapse = "|"), ")")))
+      out <- out %>%  dplyr::select( dplyr::matches(paste0("^(", paste(c("times",evt_type), collapse = "|"), ")")))
 
 
     }
@@ -472,7 +474,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 
 
     events  <- sub("_.*", "", names(out))[-1]
-    events_clean <- recode(events, !!!labels)
+    events_clean <- dplyr::recode(events, !!!labels)
 
 
     if(any(names(fit)=="strata")) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/table_one_set_up.R
 \name{factor_order}
 \alias{factor_order}
-\title{factor_order}
+\title{Order a factor variable by descending frequency}
 \usage{
 factor_order(var)
 }
@@ -13,7 +13,7 @@ factor_order(var)
 A factor vector with levels sorted in descending order of frequency.
 }
 \description{
-factor_order
+Order a factor variable by descending frequency
 }
 \details{
 Automatically orders the levels of a factor variable by descending frequency, improving clarity in summary tables

@@ -29,9 +29,11 @@ construct_surv_cmprisk_var(
 
 \item{end_dt}{the date of the last follow-up}
 
-\item{cmprisk}{Logical; indicates whether to create variables for competing risks. Defaults to \code{FALSE} when no competing event is included, and \code{TRUE} when a competing event is present.#' @param surv_varname     an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.}
+\item{cmprisk}{Logical; indicates whether to create variables for competing risks. Defaults to \code{FALSE} when no competing event is included, and \code{TRUE} when a competing event is present.}
 
-\item{units}{Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days", "weeks", "months", or "years".}
+\item{surv_varname}{an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.}
+
+\item{units}{Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days (default) ", "weeks", "months", or "years".}
 
 \item{adm_cnr_time}{a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).}
 

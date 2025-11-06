@@ -87,7 +87,8 @@
 #'  )
 #' @export
 #' @importFrom magrittr %>%
-
+#' @importFrom data.table :=
+#'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,
@@ -138,7 +139,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
    print(paste("Unused columns include:", paste0(df %>%
       dplyr::ungroup() %>%
-      dplyr::select(where(~ is.character(.) || lubridate::is.Date(.))) %>% colnames(),collapse = ", ")))
+      dplyr::select(dplyr::where(~ is.character(.) || lubridate::is.Date(.))) %>% colnames(),collapse = ", ")))
 
   }
 
@@ -249,9 +250,9 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   ##Formatting title rows to
   out <- out   %>%
-    mutate(across(
-      matches("(_stat$|^pval$)"),
-      ~ if_else(variable %in% Check_box_title, NA, .)
+    dplyr::mutate(dplyr::across(
+      dplyr::matches("(_stat$|^pval$)"),
+      ~ dplyr::if_else(variable %in% Check_box_title, NA, .)
     ))
 
 

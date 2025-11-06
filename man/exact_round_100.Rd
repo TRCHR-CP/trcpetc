@@ -17,11 +17,3 @@ A numeric vector of the same length as `values`, rounded to the specified number
 \description{
 Rounds a vector of values to a 100% value using the largest remainder method
 }
-\examples{
-exact_round_100(c(33.3, 33.3, 33.4), digits = 0)
-# Returns: 33 33 34
-
-exact_round_100(c(33.33, 33.33, 33.34), digits = 1)
-# Returns: 33.3 33.3 33.4
-
-}

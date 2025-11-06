@@ -1,7 +1,7 @@
 #' @title table_one_overall
 #' @description table one with no stratifying variable
 #' @keywords internal
-#'
+#' @importFrom data.table :=
 
 table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE,overall_label = "Overall"){
 
@@ -166,9 +166,9 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bo
     }
 
   out <- out %>%
-    mutate(bold = bold_variables) %>%
+    dplyr::mutate(bold = bold_variables) %>%
     dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE))  %>%
-    mutate(var_desp = ifelse(
+    dplyr::mutate(var_desp = ifelse(
       (!seq_along(var_desp) %in% indent) & bold,
       kableExtra::cell_spec(var_desp, bold = TRUE),
       var_desp)) %>%
@@ -196,9 +196,6 @@ kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bo
   out
 }
 
-#' @title titles_non_missing
-#' @description Add a title to a dataframe
-#'
 
 # Factor desp -------------------------------------------------------------------------
 
@@ -639,7 +636,7 @@ fisher_test <- function(df, group) {
 #'
 #' @param df Dataframe
 #' @return a dataframe consisting of columns of character variables.
-numeric_desp<- function(df, group) {
+numeric_desp <- function(df, group) {
   group<- rlang::enquo(group)
   df<- df %>%
     dplyr::ungroup()
@@ -908,14 +905,7 @@ k_sample_test<- function(df, group) {
 #' @param digits An integer indicating the number of decimal places to round to. Default is 1 (whole numbers).
 #'
 #' @return A numeric vector of the same length as `values`, rounded to the specified number of digits, and summing to exactly 100.
-#'
-#' @examples
-#' exact_round_100(c(33.3, 33.3, 33.4), digits = 0)
-#' # Returns: 33 33 34
-#'
-#' exact_round_100(c(33.33, 33.33, 33.34), digits = 1)
-#' # Returns: 33.3 33.3 33.4
-#'
+
 
 exact_round_100 <- function(values,digits = 1){
   # Based on the internalRoundFixedSum  from the nbc4va package but adding the option to round to select number of digits

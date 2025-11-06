@@ -2,7 +2,7 @@
 % Please edit documentation in R/table_one_set_up.R
 \name{check_box_convert}
 \alias{check_box_convert}
-\title{check_box_convert}
+\title{check box convert}
 \usage{
 check_box_convert(df, check_box_cols, title = NULL)
 }

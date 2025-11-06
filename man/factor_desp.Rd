@@ -2,7 +2,7 @@
 % Please edit documentation in R/table_one_helpers.R
 \name{factor_desp}
 \alias{factor_desp}
-\title{titles_non_missing}
+\title{factor_desp}
 \usage{
 factor_desp(
   df,
@@ -19,7 +19,7 @@ factor_desp(
 a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 }
 \description{
-Add a title to a dataframe
+factor_desp
 }
 \details{
 An internal function that calculate frequencies and proportion of levels in factor/categorical variables.

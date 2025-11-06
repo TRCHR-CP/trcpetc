@@ -6,6 +6,6 @@ utils::globalVariables(c(
   "strata", "state", "state_label", "state_strata", "prob", "pstate","conf_low",
   "conf_high", "p", "df", "chisq_p", "term", "surv", "lower", "upper",
   "coefficients", "variance", "rid", "estimate", "p.value", "var",
-  "est", "y"
+  "est", "y","var_desp","bold","Overall","first_evt"
 ))
 

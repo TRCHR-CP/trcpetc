@@ -229,7 +229,7 @@ summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun
                   conf_high= if (exponentiate) exp(conf_high) else conf_high,
                   stat = sprintf("%4.3f [%4.3f, %4.3f]", est, conf_low, conf_high),
                   pval= type3_out$pval[charmatch(gsub("TRUE$", "", term), type3_out$var)]) %>%
-    select(term, stat, pval, rid, dplyr::everything())  %>%
+    dplyr::select(term, stat, pval, rid, dplyr::everything())  %>%
     dplyr::rename(var= term)
 
   # dplyr::mutate(var= as.character(term),
@@ -242,14 +242,14 @@ summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun
   # dplyr::full_join(out_tmp, by= c("var" = "term"))
 
 
-  type3_out<- type3_out %>%
+  type3_out <- type3_out %>%
      dplyr::filter(df>1) %>%
     dplyr::select(var, pval, rid)
 
   glm_out %>%
     dplyr::bind_rows(type3_out) %>%
     dplyr::arrange(rid, var) %>%
-    select(var, stat, pval, dplyr::everything())
+    dplyr::select(var, stat, pval, dplyr::everything())
 
   # type3_out<- out %>%
   #   dplyr::bind_rows(.id= "var") %>%
@@ -353,7 +353,7 @@ summarize_mi_coxph <- function(cox_mira, exponentiate= TRUE, alpha= .05) {
   cox_out %>%
     dplyr::bind_rows(type3_out) %>%
     dplyr::arrange(rid, var) %>%
-    select(var, stat, pval, dplyr::everything())
+    dplyr::select(var, stat, pval, dplyr::everything())
   # dplyr::bind_rows(cox_out, type3_out) %>% dplyr::arrange(rid, var)
 }
 

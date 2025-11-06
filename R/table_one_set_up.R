@@ -9,8 +9,7 @@
 #' @param new_col_name Optional name for the new grouping column. Default is `"Title"`.
 #'
 #' @return A data frame with an added logical column indicating presence of non-missing values across the specified columns, relocated before the first column in the group.
-#' @export
-
+#' @importFrom data.table :=
 
 titles_non_missing <- function(df, columns, new_col_name = "Title") {
   df %>%
