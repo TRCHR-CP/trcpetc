@@ -23,7 +23,7 @@ show_surv(
   pvalue_pos = c("topleft", "topright", "bottomleft", "bottomright", "left", "right",
     "top", "bottom"),
   plot_cdf = FALSE,
-  print_fig = TRUE,
+  print_fig = FALSE,
   top.margin = 18,
   right.margin = 18,
   bottom.margin = 96,
@@ -63,7 +63,7 @@ show_surv(
 
 \item{plot_cdf}{Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).}
 
-\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = TRUE).}
+\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
 
 \item{top.margin}{Numeric; top margin space for the at-risk table (default = 18).}
 

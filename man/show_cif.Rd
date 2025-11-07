@@ -8,7 +8,7 @@ show_cif(
   surv_obj,
   evt_type = 1,
   evt_label = function(x) {
-     forcats::fct_recode(x, `1` = "Event", `2` =
+     dplyr::recode_factor(x, `1` = "Event", `2` =
     "Competing event", .default = "Event free")
  },
   add_ci = TRUE,
@@ -27,7 +27,7 @@ show_cif(
   y_break = NULL,
   color_scheme = c("brewer", "grey", "viridis", "manual"),
   color_list = NULL,
-  print_fig = TRUE,
+  print_fig = FALSE,
   top.margin = 18,
   right.margin = 18,
   bottom.margin = 96,
@@ -71,7 +71,7 @@ show_cif(
 
 \item{color_list}{A named list of colors to use when \code{color_scheme = "manual"} (e.g., \code{list(values = c("red", "blue"))}).}
 
-\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = TRUE).}
+\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
 
 \item{top.margin}{Numeric; top margin space for the at-risk table (default = 18).}
 

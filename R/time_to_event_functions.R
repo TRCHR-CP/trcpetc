@@ -549,7 +549,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param atrisk_init_pos Character; position of the "At-risk N:" label.
 #' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
 #' @param plot_cdf Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).
-#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = TRUE).
+#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = FALSE).
 #' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
@@ -575,7 +575,7 @@ show_surv <- function(surv_obj,
                       atrisk_init_pos= NULL,
                       pvalue_pos= c("topleft", "topright", "bottomleft", "bottomright", "left", "right", "top", "bottom"),
                       plot_cdf= FALSE,
-                      print_fig = TRUE,
+                      print_fig = FALSE,
 
                       top.margin = 18,
                       right.margin = 18,
@@ -820,7 +820,7 @@ show_surv <- function(surv_obj,
 #' @param y_break Numeric vector specifying y-axis tick positions.
 #' @param color_scheme Character; color scheme to use. Options: "brewer", "grey", "viridis", "manual" (default = "brewer").
 #' @param color_list A named list of colors to use when \code{color_scheme = "manual"} (e.g., \code{list(values = c("red", "blue"))}).
-#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = TRUE).
+#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = FALSE).
 #' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
@@ -832,7 +832,7 @@ show_cif <- function(surv_obj,
                      evt_type = 1,
                      # evt_label= identity, # identity function
                      evt_label= function(x) {
-                       forcats::fct_recode(x,
+                       dplyr::recode_factor(x,
                                               `1`= "Event",
                                               `2`= "Competing event",
                                               .default= "Event free")
@@ -854,7 +854,7 @@ show_cif <- function(surv_obj,
                      color_scheme= c("brewer", "grey", "viridis", "manual"),
                      color_list= NULL, #required only if color_scheme= 'manual'. eg color_list= list(values= c('red', 'blue'))
 
-                     print_fig = TRUE,
+                     print_fig = FALSE,
 
                      top.margin = 18,
                      right.margin = 18,
@@ -884,14 +884,14 @@ show_cif <- function(surv_obj,
   if (color_scheme=='manual' & is.null(color_list)) stop("Please provide a list of color value(s) when a manual color scheme is specified.")
 
   fill_fun <- switch(color_scheme,
-                     'brewer' = quote(ggplot2::scale_fill_brewer(palette = "Set1", guide_legend(title= ""))),
-                     'grey'   = quote(ggplot2::scale_fill_grey(start= 0, end= 0.65, guide_legend(title= ""))),
-                     'viridis'= quote(viridis::scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide_legend(title= ""))),
+                     'brewer' = quote(ggplot2::scale_fill_brewer(palette = "Set1", ggplot2::guide_legend(title= ""))),
+                     'grey'   = quote(ggplot2::scale_fill_grey(start= 0, end= 0.65, ggplot2::guide_legend(title= ""))),
+                     'viridis'= quote(viridis::scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, ggplot2::guide_legend(title= ""))),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_fill_manual', args= color_list)))
   color_fun<- switch(color_scheme,
-                     'brewer' = quote(ggplot2::scale_color_brewer(palette = "Set1", guide_legend(title= ""))),
-                     'grey'   = quote(ggplot2::scale_color_grey(start= 0, end= 0.65, guide_legend(title= ""))),
-                     'viridis'= quote(viridis::scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide_legend(title= ""))),
+                     'brewer' = quote(ggplot2::scale_color_brewer(palette = "Set1", ggplot2::guide_legend(title= ""))),
+                     'grey'   = quote(ggplot2::scale_color_grey(start= 0, end= 0.65, ggplot2::guide_legend(title= ""))),
+                     'viridis'= quote(viridis::scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, ggplot2::guide_legend(title= ""))),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_color_manual', args= color_list)))
 
   # x_lab<- if (is.null(x_lab)) "Time" else x_lab
