@@ -456,7 +456,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
       reshape2::dcast(times ~ states, value.var = 'stat')
   }
 
-  out <- out %>% dplyr::mutate(dplyr::across(dplyr::select_if(is.character), ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .)))
+  out <- out %>% dplyr::mutate(dplyr::across(dplyr::where(is.character), ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .)))
 
   if(kable_output){
 
