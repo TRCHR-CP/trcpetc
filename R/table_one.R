@@ -137,9 +137,15 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
   if(print_unused){
 
-   print(paste("Unused columns include:", paste0(df %>%
-      dplyr::ungroup() %>%
-      dplyr::select(dplyr::where(~ is.character(.) || lubridate::is.Date(.))) %>% colnames(),collapse = ", ")))
+    print(paste(
+      "Unused columns include:",
+      paste0(
+        df %>%
+          dplyr::ungroup() %>%
+          dplyr::select(where(~ is.character(.) || lubridate::is.Date(.))) %>%
+          colnames(),
+        collapse = ", "
+      )))
 
   }
 
@@ -245,24 +251,16 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   out <- out   %>%
     dplyr::mutate(dplyr::across(
       dplyr::ends_with("_n"),
-      ~ dplyr::if_else(variable %in% Check_box, NA, .)
+      ~ dplyr::if_else(variable %in% Check_box, NA_character_, .)
     ))
 
   ##Formatting title rows to
   out <- out   %>%
     dplyr::mutate(dplyr::across(
       dplyr::matches("(_stat$|^pval$)"),
-      ~ dplyr::if_else(variable %in% Check_box_title, NA, .)
+      ~ dplyr::if_else(variable %in% Check_box_title, NA_character_, .)
     ))
 
-
-
-
-  # out <- out %>%
-  #   dplyr::mutate(dplyr::across(
-  #     c(test, pval),
-  #     ~ dplyr::if_else(variable %in% Check_box_title, NA, .)
-  #   ))
 
 
 

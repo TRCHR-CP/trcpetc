@@ -71,26 +71,20 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 
 check_box_convert <- function(df, check_box_cols, title = NULL) {
 
-  # # Error check: ensure columns are logical or contain only 0/1
-  # for (col in check_box_cols) {
-  #   col_data <- df[[col]]
-  #   if (!is.logical(col_data) && !all(col_data %in% c(0, 1, NA))) {
-  #     stop(paste0("Column '", col, "' must be logical or contain only 0/1 values."))
-  #   }
-  # }
-
 
   out <- df %>%
     dplyr::mutate(dplyr::across(dplyr::all_of(check_box_cols), ~ as.logical(.x))) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(dplyr::across(dplyr::all_of(check_box_cols), ~ {
-      if (all(dplyr::across(dplyr::all_of(check_box_cols)) == FALSE)) NA else .x
+      if (all(c_across(dplyr::all_of(check_box_cols)) == FALSE, na.rm = TRUE)) NA else .x
     })) %>%
     dplyr::ungroup()
 
   if (!is.null(title)) {
     out <- titles_non_missing(out, columns = check_box_cols, new_col_name = !!title)
   }
+
+
 
   return(out)
 }

@@ -115,8 +115,9 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
       dplyr::count(!!group) %>%
       tidyr::pivot_wider(names_from = !!group, values_from = n, values_fill = 0) %>%
       dplyr::mutate(variable = "Total N") %>%
-      dplyr::select(variable, dplyr::everything()) %>%
-      dplyr::mutate(dplyr::across(dplyr::where(is.integer), as.character))
+      dplyr::select(variable, dplyr::everything())
+
+    n_var <- n_var %>% dplyr::mutate(across(select_if(n_var, is.integer) %>% names(), as.character))
 
     list(N = dplyr::left_join(n_var, n_var, by= "variable", suffix= c("_n", "_stat")) %>%
            dplyr::mutate(row_id = "Total_N", type = as.character(NA), pval = as.character(NA), test = as.character(NA)) %>%
