@@ -833,9 +833,9 @@ show_cif <- function(surv_obj,
                      # evt_label= identity, # identity function
                      evt_label= function(x) {
                        dplyr::recode_factor(x,
-                                              `1`= "Event",
-                                              `2`= "Competing event",
-                                              .default= "Event free")
+                                            `1`= "Event",
+                                            `2`= "Competing event",
+                                            .default= "Event free")
                      },
                      add_ci= TRUE,
                      add_atrisk= TRUE,
@@ -884,14 +884,14 @@ show_cif <- function(surv_obj,
   if (color_scheme=='manual' & is.null(color_list)) stop("Please provide a list of color value(s) when a manual color scheme is specified.")
 
   fill_fun <- switch(color_scheme,
-                     'brewer' = quote(ggplot2::scale_fill_brewer(palette = "Set1", ggplot2::guide_legend(title= ""))),
-                     'grey'   = quote(ggplot2::scale_fill_grey(start= 0, end= 0.65, ggplot2::guide_legend(title= ""))),
-                     'viridis'= quote(viridis::scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, ggplot2::guide_legend(title= ""))),
+                     'brewer' = quote(ggplot2::scale_fill_brewer(palette = "Set1", guide = ggplot2::guide_legend(title= ""))),
+                     'grey'   = quote(ggplot2::scale_fill_grey(start= 0, end= 0.65, guide = ggplot2::guide_legend(title= ""))),
+                     'viridis'= quote(viridis::scale_fill_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE,guide = ggplot2::guide_legend(title= ""))),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_fill_manual', args= color_list)))
   color_fun<- switch(color_scheme,
-                     'brewer' = quote(ggplot2::scale_color_brewer(palette = "Set1", ggplot2::guide_legend(title= ""))),
-                     'grey'   = quote(ggplot2::scale_color_grey(start= 0, end= 0.65, ggplot2::guide_legend(title= ""))),
-                     'viridis'= quote(viridis::scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, ggplot2::guide_legend(title= ""))),
+                     'brewer' = quote(ggplot2::scale_color_brewer(palette = "Set1", guide = ggplot2::guide_legend(title= ""))),
+                     'grey'   = quote(ggplot2::scale_color_grey(start= 0, end= 0.65, guide = ggplot2::guide_legend(title= ""))),
+                     'viridis'= quote(viridis::scale_color_viridis(option = "viridis", begin= .2, end= .85, discrete = TRUE, guide = ggplot2::guide_legend(title= ""))),
                      'manual' = match.call(do.call, call('do.call', what= 'scale_color_manual', args= color_list)))
 
   # x_lab<- if (is.null(x_lab)) "Time" else x_lab
