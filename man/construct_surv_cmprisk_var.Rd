@@ -44,26 +44,39 @@ A data frame with patid, evt_time and evt.
 }
 \description{
 The function creates time-to-event variables for survival or competing risks process.
+
+See also \code{\link{estimate_cif_km}},\code{\link{summarize_km}}, \code{\link{summarize_cif}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
 }
 \examples{
 
-library(dplyr)
 
 ## For survival
-construct_surv_cmprisk_var(cardio_data,
-                          patid = PatientID,
-                          idx_dt = SurgeryDate,
-                          evt_dt = DeathDate,
-                          end_dt = LastVisitDate,,
-                          append = TRUE)
+
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                            evt_dt = DeathDate,
+                                            end_dt = LastVisitDate,
+                                            append = TRUE,
+                                            units = "months",
+                                            adm_cnr_time = 24)
+
+KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+
 
 # For competing risks
-construct_surv_cmprisk_var(cardio_data,
-                          patid = PatientID,
-                          idx_dt = SurgeryDate,
-                          evt_dt = TransplantDate,
-                          end_dt = LastVisitDate,
-                          other_dt = DeathDate,
-                          append = TRUE)
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                                           patid = PatientID,
+                                           idx_dt = SurgeryDate,
+                                           evt_dt = TransplantDate,
+                                           end_dt = LastVisitDate,
+                                           death_dt = DeathDate,
+                                           append = TRUE,
+                                           units = "months",
+                                           adm_cnr_time = 24)
+
+CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
 
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/table_one_set_up.R
 \name{factor_order}
 \alias{factor_order}
-\title{Order a factor variable by descending frequency}
+\title{Order a factor variable by descending frequency.}
 \usage{
 factor_order(var)
 }
@@ -13,7 +13,7 @@ factor_order(var)
 A factor vector with levels sorted in descending order of frequency.
 }
 \description{
-Order a factor variable by descending frequency
+Order a factor variable by descending frequency. To be used with \code{\link{table_one}}
 }
 \details{
 Automatically orders the levels of a factor variable by descending frequency, improving clarity in summary tables
@@ -23,32 +23,9 @@ Automatically orders the levels of a factor variable by descending frequency, im
 
 library(dplyr)
 
-## Pulling out the checkbox questions (More than one may be applicable for the same header)
-Comorbidities  <- cardio_data \%>\% select(Diabetes:CAD) \%>\% names()
+cardio_data \%>\% select(SurgeryType) \%>\% table_one()
 
-## Cleaning the data by putting SurgeryType in descending order
-## Converting the Comorbidities columns to checkbox and including a title.
+cardio_data \%>\%
+ mutate(SurgeryType = factor_order(SurgeryType)) \%>\% select(SurgeryType) \%>\% table_one()
 
-work_d <- cardio_data \%>\%
- mutate(SurgeryType = factor_order(SurgeryType)) \%>\%
- check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
-
-
-table_one(df = work_d  ,
-         group = Sex,
-         caption =  "Summary table overall and stratified by sex",
-         include_overall = "all",
-         overall_label = "Overall",
-         drop.unused.levels = FALSE,
-         round_to_100 = TRUE,
-         kable_output = TRUE,
-         include_Missing = FALSE,
-         print_unused = TRUE,
-         Check_box = Comorbidities,
-         Check_box_title = "Comorbidities¹")\%>\%
- kableExtra::footnote(
-   general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
-   general_title = "",
-   footnote_as_chunk = TRUE
- )
 }

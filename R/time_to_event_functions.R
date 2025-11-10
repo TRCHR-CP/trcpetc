@@ -7,6 +7,8 @@
 #'
 #' The function creates time-to-event variables for survival or competing risks process.
 #'
+#'See also \code{\link{estimate_cif_km}},\code{\link{summarize_km}}, \code{\link{summarize_cif}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
+#'
 #' @param df input data
 #' @param patid the variable indicating subject/patient id
 #' @param idx_dt the index date
@@ -19,24 +21,37 @@
 #' @param ... all competing event dates
 #' @examples
 #'
-#' library(dplyr)
 #'
-#'## For survival
-#'construct_surv_cmprisk_var(cardio_data,
-#'                           patid = PatientID,
-#'                           idx_dt = SurgeryDate,
-#'                           evt_dt = DeathDate,
-#'                           end_dt = LastVisitDate,,
-#'                           append = TRUE)
+#' ## For survival
 #'
-#'# For competing risks
-#'construct_surv_cmprisk_var(cardio_data,
-#'                           patid = PatientID,
-#'                           idx_dt = SurgeryDate,
-#'                           evt_dt = TransplantDate,
-#'                           end_dt = LastVisitDate,
-#'                           other_dt = DeathDate,
-#'                           append = TRUE)
+#'survival_data <-  construct_surv_cmprisk_var(cardio_data,
+#'                                             patid = PatientID,
+#'                                             idx_dt = SurgeryDate,
+#'                                             evt_dt = DeathDate,
+#'                                             end_dt = LastVisitDate,
+#'                                             append = TRUE,
+#'                                             units = "months",
+#'                                             adm_cnr_time = 24)
+#'
+#' KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+#' KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+
+#'
+#'
+#' # For competing risks
+#'cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+#'                                            patid = PatientID,
+#'                                            idx_dt = SurgeryDate,
+#'                                            evt_dt = TransplantDate,
+#'                                            end_dt = LastVisitDate,
+#'                                            death_dt = DeathDate,
+#'                                            append = TRUE,
+#'                                            units = "months",
+#'                                            adm_cnr_time = 24)
+#'
+#' CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+#' CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+
 #'
 #' @return A data frame with patid, evt_time and evt.
 #' @export
@@ -161,7 +176,8 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 
 
 #' @title Kaplan-Meier survival and cumulative incidence (CIF) estimates
-#' @description Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable.
+#' @description Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{summarize_km}}, \code{\link{summarize_cif}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
+
 #' @param df A data frame containing the survival data.
 #' @param evt_time A numeric vector representing the time to event or censoring.
 #' @param evt For survival data: a numeric event indicator (1 = event occurred, 0 = censored).
@@ -180,6 +196,39 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 #'
 #'The function analyzes the competing data (df) using Andersen-Johansen method in estimating cumulative incidence
 #' function.The function store the input data in the call(), which can be used in run_gray_test().
+#'
+#' @examples
+#'
+#'
+#' ## For survival
+#'
+#'survival_data <-  construct_surv_cmprisk_var(cardio_data,
+#'                                             patid = PatientID,
+#'                                             idx_dt = SurgeryDate,
+#'                                             evt_dt = DeathDate,
+#'                                             end_dt = LastVisitDate,
+#'                                             append = TRUE,
+#'                                             units = "months",
+#'                                             adm_cnr_time = 24)
+#'
+#' KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+#' KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+
+#'
+#'
+#' # For competing risks
+#'cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+#'                                            patid = PatientID,
+#'                                            idx_dt = SurgeryDate,
+#'                                            evt_dt = TransplantDate,
+#'                                            end_dt = LastVisitDate,
+#'                                            death_dt = DeathDate,
+#'                                            append = TRUE,
+#'                                            units = "months",
+#'                                            adm_cnr_time = 24)
+#'
+#' CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+#' CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
 #'
 #' @export
 #' @importFrom magrittr %>%
@@ -225,7 +274,7 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #'
 #' @description
 #' Summarizes a fitted Kaplan-Meier survival object at specified time points, optionally transforming to failure probabilities,
-#' and formats the output as a table with confidence intervals.
+#' and formats the output as a table with confidence intervals. See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_cif}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
 #'
 #' @param fit A fitted survival object of class \code{survfit}.
 #' @param times Optional numeric vector of time points at which to summarize the KM estimates. If \code{NULL}, uses \code{pretty(fit$time)}.
@@ -244,33 +293,24 @@ estimate_cif_km <- function(df, evt_time, evt, group,conf.type = "default", ...)
 #' If \code{failure_fun = TRUE}, the function returns failure probabilities instead of survival.
 #' @examples
 #'
-#' library(dplyr)
-#' ## Example without a covariate
+#'survival_data <-  construct_surv_cmprisk_var(cardio_data,
+#'                                             patid = PatientID,
+#'                                             idx_dt = SurgeryDate,
+#'                                             evt_dt = DeathDate,
+#'                                             end_dt = LastVisitDate,
+#'                                             append = TRUE,
+#'                                             units = "months",
+#'                                             adm_cnr_time = 24)
 #'
-#'construct_surv_cmprisk_var(cardio_data,
-#'                           patid = PatientID,
-#'                           idx_dt = SurgeryDate,
-#'                           evt_dt = DeathDate,
-#'                           end_dt = LastVisitDate,
-#'                           append = TRUE,
-#'                           units = "months") %>%
-#'  estimate_cif_km(evt = evt,evt_time = evt_time) %>%
-#'  summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
-#'
-#'
-#'## Example with a covariate
-#'
-#'construct_surv_cmprisk_var(cardio_data,
-#'                           patid = PatientID,
-#'                           idx_dt = SurgeryDate,
-#'                           evt_dt = DeathDate,
-#'                           end_dt = LastVisitDate,
-#'                          append = TRUE,
-#'                           units = "months") %>%
-#'  estimate_cif_km(evt = evt,evt_time = evt_time,Sex)  %>%
-#'  summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
-#'
+#' KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+#' summarize_km(KM,overall_label = "All patients",
+#' time_lab = "Time since surgery (months)",caption = "Overall Survival by sex")
 
+#'
+#' KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+#' summarize_km(KM_Sex,overall_label = "All patients",
+#' time_lab = "Time since surgery (months)",caption = "Overall Survival for all patients")
+#'
 #' @export
 #' @importFrom magrittr %$%
 #' @importFrom magrittr %>%
@@ -354,7 +394,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #'
 #' @description
 #' Summarizes a fitted Cumulative Incidence Function (CIF) survival object at specified time points, optionally transforming to failure probabilities,
-#' and formats the output as a table with confidence intervals.
+#' and formats the output as a table with confidence intervals. See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
 #'
 #' @param fit A fitted survival object of class \code{survfit}.
 #' @param times Optional numeric vector of time points at which to summarize the CIF estimates. If \code{NULL}, uses \code{pretty(fit$time)}.
@@ -368,37 +408,43 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
 #' @examples
 #'
-#' library(dplyr)
-#' ## Example without a covariate
 #'
-#'construct_surv_cmprisk_var(cardio_data,
-#'                           patid = PatientID,
-#'                           idx_dt = SurgeryDate,
-#'                           evt_dt = TransplantDate,
-#'                           end_dt = LastVisitDate,
-#'                           append = TRUE,
-#'                           cmprisk = TRUE,
-#'                           Death = DeathDate,
-#'                           units = "months") %>%
-#'  estimate_cif_km(evt = evt,evt_time = evt_time) %>%
-#'  summarize_cif(evt_type = c(0,1,2),
-#'                evt_label = c('0' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+#'cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+#'                                            patid = PatientID,
+#'                                            idx_dt = SurgeryDate,
+#'                                            evt_dt = TransplantDate,
+#'                                            end_dt = LastVisitDate,
+#'                                            death_dt = DeathDate,
+#'                                            append = TRUE,
+#'                                            units = "months",
+#'                                            adm_cnr_time = 24)
+#'
+#' CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+#'
+#' ## Presenting one event for all patients
+#' summarize_cif(CIF,time_lab = "Time since surgery (months)",evt_type = 1,
+#' caption = "Time to transplant for all patients",
+#'               evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+#'
+#' ## Presenting all events for all patients
+#' summarize_cif(CIF,time_lab = "Time since surgery (months)",
+#' caption = "Time to transplant for all patients",
+#'               evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+#'
+#' CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+#' ## Presenting only the events by a covariate
+#'
+#'summarize_cif(CIF_Sex,time_lab = "Time since surgery (months)",evt_type = 1,
+#'caption = "Time to transplant by sex",
+#'evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
 #'
 #'
-#'## Example with a covariate
+#'## Presenting all events by a covariate
 #'
-#'construct_surv_cmprisk_var(cardio_data,
-#'                           patid = PatientID,
-#'                           idx_dt = SurgeryDate,
-#'                           evt_dt = TransplantDate,
-#'                           end_dt = LastVisitDate,
-#'                          append = TRUE,
-#'                           cmprisk = TRUE,
-#'                           other = DeathDate,
-#'                           units = "months") %>%
-#'  estimate_cif_km(evt = evt,evt_time = evt_time,Sex) %>%
-#'  summarize_cif(evt_type = c(1,2),
-#'                evt_label = c('0' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+#'
+#'summarize_cif(CIF_Sex, time_lab = "Time since surgery (months)",
+#'caption = "Time to transplant by sex",
+#'              evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
 #'
 #' @details
 #' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
@@ -528,7 +574,8 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 
 
 #' @title Plot Survival or Cumulative Death Function
-#' @description Displays either the survival function or the cumulative death function based on a \code{survfit} object, with optional customization and stratification.
+#' @description Displays either the survival function or the cumulative death function based on a \code{survfit} object, with optional customization and stratification. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{summarize_cif}}, and \code{\link{show_cif}}   for related functions.
+
 #'
 #' @details
 #' This function visualizes survival data using a \code{survfit} object. It supports plotting either the survival curve or the cumulative death function (CDF), with options for axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
@@ -555,6 +602,29 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
 #' @return A \code{ggplot} object representing the survival or cumulative death function plot.
+#' @examples
+#'
+#'## All patients
+#'
+#' survival_data <-  construct_surv_cmprisk_var(cardio_data,
+#'                                             patid = PatientID,
+#'                                             idx_dt = SurgeryDate,
+#'                                             evt_dt = DeathDate,
+#'                                             end_dt = LastVisitDate,
+#'                                             append = TRUE,
+#'                                             units = "months",
+#'                                             adm_cnr_time = 24)
+#'
+#' KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+#' #show_surv(KM, print_fig = FALSE,pvalue_pos = "bottomleft",
+#' #add_legend = TRUE,x_break = seq(0,24,by=3)) #%>%  grid::grid.draw()
+
+#'## Including a covariate
+#' KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+#' #show_surv(KM_Sex,print_fig = FALSE,pvalue_pos = "bottomleft",
+#' #add_legend = TRUE,x_break = seq(0,24,by=3)) %>% grid::grid.draw()
+#'
+#'
 #' @export
 #' @importFrom magrittr %>%
 show_surv <- function(surv_obj,
@@ -797,7 +867,8 @@ show_surv <- function(surv_obj,
 
 
 #' @title Plot Cumulative Incidence Function for Competing Risks
-#' @description Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization.
+#' @description Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{summarize_cif}}, and \code{\link{show_surv}}   for related functions.
+
 #'
 #' @details
 #' This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
@@ -825,6 +896,36 @@ show_surv <- function(surv_obj,
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
+#'
+#' @examples
+#'
+#'
+#' ## Showing all events
+#' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+#'patid = PatientID,
+#' idx_dt = SurgeryDate,
+#' evt_dt = TransplantDate,
+#' end_dt = LastVisitDate,
+#' death_dt = DeathDate,
+#' append = TRUE,
+#' units = "months",
+#' adm_cnr_time = 24)
+#'
+#' CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+#'
+#'
+# #show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
+#'          #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))  %>%
+#'           #  grid::grid.draw()
+#'
+#'## Including a covariate
+#'
+#' CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+#'
+#' #show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
+#'         #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death")) %>%
+#'        # grid::grid.draw()
+#'
 #' @return A \code{ggplot} object representing the cumulative incidence function plot.
 #' @export
 #' @importFrom magrittr %>%

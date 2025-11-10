@@ -77,8 +77,31 @@ show_surv(
 A \code{ggplot} object representing the survival or cumulative death function plot.
 }
 \description{
-Displays either the survival function or the cumulative death function based on a \code{survfit} object, with optional customization and stratification.
+Displays either the survival function or the cumulative death function based on a \code{survfit} object, with optional customization and stratification. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{summarize_cif}}, and \code{\link{show_cif}}   for related functions.
 }
 \details{
 This function visualizes survival data using a \code{survfit} object. It supports plotting either the survival curve or the cumulative death function (CDF), with options for axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+}
+\examples{
+
+## All patients
+
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                            evt_dt = DeathDate,
+                                            end_dt = LastVisitDate,
+                                            append = TRUE,
+                                            units = "months",
+                                            adm_cnr_time = 24)
+
+KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+#show_surv(KM, print_fig = FALSE,pvalue_pos = "bottomleft",
+#add_legend = TRUE,x_break = seq(0,24,by=3)) #\%>\%  grid::grid.draw()
+## Including a covariate
+KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+#show_surv(KM_Sex,print_fig = FALSE,pvalue_pos = "bottomleft",
+#add_legend = TRUE,x_break = seq(0,24,by=3)) \%>\% grid::grid.draw()
+
+
 }

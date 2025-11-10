@@ -7,10 +7,8 @@
 show_cif(
   surv_obj,
   evt_type = 1,
-  evt_label = function(x) {
-     dplyr::recode_factor(x, `1` = "Event", `2` =
-    "Competing event", .default = "Event free")
- },
+  evt_label = c(`0` = "Event free", `1` = "Event", `2` = "Competing", `3` =
+    "Second Competing"),
   add_ci = TRUE,
   add_atrisk = TRUE,
   add_legend = FALSE,
@@ -39,7 +37,7 @@ show_cif(
 
 \item{evt_type}{Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).}
 
-\item{evt_label}{A function to relabel event types for plotting (default uses \code{fct_recode()} to label 1 = "Event", 2 = "Competing event", others = "Event free").}
+\item{evt_label}{A function to relabel event types for plotting (default uses \code{c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"}).}
 
 \item{add_ci}{Logical; if \code{TRUE}, adds confidence intervals to the CIF curves (default = TRUE).}
 
@@ -85,9 +83,38 @@ show_cif(
 A \code{ggplot} object representing the cumulative incidence function plot.
 }
 \description{
-Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization.
+Displays the cumulative incidence function (CIF) for competing risks data, with optional stratification and customization. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{summarize_cif}}, and \code{\link{show_surv}}   for related functions.
 }
 \details{
 This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
 It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+}
+\examples{
+
+
+## Showing all events
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+patid = PatientID,
+idx_dt = SurgeryDate,
+evt_dt = TransplantDate,
+end_dt = LastVisitDate,
+death_dt = DeathDate,
+append = TRUE,
+units = "months",
+adm_cnr_time = 24)
+
+CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+
+
+         #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))  \%>\%
+          #  grid::grid.draw()
+
+## Including a covariate
+
+CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+
+#show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
+        #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death")) \%>\%
+       # grid::grid.draw()
+
 }

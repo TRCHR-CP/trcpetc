@@ -12,7 +12,7 @@ summarize_cif(
   full_width = NULL,
   time_lab = "Time",
   evt_type = NULL,
-  labels = c(`(s0)` = "Event free", `1` = "Event", `2` = "Competing", `3` =
+  evt_label = c(`0` = "Event free", `1` = "Event", `2` = "Competing", `3` =
     "Second Competing"),
   overall_label = "Overall"
 )
@@ -32,7 +32,7 @@ summarize_cif(
 
 \item{evt_type}{Numeric; Indicate which events will be outputted in the kable table; default is all events}
 
-\item{labels}{Character string; labels for the events in the kable table when include_event_type is TRUE. Default is c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Other")}
+\item{evt_label}{Character string; labels for the events in the kable table when include_event_type is TRUE. Default is c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Other")}
 
 \item{overall_label}{Character string to label the overall summary column. Default is \code{"Overall"}.}
 }
@@ -41,7 +41,7 @@ A data frame or a formatted \code{kableExtra} table summarizing survival or fail
 }
 \description{
 Summarizes a fitted Cumulative Incidence Function (CIF) survival object at specified time points, optionally transforming to failure probabilities,
-and formats the output as a table with confidence intervals.
+and formats the output as a table with confidence intervals. See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
 }
 \details{
 The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
@@ -49,36 +49,42 @@ the output is stratified accordingly. Confidence intervals are included, and res
 }
 \examples{
 
-library(dplyr)
-## Example without a covariate
 
-construct_surv_cmprisk_var(cardio_data,
-                          patid = PatientID,
-                          idx_dt = SurgeryDate,
-                          evt_dt = TransplantDate,
-                          end_dt = LastVisitDate,
-                          append = TRUE,
-                          cmprisk = TRUE,
-                          Death = DeathDate,
-                          units = "months") \%>\%
- estimate_cif_km(evt = evt,evt_time = evt_time) \%>\%
- summarize_cif(evt_type = c(0,1,2),
-               labels = c('(s0)' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                                           patid = PatientID,
+                                           idx_dt = SurgeryDate,
+                                           evt_dt = TransplantDate,
+                                           end_dt = LastVisitDate,
+                                           death_dt = DeathDate,
+                                           append = TRUE,
+                                           units = "months",
+                                           adm_cnr_time = 24)
+
+CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+
+## Presenting one event for all patients
+summarize_cif(CIF,time_lab = "Time since surgery (months)",evt_type = 1,
+caption = "Time to transplant for all patients",
+              evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+
+## Presenting all events for all patients
+summarize_cif(CIF,time_lab = "Time since surgery (months)",
+caption = "Time to transplant for all patients",
+              evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+
+CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+## Presenting only the events by a covariate
+
+summarize_cif(CIF_Sex,time_lab = "Time since surgery (months)",evt_type = 1,
+caption = "Time to transplant by sex",
+evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
 
 
-## Example with a covariate
+## Presenting all events by a covariate
 
-construct_surv_cmprisk_var(cardio_data,
-                          patid = PatientID,
-                          idx_dt = SurgeryDate,
-                          evt_dt = TransplantDate,
-                          end_dt = LastVisitDate,
-                         append = TRUE,
-                          cmprisk = TRUE,
-                          other = DeathDate,
-                          units = "months") \%>\%
- estimate_cif_km(evt = evt,evt_time = evt_time,Sex) \%>\%
- summarize_cif(evt_type = c(1,2),
-               labels = c('(s0)' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+
+summarize_cif(CIF_Sex, time_lab = "Time since surgery (months)",
+caption = "Time to transplant by sex",
+             evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
 
 }

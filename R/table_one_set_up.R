@@ -3,7 +3,7 @@
 #' @description Adds a grouping title column to indicate whether any non-missing values are present across a set of specified columns.
 #' @details
 #' This function creates a new logical column that flags rows where at least one of the specified columns contains a non-missing value. The new column is placed immediately before the first column in the specified set. This is useful for visually grouping related variables (e.g., checkbox-style questions) in summary tables.
-#'
+
 #' @param df A data frame containing the variables to be grouped.
 #' @param columns Character vector of column names to check for non-missing values.
 #' @param new_col_name Optional name for the new grouping column. Default is `"Title"`.
@@ -25,7 +25,7 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 
 
 #' @title check box convert
-#' @description Converts checkbox-style variables into logical format for inclusion in a Table 1. Ensures that checkbox responses are treated as binary indicators and handles missingness appropriately.
+#' @description Converts checkbox-style variables into logical format for inclusion in a Table 1. Ensures that checkbox responses are treated as binary indicators and handles missingness appropriately. To be used with \code{\link{table_one}}
 #' @details
 #' This function prepares checkbox-style questions (i.e., multiple binary columns representing selections) for descriptive analysis. It converts specified columns to logical type and sets all values to `NA` for rows where none of the checkbox options were selected. Optionally, it adds a title column to group these variables visually in the output table.
 #' @param df A data frame containing the checkbox-style variables.
@@ -39,34 +39,44 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 #'
 #' library(dplyr)
 #'
-#' ## Pulling out the checkbox questions (More than one may be applicable for the same header)
-#' Comorbidities  <- cardio_data %>% select(Diabetes:CAD) %>% names()
+#' Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
 #'
-#'## Cleaning the data by putting SurgeryType in descending order
-#'## Converting the Comorbidities columns to checkbox and including a title.
+#' ## Without checkbox question (Assuming missing all questions is FALSE)
+#' cardio_data %>% select(Comorbidities) %>%
+#'  table_one()
+
+#' # Example with one checkbox question (Assumes missing all questions is missing)
 #'
-#'work_d <- cardio_data %>%
-#'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
-#'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
-#'
-#'
-#'table_one(df = work_d  ,
-#'          group = Sex,
-#'          caption =  "Summary table overall and stratified by sex",
-#'          include_overall = "all",
-#'          overall_label = "Overall",
-#'          drop.unused.levels = FALSE,
-#'          round_to_100 = TRUE,
-#'          kable_output = TRUE,
-#'          include_Missing = FALSE,
-#'          print_unused = TRUE,
-#'          Check_box = Comorbidities,
-#'          Check_box_title = "Comorbidities¹")%>%
+#' cardio_data %>% select(Comorbidities) %>%
+#'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
+#'  table_one(Check_box = Comorbidities,
+#'            Check_box_title = "Comorbidities¹")%>%
 #'  kableExtra::footnote(
 #'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
 #'    general_title = "",
 #'    footnote_as_chunk = TRUE
 #'  )
+#'
+#'
+#' ## Example with two different checkbox questions
+#'
+#' Comorbidities1  <- cardio_data %>% select(Diabetes:COPD) %>% names()
+#' Comorbidities2  <- cardio_data %>% select(CKD:CAD) %>% names()
+#'
+#'
+#'
+#' cardio_data %>% select(Comorbidities1,Comorbidities2) %>%
+#'  check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  %>%
+#'  check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  %>%
+#'  table_one(Check_box = Comorbidities,
+#'            Check_box_title = c("Comorbidities¹","Comorbidities2¹"))%>%
+#'  kableExtra::footnote(
+#'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+#'    general_title = "",
+#'    footnote_as_chunk = TRUE
+#'  )
+#'
+#'
 #' @export
 
 check_box_convert <- function(df, check_box_cols, title = NULL) {
@@ -94,8 +104,8 @@ check_box_convert <- function(df, check_box_cols, title = NULL) {
 # Factor order -------------------------------------------------------------------------
 
 #---- Order factor variables ----
-#' @title Order a factor variable by descending frequency
-#'
+#' @title Order a factor variable by descending frequency.
+#' @description  Order a factor variable by descending frequency. To be used with \code{\link{table_one}}
 #' @details Automatically orders the levels of a factor variable by descending frequency, improving clarity in summary tables
 #'
 #' @param var A factor or character vector to be reordered.
@@ -105,34 +115,13 @@ check_box_convert <- function(df, check_box_cols, title = NULL) {
 #'
 #' library(dplyr)
 #'
-#' ## Pulling out the checkbox questions (More than one may be applicable for the same header)
-#' Comorbidities  <- cardio_data %>% select(Diabetes:CAD) %>% names()
+# Without factor_order
+#'cardio_data %>% select(SurgeryType) %>% table_one()
 #'
-#'## Cleaning the data by putting SurgeryType in descending order
-#'## Converting the Comorbidities columns to checkbox and including a title.
+# With factor_order
+#'cardio_data %>%
+#'  mutate(SurgeryType = factor_order(SurgeryType)) %>% select(SurgeryType) %>% table_one()
 #'
-#'work_d <- cardio_data %>%
-#'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
-#'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
-#'
-#'
-#'table_one(df = work_d  ,
-#'          group = Sex,
-#'          caption =  "Summary table overall and stratified by sex",
-#'          include_overall = "all",
-#'          overall_label = "Overall",
-#'          drop.unused.levels = FALSE,
-#'          round_to_100 = TRUE,
-#'          kable_output = TRUE,
-#'          include_Missing = FALSE,
-#'          print_unused = TRUE,
-#'          Check_box = Comorbidities,
-#'          Check_box_title = "Comorbidities¹")%>%
-#'  kableExtra::footnote(
-#'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
-#'    general_title = "",
-#'    footnote_as_chunk = TRUE
-#'  )
 #' @export
 factor_order <- function(var){
   factor(var, levels = names(sort(table(var), decreasing = TRUE)))

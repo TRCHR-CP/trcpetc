@@ -99,36 +99,31 @@ following the statistical reporting guidelines of the \emph{Annals of Medicine}.
 the function can also evaluate between-group differences. The input data frame should consist only of numeric,
 logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
 Date and datetime variables should be excluded.
+See also \code{\link{check_box_convert}} and \code{\link{factor_order}} for data pre-processing functions.
 }
 \examples{
 library(dplyr)
-
-## Pulling out the checkbox questions (More than one may be applicable for the same header)
-Comorbidities  <- cardio_data \%>\% select(Diabetes:CAD) \%>\% names()
-
-## Cleaning the data by putting SurgeryType in descending order
-## Converting the Comorbidities columns to checkbox and including a title.
+Comorbidities  <- cardio_data \%>\% select(Diabetes:NoComorbidities) \%>\% names()
 
 work_d <- cardio_data \%>\%
  mutate(SurgeryType = factor_order(SurgeryType)) \%>\%
  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
 
 
-table_one(df = work_d  ,
+
+table_one(df = work_d ,
          group = Sex,
+         datadic = cardio_data_dictionary \%>\%
+           rbind(data.frame("VariableName" = "Comorbidities¹",
+           "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+         var_name = VariableName,
+         var_desp = Label,
          caption =  "Summary table overall and stratified by sex",
          include_overall = "all",
-         overall_label = "Overall",
-         drop.unused.levels = FALSE,
-         round_to_100 = TRUE,
-         kable_output = TRUE,
-         include_Missing = FALSE,
-         print_unused = TRUE,
          Check_box = Comorbidities,
          Check_box_title = "Comorbidities¹")\%>\%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
    general_title = "",
-   footnote_as_chunk = TRUE
- )
+   footnote_as_chunk = TRUE)
 }

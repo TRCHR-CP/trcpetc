@@ -37,7 +37,7 @@ A data frame or a formatted \code{kableExtra} table summarizing survival or fail
 }
 \description{
 Summarizes a fitted Kaplan-Meier survival object at specified time points, optionally transforming to failure probabilities,
-and formats the output as a table with confidence intervals.
+and formats the output as a table with confidence intervals. See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_cif}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
 }
 \details{
 The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
@@ -46,30 +46,21 @@ If \code{failure_fun = TRUE}, the function returns failure probabilities instead
 }
 \examples{
 
-library(dplyr)
-## Example without a covariate
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                            evt_dt = DeathDate,
+                                            end_dt = LastVisitDate,
+                                            append = TRUE,
+                                            units = "months",
+                                            adm_cnr_time = 24)
 
-construct_surv_cmprisk_var(cardio_data,
-                          patid = PatientID,
-                          idx_dt = SurgeryDate,
-                          evt_dt = DeathDate,
-                          end_dt = LastVisitDate,
-                          append = TRUE,
-                          units = "months") \%>\%
- estimate_cif_km(evt = evt,evt_time = evt_time) \%>\%
- summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
+KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+summarize_km(KM,overall_label = "All patients",
+time_lab = "Time since surgery (months)",caption = "Overall Survival by sex")
 
-
-## Example with a covariate
-
-construct_surv_cmprisk_var(cardio_data,
-                          patid = PatientID,
-                          idx_dt = SurgeryDate,
-                          evt_dt = DeathDate,
-                          end_dt = LastVisitDate,
-                         append = TRUE,
-                          units = "months") \%>\%
- estimate_cif_km(evt = evt,evt_time = evt_time,Sex)  \%>\%
- summarize_km(overall_label = "All patients",time_lab = "Time since surgery (months)")
+KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+summarize_km(KM_Sex,overall_label = "All patients",
+time_lab = "Time since surgery (months)",caption = "Overall Survival for all patients")
 
 }

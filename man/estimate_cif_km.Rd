@@ -24,7 +24,7 @@ For competing risks data: a factor event indicator (0 = censored, 1 = Event 1, 2
 A \code{survfit} object containing the survival estimates.
 }
 \description{
-Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable.
+Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a dataset, optionally stratified by a grouping variable. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{summarize_km}}, \code{\link{summarize_cif}}, \code{\link{show_surv}}, and \code{\link{show_cif}}   for related functions.
 }
 \details{
 The function will produce  Kaplan-Meier survival estimates when evt is numeric and will produce CIF estimates when evt is a factor
@@ -35,4 +35,37 @@ run_logrank_test().
 
 The function analyzes the competing data (df) using Andersen-Johansen method in estimating cumulative incidence
 function.The function store the input data in the call(), which can be used in run_gray_test().
+}
+\examples{
+
+
+## For survival
+
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                            evt_dt = DeathDate,
+                                            end_dt = LastVisitDate,
+                                            append = TRUE,
+                                            units = "months",
+                                            adm_cnr_time = 24)
+
+KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+
+
+# For competing risks
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                                           patid = PatientID,
+                                           idx_dt = SurgeryDate,
+                                           evt_dt = TransplantDate,
+                                           end_dt = LastVisitDate,
+                                           death_dt = DeathDate,
+                                           append = TRUE,
+                                           units = "months",
+                                           adm_cnr_time = 24)
+
+CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+
 }

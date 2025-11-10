@@ -17,7 +17,7 @@ check_box_convert(df, check_box_cols, title = NULL)
 A modified data frame with checkbox columns converted to logical type and missingness handled. If `title` is provided, an additional column is added to group the checkbox variables.
 }
 \description{
-Converts checkbox-style variables into logical format for inclusion in a Table 1. Ensures that checkbox responses are treated as binary indicators and handles missingness appropriately.
+Converts checkbox-style variables into logical format for inclusion in a Table 1. Ensures that checkbox responses are treated as binary indicators and handles missingness appropriately. To be used with \code{\link{table_one}}
 }
 \details{
 This function prepares checkbox-style questions (i.e., multiple binary columns representing selections) for descriptive analysis. It converts specified columns to logical type and sets all values to `NA` for rows where none of the checkbox options were selected. Optionally, it adds a title column to group these variables visually in the output table.
@@ -26,32 +26,41 @@ This function prepares checkbox-style questions (i.e., multiple binary columns r
 
 library(dplyr)
 
-## Pulling out the checkbox questions (More than one may be applicable for the same header)
-Comorbidities  <- cardio_data \%>\% select(Diabetes:CAD) \%>\% names()
+Comorbidities  <- cardio_data \%>\% select(Diabetes:NoComorbidities) \%>\% names()
 
-## Cleaning the data by putting SurgeryType in descending order
-## Converting the Comorbidities columns to checkbox and including a title.
+## Without checkbox question (Assuming missing all questions is FALSE)
+cardio_data \%>\% select(Comorbidities) \%>\%
+ table_one()
+# Example with one checkbox question (Assumes missing all questions is missing)
 
-work_d <- cardio_data \%>\%
- mutate(SurgeryType = factor_order(SurgeryType)) \%>\%
- check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
-
-
-table_one(df = work_d  ,
-         group = Sex,
-         caption =  "Summary table overall and stratified by sex",
-         include_overall = "all",
-         overall_label = "Overall",
-         drop.unused.levels = FALSE,
-         round_to_100 = TRUE,
-         kable_output = TRUE,
-         include_Missing = FALSE,
-         print_unused = TRUE,
-         Check_box = Comorbidities,
-         Check_box_title = "Comorbidities¹")\%>\%
+cardio_data \%>\% select(Comorbidities) \%>\%
+ check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  \%>\%
+ table_one(Check_box = Comorbidities,
+           Check_box_title = "Comorbidities¹")\%>\%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
    general_title = "",
    footnote_as_chunk = TRUE
  )
+
+
+## Example with two different checkbox questions
+
+Comorbidities1  <- cardio_data \%>\% select(Diabetes:COPD) \%>\% names()
+Comorbidities2  <- cardio_data \%>\% select(CKD:CAD) \%>\% names()
+
+
+
+cardio_data \%>\% select(Comorbidities1,Comorbidities2) \%>\%
+ check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  \%>\%
+ check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  \%>\%
+ table_one(Check_box = Comorbidities,
+           Check_box_title = c("Comorbidities¹","Comorbidities2¹"))\%>\%
+ kableExtra::footnote(
+   general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
+   general_title = "",
+   footnote_as_chunk = TRUE
+ )
+
+
 }
