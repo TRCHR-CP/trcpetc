@@ -363,7 +363,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #' @param full_width Logical; passed to \code{kableExtra::kable_styling()} to control table width.
 #' @param time_lab Character string; label to use for the time column in the output table.
 #' @param evt_type Numeric; Indicate which events will be outputted in the kable table; default is all events
-#' @param labels Character string; labels for the events in the kable table when include_event_type is TRUE. Default is c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Other")
+#' @param evt_label Character string; labels for the events in the kable table when include_event_type is TRUE. Default is c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Other")
 #' @return A data frame or a formatted \code{kableExtra} table summarizing survival or failure probabilities with confidence intervals.
 #' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
 #' @examples
@@ -382,7 +382,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #'                           units = "months") %>%
 #'  estimate_cif_km(evt = evt,evt_time = evt_time) %>%
 #'  summarize_cif(evt_type = c(0,1,2),
-#'                labels = c('(s0)' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+#'                evt_label = c('0' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
 #'
 #'
 #'## Example with a covariate
@@ -398,7 +398,7 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #'                           units = "months") %>%
 #'  estimate_cif_km(evt = evt,evt_time = evt_time,Sex) %>%
 #'  summarize_cif(evt_type = c(1,2),
-#'                labels = c('(s0)' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
+#'                evt_label = c('0' = "Event free",'1' = "Transplant",'2'="Death"),time_lab = "Time since surgery (months)")
 #'
 #' @details
 #' The function summarizes the fitted Kaplan-Meier survival estimates at user-specified time points. If the model includes strata,
@@ -407,10 +407,10 @@ summarize_km <- function(fit, times= NULL, failure_fun= FALSE,
 #' @importFrom magrittr %>%
 #' @importFrom data.table :=
 summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,full_width = NULL,time_lab = "Time",evt_type = NULL,
-                          labels = c('(s0)' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"), overall_label = "Overall") {
+                          evt_label = c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"), overall_label = "Overall") {
 
 
-
+  names(evt_label)[names(evt_label)==0] <- '(s0)'
 
   ss <- summary(fit, times= if(is.null(times)) pretty(fit$time) else times)
   colnames(ss$pstate)<- colnames(ss$lower)<- colnames(ss$upper)<- replace(ss$state, sapply(ss$states, nchar)==0, "0")
@@ -474,7 +474,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 
 
     events  <- sub("_.*", "", names(out))[-1]
-    events_clean <- dplyr::recode(events, !!!labels)
+    events_clean <- dplyr::recode(events, !!!evt_label)
 
 
     if(any(names(fit)=="strata")) {
