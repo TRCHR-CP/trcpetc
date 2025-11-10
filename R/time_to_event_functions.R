@@ -804,7 +804,7 @@ show_surv <- function(surv_obj,
 #' It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
 #' @param surv_obj  A \code{survfit} object, such as one returned by \code{estimate_cif()}.
 #' @param evt_type Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).
-#' @param evt_label A function to relabel event types for plotting (default uses \code{fct_recode()} to label 1 = "Event", 2 = "Competing event", others = "Event free").
+#' @param evt_label A function to relabel event types for plotting (default uses \code{c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"}).
 #' @param add_ci Logical; if \code{TRUE}, adds confidence intervals to the CIF curves (default = TRUE).
 #' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
 #' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
@@ -830,13 +830,7 @@ show_surv <- function(surv_obj,
 #' @importFrom magrittr %>%
 show_cif <- function(surv_obj,
                      evt_type = 1,
-                     # evt_label= identity, # identity function
-                     evt_label= function(x) {
-                       dplyr::recode_factor(x,
-                                            `1`= "Event",
-                                            `2`= "Competing event",
-                                            .default= "Event free")
-                     },
+                      evt_label = c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"),
                      add_ci= TRUE,
                      add_atrisk= TRUE,
                      add_legend= FALSE,
@@ -863,11 +857,12 @@ show_cif <- function(surv_obj,
 
 ) {
 
+
   #---- prepare survfit for plot ----
   cmprisk_mat<- prepare_survfit(surv_obj)
   cmprisk_mat<- cmprisk_mat %>%
     dplyr::filter(state %in% evt_type) %>%
-    dplyr::mutate(state_label = evt_label(state),
+    dplyr::mutate(state_label = dplyr::recode(state, !!!evt_label),
                   state_label = forcats::fct_drop(state_label),
                   state       = forcats::fct_drop((state)),
                   state_strata= interaction(state_label, strata, drop= TRUE, sep= ": "))
