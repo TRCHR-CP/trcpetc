@@ -1189,3 +1189,259 @@ show_cif <- function(surv_obj,
   return(out)
 }
 
+
+
+
+
+#' Calculate Median Time to Event for a Specific State
+#'
+#' Computes the median time to reach a specified cumulative incidence probability
+#' for a given state in a multi-state survival model, optionally within a subgroup.
+#' Supports interpolation for more precise estimates.
+#'
+#' @param survfitms_obj A \code{survfitms} object from the \pkg{mstate} package,
+#'   representing a fitted multi-state survival model.
+#' @param state Integer specifying the state interest.
+#' Must correspond to one of the states in \code{survfitms_obj$states}.
+#' @param subgroup Optional character string specifying a subgroup (stratum) name
+#'   within the \code{survfitms_obj}. If \code{NULL}, uses all data.
+#' @param target_prob Numeric value between 0 and 1 (exclusive) indicating the
+#'   cumulative incidence probability at which to estimate the median time.
+#'   Default is \code{0.5}.
+#' @param interpolate Logical indicating whether to use linear interpolation
+#'   between time points for more accurate estimates. Default is \code{TRUE}.
+#'
+#' @return A list of class \code{"median_time_estimate"} containing:
+#' \describe{
+#'   \item{median_time}{Estimated median time to reach \code{target_prob}.}
+#'   \item{lower_ci}{Lower confidence interval for the median time (if available).}
+#'   \item{upper_ci}{Upper confidence interval for the median time (if available).}
+#'   \item{target_probability}{The target cumulative incidence probability.}
+#'   \item{max_followup}{Maximum observed follow-up time.}
+#'   \item{final_cif}{Final cumulative incidence at last time point.}
+#'   \item{n_at_risk}{Number at risk at time zero for the specified state.}
+#'   \item{n_events}{Number of transitions into the specified state.}
+#'   \item{interpolated}{Logical indicating if interpolation was used.}
+#'   \item{error}{Error message if calculation failed (otherwise \code{NULL}).}
+#' }
+#'
+#' @details
+#' The function validates inputs, extracts relevant cumulative incidence data,
+#' and computes the time at which the cumulative incidence reaches the target
+#' probability. If interpolation is enabled, linear interpolation is applied
+#' between adjacent time points.
+#'
+#' @examples
+#' \dontrun{
+#' # Assuming `fit` is a survfitms object from mstate
+#' median_time_to_event_fixed(fit, state_index = 2, target_prob = 0.5)
+#' median_time_to_event_fixed(fit, state_index = 3, subgroup = "TreatmentA")
+#' }
+#'
+#' @export
+
+
+median_time_to_event_fixed <- function(survfitms_obj, state_index, subgroup = NULL,
+                                       target_prob = 0.5, interpolate = TRUE) {
+  # Input validation
+  if (!inherits(survfitms_obj, "survfitms")) {
+    stop("Input must be a survfitms object")
+  }
+
+  if (!is.numeric(state_index) || state_index < 1 ||
+      state_index > length(survfitms_obj$states)) {
+    stop("Invalid state_index. Must be between 1 and ",
+         length(survfitms_obj$states))
+  }
+
+  if (!is.numeric(target_prob) || target_prob <= 0 || target_prob >= 1) {
+    stop("target_prob must be between 0 and 1")
+  }
+
+  # Extract relevant data based on subgroup
+  tryCatch({
+    if (!is.null(subgroup)) {
+      strata_names <- names(survfitms_obj$strata)
+      if (is.null(strata_names)) {
+        stop("No strata found in the survfitms object")
+      }
+
+      cumulative_strata <- cumsum(survfitms_obj$strata)
+      strata_start_indices <- c(1, cumulative_strata[-length(cumulative_strata)] + 1)
+      strata_end_indices <- cumulative_strata
+      strata_map <- data.frame(
+        start = strata_start_indices,
+        end = strata_end_indices,
+        row.names = strata_names
+      )
+
+      if (!(subgroup %in% strata_names)) {
+        stop(sprintf("Invalid subgroup. Available groups: %s",
+                     paste(strata_names, collapse = ", ")))
+      }
+
+      subgroup_indices <- strata_map[subgroup, ]
+      start_index <- subgroup_indices$start
+      end_index <- subgroup_indices$end
+
+      cif_values <- survfitms_obj$pstate[start_index:end_index, state_index]
+      lower_probs <- survfitms_obj$lower[start_index:end_index, state_index]
+      upper_probs <- survfitms_obj$upper[start_index:end_index, state_index]
+      times <- survfitms_obj$time[start_index:end_index]
+    } else {
+      cif_values <- survfitms_obj$pstate[, state_index]
+      lower_probs <- survfitms_obj$lower[, state_index]
+      upper_probs <- survfitms_obj$upper[, state_index]
+      times <- survfitms_obj$time
+    }
+
+    # Handle possible NA values
+    any_valid_data <- !all(is.na(cif_values))
+    if (!any_valid_data) {
+      # Return NA results if no valid data
+      return(list(
+        median_time = NA,
+        lower_ci = NA,
+        upper_ci = NA,
+        target_probability = target_prob,
+        max_followup = ifelse(all(is.na(times)), NA, max(times, na.rm = TRUE)),
+        final_cif = NA,
+        n_at_risk = 0,
+        n_events = ifelse(all(is.na(survfitms_obj$n.transition[, state_index - 1])),
+                          0,
+                          sum(survfitms_obj$n.transition[, state_index - 1], na.rm = TRUE)),
+        interpolated = interpolate,
+        class = "median_time_estimate"
+      ))
+    }
+
+    # Remove NA values
+    valid_indices <- !is.na(cif_values)
+    if (sum(valid_indices) == 0) {
+      return(list(
+        median_time = NA,
+        lower_ci = NA,
+        upper_ci = NA,
+        target_probability = target_prob,
+        max_followup = NA,
+        final_cif = NA,
+        n_at_risk = 0,
+        n_events = 0,
+        interpolated = interpolate,
+        class = "median_time_estimate"
+      ))
+    }
+
+    cif_values <- cif_values[valid_indices]
+    times <- times[valid_indices]
+    if (length(lower_probs) > 0) lower_probs <- lower_probs[valid_indices]
+    if (length(upper_probs) > 0) upper_probs <- upper_probs[valid_indices]
+
+    # Ensure monotonicity
+    cif_values <- cummax(cif_values)
+    if (length(lower_probs) > 0) lower_probs <- cummax(lower_probs)
+    if (length(upper_probs) > 0) upper_probs <- cummax(upper_probs)
+
+    # Linear interpolation function
+    interpolate_time <- function(probs, times, target) {
+      if (all(is.na(probs)) || length(probs) == 0) return(NA)
+      if (all(probs < target, na.rm = TRUE)) return(NA)
+
+      # Filter out NAs
+      valid <- !is.na(probs) & !is.na(times)
+      if (sum(valid) == 0) return(NA)
+
+      probs <- probs[valid]
+      times <- times[valid]
+
+      if (any(probs >= target)) {
+        idx <- which(probs >= target)[1]
+        if (idx == 1) return(times[1])
+
+        # Linear interpolation
+        p1 <- probs[idx - 1]
+        p2 <- probs[idx]
+        t1 <- times[idx - 1]
+        t2 <- times[idx]
+
+        return(t1 + (target - p1) * (t2 - t1) / (p2 - p1))
+      }
+      return(NA)
+    }
+
+    # Calculate estimates
+    if (interpolate) {
+      median_time <- interpolate_time(cif_values, times, target_prob)
+      lower_time <- if (length(lower_probs) > 0) interpolate_time(lower_probs, times, target_prob) else NA
+      upper_time <- if (length(upper_probs) > 0) interpolate_time(upper_probs, times, target_prob) else NA
+    } else {
+      median_index <- if (any(cif_values >= target_prob, na.rm = TRUE)) which(cif_values >= target_prob)[1] else NA
+      lower_index <- if (length(lower_probs) > 0 && any(lower_probs >= target_prob, na.rm = TRUE)) which(lower_probs >= target_prob)[1] else NA
+      upper_index <- if (length(upper_probs) > 0 && any(upper_probs >= target_prob, na.rm = TRUE)) which(upper_probs >= target_prob)[1] else NA
+
+      median_time <- if (!is.na(median_index)) times[median_index] else NA
+      lower_time <- if (!is.na(lower_index) && lower_index <= length(times)) times[lower_index] else NA
+      upper_time <- if (!is.na(upper_index) && upper_index <= length(times)) times[upper_index] else NA
+    }
+
+    # Additional statistics
+    max_followup <- if (length(times) > 0) max(times, na.rm = TRUE) else NA
+    final_cif <- if (length(cif_values) > 0) tail(cif_values, 1) else NA
+    n_at_risk <- if (!is.null(survfitms_obj$n.risk) && nrow(survfitms_obj$n.risk) > 0 &&
+                     state_index <= ncol(survfitms_obj$n.risk)) {
+      val <- survfitms_obj$n.risk[1, state_index]
+      if (is.na(val)) 0 else val
+    } else {
+      0
+    }
+    n_events <- if (!is.null(survfitms_obj$n.transition) &&
+                    ncol(survfitms_obj$n.transition) >= state_index - 1) {
+      sum(survfitms_obj$n.transition[, state_index - 1], na.rm = TRUE)
+    } else {
+      0
+    }
+
+    # Ensure CIs are in correct order
+    if (!is.na(lower_time) && !is.na(upper_time)) {
+      ordered_ci <- sort(c(lower_time, upper_time))
+      lower_time <- ordered_ci[1]
+      upper_time <- ordered_ci[2]
+    }
+
+    # Compile results
+    result <- list(
+      median_time = median_time,
+      lower_ci = lower_time,
+      upper_ci = upper_time,
+      target_probability = target_prob,
+      max_followup = max_followup,
+      final_cif = final_cif,
+      n_at_risk = n_at_risk,
+      n_events = n_events,
+      interpolated = interpolate
+    )
+
+    # Add attributes for better printing
+    class(result) <- "median_time_estimate"
+    return(result)
+
+  }, error = function(e) {
+    # Return informative error
+    msg <- sprintf("Error in calculation: %s", e$message)
+    result <- list(
+      median_time = NA,
+      lower_ci = NA,
+      upper_ci = NA,
+      target_probability = target_prob,
+      max_followup = NA,
+      final_cif = NA,
+      n_at_risk = 0,
+      n_events = 0,
+      interpolated = interpolate,
+      error = msg
+    )
+    class(result) <- "median_time_estimate"
+    return(result)
+  })
+}
+
