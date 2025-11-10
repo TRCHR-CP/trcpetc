@@ -1195,26 +1195,26 @@ show_cif <- function(surv_obj,
 
 #' Calculate Median Time to Event for a Specific State
 #'
-#' Computes the time to reach a specified cumulative incidence probability
+#' Computes the median time to reach a specified cumulative incidence probability
 #' Supports interpolation for more precise estimates.
 #'
 #' @param survfitms_obj A \code{survfitms} object from the \pkg{mstate} package,
 #'   representing a fitted multi-state survival model.
 #' @param evt_type Integer; the event type of interest (default = 1).
-#' @param subgroup Optional character string specifying a subgroup (stratum) name
-#'   within the \code{survfitms_obj}. If \code{NULL}, uses all data.
-#' @param target_prob Numeric value between 0 and 1 (exclusive) indicating the
-#'   cumulative incidence probability at which to estimate the median time.
+#' @param subgroup Optional character string specifying a subgroup  name
+#'   within the \code{survfitms_obj}.
+#' @param target_prob Numeric value between 0 and 1 indicating the
+#'   cumulative incidence probability. When 0.5 will calculate the median time.
 #'   Default is \code{0.5}.
 #' @param interpolate Logical indicating whether to use linear interpolation
 #'   between time points for more accurate estimates. Default is \code{TRUE}.
 #'
-#' @return A list of class \code{"median_time_estimate"} containing:
+#' @return A list of class \code{"time_estimate"} containing:
 #' \describe{
-#'   \item{median_time}{Estimated median time to reach \code{target_prob}.}
+#'   \item{time}{Estimated time to reach \code{target_prob}.}
 #'   \item{lower_ci}{Lower confidence interval for the median time (if available).}
 #'   \item{upper_ci}{Upper confidence interval for the median time (if available).}
-#'   \item{target_probability}{The target cumulative incidence probability.}
+#'   \item{target_probability}{The target cumulative incidence probability}
 #'   \item{max_followup}{Maximum observed follow-up time.}
 #'   \item{final_cif}{Final cumulative incidence at last time point.}
 #'   \item{n_at_risk}{Number at risk at time zero for the specified state.}
@@ -1230,7 +1230,7 @@ show_cif <- function(surv_obj,
 #' between adjacent time points.
 #'
 #' @examples
-#' \dontrun{
+#'
 #'
 #' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
 #'patid = PatientID,
@@ -1248,8 +1248,10 @@ show_cif <- function(surv_obj,
 #' median_time_to_event(survfitms_obj = CIF, target_prob= 0.2,evt_type = 1, interpolate = TRUE)
 #'
 #' CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
-#' median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Male", target_prob= 0.2,evt_type = 1, interpolate = TRUE)
-#' median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+#' median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Male",
+#' target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+#' median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female",
+#' target_prob= 0.2,evt_type = 1, interpolate = TRUE)
 #'
 #' @export
 
@@ -1317,7 +1319,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
     if (!any_valid_data) {
       # Return NA results if no valid data
       return(list(
-        median_time = NA,
+        time = NA,
         lower_ci = NA,
         upper_ci = NA,
         target_probability = target_prob,
@@ -1328,7 +1330,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
                           0,
                           sum(survfitms_obj$n.transition[, state_index - 1], na.rm = TRUE)),
         interpolated = interpolate,
-        class = "median_time_estimate"
+        class = "time_estimate"
       ))
     }
 
@@ -1336,7 +1338,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
     valid_indices <- !is.na(cif_values)
     if (sum(valid_indices) == 0) {
       return(list(
-        median_time = NA,
+        time = NA,
         lower_ci = NA,
         upper_ci = NA,
         target_probability = target_prob,
@@ -1345,7 +1347,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
         n_at_risk = 0,
         n_events = 0,
         interpolated = interpolate,
-        class = "median_time_estimate"
+        class = "time_estimate"
       ))
     }
 
@@ -1388,7 +1390,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
 
     # Calculate estimates
     if (interpolate) {
-      median_time <- interpolate_time(cif_values, times, target_prob)
+      time <- interpolate_time(cif_values, times, target_prob)
       lower_time <- if (length(lower_probs) > 0) interpolate_time(lower_probs, times, target_prob) else NA
       upper_time <- if (length(upper_probs) > 0) interpolate_time(upper_probs, times, target_prob) else NA
     } else {
@@ -1396,7 +1398,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
       lower_index <- if (length(lower_probs) > 0 && any(lower_probs >= target_prob, na.rm = TRUE)) which(lower_probs >= target_prob)[1] else NA
       upper_index <- if (length(upper_probs) > 0 && any(upper_probs >= target_prob, na.rm = TRUE)) which(upper_probs >= target_prob)[1] else NA
 
-      median_time <- if (!is.na(median_index)) times[median_index] else NA
+      time <- if (!is.na(median_index)) times[median_index] else NA
       lower_time <- if (!is.na(lower_index) && lower_index <= length(times)) times[lower_index] else NA
       upper_time <- if (!is.na(upper_index) && upper_index <= length(times)) times[upper_index] else NA
     }
@@ -1427,7 +1429,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
 
     # Compile results
     result <- list(
-      median_time = median_time,
+      time = time,
       lower_ci = lower_time,
       upper_ci = upper_time,
       target_probability = target_prob,
@@ -1439,14 +1441,14 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
     )
 
     # Add attributes for better printing
-    class(result) <- "median_time_estimate"
+    class(result) <- "time_estimate"
     return(result)
 
   }, error = function(e) {
     # Return informative error
     msg <- sprintf("Error in calculation: %s", e$message)
     result <- list(
-      median_time = NA,
+      time = NA,
       lower_ci = NA,
       upper_ci = NA,
       target_probability = target_prob,
@@ -1457,7 +1459,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
       interpolated = interpolate,
       error = msg
     )
-    class(result) <- "median_time_estimate"
+    class(result) <- "time_estimate"
     return(result)
   })
 }
