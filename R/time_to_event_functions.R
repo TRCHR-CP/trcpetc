@@ -1201,8 +1201,7 @@ show_cif <- function(surv_obj,
 #'
 #' @param survfitms_obj A \code{survfitms} object from the \pkg{mstate} package,
 #'   representing a fitted multi-state survival model.
-#' @param state Integer specifying the state interest.
-#' Must correspond to one of the states in \code{survfitms_obj$states}.
+#' @param evt_type Integer; the event type of interest (default = 1).
 #' @param subgroup Optional character string specifying a subgroup (stratum) name
 #'   within the \code{survfitms_obj}. If \code{NULL}, uses all data.
 #' @param target_prob Numeric value between 0 and 1 (exclusive) indicating the
@@ -1233,7 +1232,7 @@ show_cif <- function(surv_obj,
 #'
 #' @examples
 #' \dontrun{
-#' # Assuming `fit` is a survfitms object from mstate
+#'
 #' median_time_to_event_fixed(fit, state_index = 2, target_prob = 0.5)
 #' median_time_to_event_fixed(fit, state_index = 3, subgroup = "TreatmentA")
 #' }
@@ -1241,8 +1240,12 @@ show_cif <- function(surv_obj,
 #' @export
 
 
-median_time_to_event_fixed <- function(survfitms_obj, state_index, subgroup = NULL,
+median_time_to_event_fixed <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
                                        target_prob = 0.5, interpolate = TRUE) {
+
+
+  state_index = which(survfitms_obj$states == evt_type)
+
   # Input validation
   if (!inherits(survfitms_obj, "survfitms")) {
     stop("Input must be a survfitms object")
