@@ -242,7 +242,6 @@ generate_mi_glm_termplot_df <- function(mira_obj,
                                        terms= NULL,
                                        center_at= NULL,
                                        vcov_fun= NULL, ...) {
-  require(mitools)
   dummy_mdl<- mice::getfit(mira_obj, 1L)
   tt<- stats::terms(dummy_mdl)
   terms<- if (is.null(terms)) 1:length(labels(tt)) else terms

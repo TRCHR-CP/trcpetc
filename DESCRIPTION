@@ -14,19 +14,22 @@ Imports:
     ggplot2,
     magrittr,
     kableExtra,
-    lazyeval,
     mitools,
     openxlsx,
     survival,
     purrr,
-    sandwich,
     scales,
     stats,
     tidyr,
     data.table,
     rlang,
     lubridate,
-    reshape2
+    reshape2,
+    cmprsk,
+    forcats,
+    mice,
+    tibble,
+    viridis
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
