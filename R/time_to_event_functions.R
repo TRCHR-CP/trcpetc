@@ -1195,8 +1195,7 @@ show_cif <- function(surv_obj,
 
 #' Calculate Median Time to Event for a Specific State
 #'
-#' Computes the median time to reach a specified cumulative incidence probability
-#' for a given state in a multi-state survival model, optionally within a subgroup.
+#' Computes the time to reach a specified cumulative incidence probability
 #' Supports interpolation for more precise estimates.
 #'
 #' @param survfitms_obj A \code{survfitms} object from the \pkg{mstate} package,
@@ -1233,14 +1232,29 @@ show_cif <- function(surv_obj,
 #' @examples
 #' \dontrun{
 #'
-#' median_time_to_event_fixed(fit, state_index = 2, target_prob = 0.5)
-#' median_time_to_event_fixed(fit, state_index = 3, subgroup = "TreatmentA")
-#' }
+#' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+#'patid = PatientID,
+#' idx_dt = SurgeryDate,
+#' evt_dt = TransplantDate,
+#' end_dt = LastVisitDate,
+#' death_dt = DeathDate,
+#' append = TRUE,
+#' units = "months",
+#' adm_cnr_time = 24)
+#'
+#'
+#' CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+#'
+#' median_time_to_event(survfitms_obj = CIF, target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+#'
+#' CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+#' median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Male", target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+#' median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_prob= 0.2,evt_type = 1, interpolate = TRUE)
 #'
 #' @export
 
 
-median_time_to_event_fixed <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
+median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
                                        target_prob = 0.5, interpolate = TRUE) {
 
 
