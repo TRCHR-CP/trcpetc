@@ -1405,7 +1405,7 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
 
     # Additional statistics
     max_followup <- if (length(times) > 0) max(times, na.rm = TRUE) else NA
-    final_cif <- if (length(cif_values) > 0) tail(cif_values, 1) else NA
+    final_cif <- if (length(cif_values) > 0) utils::tail(cif_values, 1) else NA
     n_at_risk <- if (!is.null(survfitms_obj$n.risk) && nrow(survfitms_obj$n.risk) > 0 &&
                      state_index <= ncol(survfitms_obj$n.risk)) {
       val <- survfitms_obj$n.risk[1, state_index]

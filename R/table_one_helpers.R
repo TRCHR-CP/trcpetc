@@ -117,7 +117,7 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
       dplyr::mutate(variable = "Total N") %>%
       dplyr::select(variable, dplyr::everything())
 
-    n_var <- n_var %>% dplyr::mutate(across(select_if(n_var, is.integer) %>% names(), as.character))
+    n_var <- n_var %>% dplyr::mutate(dplyr::across(dplyr::select_if(n_var, is.integer) %>% names(), as.character))
 
     list(N = dplyr::left_join(n_var, n_var, by= "variable", suffix= c("_n", "_stat")) %>%
            dplyr::mutate(row_id = "Total_N", type = as.character(NA), pval = as.character(NA), test = as.character(NA)) %>%

@@ -137,7 +137,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
       paste0(
         df %>%
           dplyr::ungroup() %>%
-          dplyr::select(where(~ is.character(.) || lubridate::is.Date(.))) %>%
+          dplyr::select(dplyr::where(~ is.character(.) || lubridate::is.Date(.))) %>%
           colnames(),
         collapse = ", "
       )))
