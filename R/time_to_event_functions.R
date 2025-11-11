@@ -622,7 +622,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #'## Including a covariate
 #' KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
 #' #show_surv(KM_Sex,print_fig = FALSE,pvalue_pos = "bottomleft",
-#' #add_legend = TRUE,x_break = seq(0,24,by=3)) %>% grid::grid.draw()
+#' #add_legend = TRUE,x_break = seq(0,24,by=3))
 #'
 #'
 #' @export
@@ -745,7 +745,6 @@ show_surv <- function(surv_obj,
                                            expand= c(0.005, 0),
                                            labels= function(x) scales::percent(x, accuracy = 1))
 
-  out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "on") else out
 
   if (add_pvalue) {
     pval <- run_logrank_test(surv_obj) %>%
@@ -852,13 +851,13 @@ show_surv <- function(surv_obj,
   out <- out + plot_theme
 
   if(add_atrisk) {
-    p <- out + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
-    gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
-    gt$layout$clip[gt$layout$name == 'panel'] <- "off"
-    out <- gt
-    #grid.draw(gt)
+    out <- out + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
   }
+
+
+  out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "off") else  out + ggplot2::coord_cartesian(clip = "off")
+
 
   if (print_fig) print(out)
   # print(out, vp= viewport(width = unit(6.5, "inches"), height = unit(6.5, "inches")))
