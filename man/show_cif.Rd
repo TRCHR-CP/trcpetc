@@ -109,7 +109,8 @@ CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
 
 
     show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
-         evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+         evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"),
+x_lab = "Time since surgery (months)")
 
 
 ## Including a covariate
@@ -117,6 +118,7 @@ CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
 CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
 
 show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
-        evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+        evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"),
+x_lab = "Time since surgery (months)")
 
 }

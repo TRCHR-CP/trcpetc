@@ -98,11 +98,13 @@ survival_data <-  construct_surv_cmprisk_var(cardio_data,
 
 KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
 show_surv(KM, pvalue_pos = "bottomleft",
-add_legend = TRUE,x_break = seq(0,24,by=3))
+add_legend = TRUE,x_break = seq(0,24,by=3),
+x_lab = "Time since surgery (months)")
 ## Including a covariate
 KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
 show_surv(KM_Sex,pvalue_pos = "bottomleft",
-add_legend = TRUE,x_break = seq(0,24,by=3))
+add_legend = TRUE,x_break = seq(0,24,by=3),
+x_lab = "Time since surgery (months)")
 
 
 }
