@@ -5,7 +5,7 @@
 
 # Ignore all R Markdown files
 *.Rmd
-
+*.png
 
 *.bib
 
