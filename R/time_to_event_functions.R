@@ -708,7 +708,7 @@ show_surv <- function(surv_obj,
   out <- ggplot2::ggplot() +
     ggplot2::geom_step(data= plot_prob_d,
                        ggplot2::aes(x= time, y= prob, group= strata, color= strata),
-                       size= 1.1, show.legend = add_legend) +
+                       linewidth= 1.1, show.legend = add_legend) +
     eval(color_fun) +
     ggplot2::scale_x_continuous(name  = x_lab,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
@@ -998,17 +998,17 @@ show_cif <- function(surv_obj,
     out +
       ggplot2::geom_step(data= plot_prob_d,
                          ggplot2::aes(x= time, y= prob, group= state_label, color= state_label),
-                         size= 1.1, show.legend = add_legend)
+                         linewidth = 1.1, show.legend = add_legend)
   } else if (nlevels(plot_prob_d$strata)>1 & nlevels(plot_prob_d$state)==1) {
     out +
       ggplot2::geom_step(data= plot_prob_d,
                          ggplot2::aes(x= time, y= prob, group= strata, color= strata),
-                         size= 1.1, show.legend = add_legend)
+                         linewidth = 1.1, show.legend = add_legend)
   } else {
     out +
       ggplot2::geom_step(data= plot_prob_d,
                          ggplot2::aes(x= time, y= prob, group= state_strata, color= state_strata),
-                         size= 1.1, show.legend = add_legend)
+                         linewidth = 1.1, show.legend = add_legend)
   }
   out<- out +
     eval(color_fun) +
