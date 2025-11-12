@@ -596,7 +596,6 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param atrisk_init_pos Character; position of the "At-risk N:" label.
 #' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
 #' @param plot_cdf Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).
-#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = FALSE).
 #' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).

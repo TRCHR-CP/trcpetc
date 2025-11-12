@@ -71,8 +71,6 @@ show_surv(
 \item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
 
 \item{space}{Numeric; amount of space between group labels in the at-risk table (default = 0.15).}
-
-\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
 }
 \value{
 A \code{ggplot} object representing the survival or cumulative death function plot.
