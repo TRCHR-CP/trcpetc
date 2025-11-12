@@ -337,7 +337,7 @@ prepare_survfit <- function(surv_obj) {
 }
 
 #' @title Create atrisk table
-add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_theme = NULL) {
+add_atrisk <- function(p, surv_obj, space = -0.15 ,x_break= NULL, atrisk_init_pos= NULL, plot_theme = NULL) {
 
   # ---- get font information ----
   if (is.null(plot_theme)) {
@@ -413,8 +413,8 @@ add_atrisk <- function(p, surv_obj, x_break= NULL, atrisk_init_pos= NULL, plot_t
 
     # when there are strata, atrisk_y_inc indicates the relative position from the initial at-risk y pos.
     # atrisk_y_inc<- -0.075 * diff(ggplot2::layer_scales(p)$y$range$range)
-    atrisk_y_inc<- -0.05 * max(diff(ggplot2::layer_scales(p)$y$range$range),
-                               diff(p$coordinates$limits$y))
+    atrisk_y_inc <- space * max(diff(ggplot2::layer_scales(p)$y$range$range),
+                                diff(p$coordinates$limits$y))
 
     # extract the color code used in the plot for different strata
     strata_col<- unique(ggplot2::layer_data(p)$colour)

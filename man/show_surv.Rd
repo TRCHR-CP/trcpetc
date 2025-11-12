@@ -23,11 +23,11 @@ show_surv(
   pvalue_pos = c("topleft", "topright", "bottomleft", "bottomright", "left", "right",
     "top", "bottom"),
   plot_cdf = FALSE,
-  print_fig = FALSE,
   top.margin = 18,
   right.margin = 18,
   bottom.margin = 96,
-  left.margin = 96
+  left.margin = 96,
+  space = -0.15
 )
 }
 \arguments{
@@ -63,8 +63,6 @@ show_surv(
 
 \item{plot_cdf}{Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).}
 
-\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
-
 \item{top.margin}{Numeric; top margin space for the at-risk table (default = 18).}
 
 \item{right.margin}{Numeric; right margin space for the at-risk table (default = 18).}
@@ -72,6 +70,10 @@ show_surv(
 \item{bottom.margin}{Numeric; bottom margin space for the at-risk table (default = 96).}
 
 \item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
+
+\item{space}{Numeric; amount of space between group labels in the at-risk table (default = -0.15).}
+
+\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
 }
 \value{
 A \code{ggplot} object representing the survival or cumulative death function plot.
@@ -96,12 +98,12 @@ survival_data <-  construct_surv_cmprisk_var(cardio_data,
                                             adm_cnr_time = 24)
 
 KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
-#show_surv(KM, print_fig = FALSE,pvalue_pos = "bottomleft",
-#add_legend = TRUE,x_break = seq(0,24,by=3)) #\%>\%  grid::grid.draw()
+show_surv(KM, pvalue_pos = "bottomleft",
+add_legend = TRUE,x_break = seq(0,24,by=3))
 ## Including a covariate
 KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
-#show_surv(KM_Sex,print_fig = FALSE,pvalue_pos = "bottomleft",
-#add_legend = TRUE,x_break = seq(0,24,by=3)) \%>\% grid::grid.draw()
+show_surv(KM_Sex,pvalue_pos = "bottomleft",
+add_legend = TRUE,x_break = seq(0,24,by=3))
 
 
 }

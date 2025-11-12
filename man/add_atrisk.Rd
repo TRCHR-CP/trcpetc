@@ -7,6 +7,7 @@
 add_atrisk(
   p,
   surv_obj,
+  space = -0.15,
   x_break = NULL,
   atrisk_init_pos = NULL,
   plot_theme = NULL

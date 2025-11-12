@@ -25,11 +25,11 @@ show_cif(
   y_break = NULL,
   color_scheme = c("brewer", "grey", "viridis", "manual"),
   color_list = NULL,
-  print_fig = FALSE,
   top.margin = 18,
   right.margin = 18,
   bottom.margin = 96,
-  left.margin = 96
+  left.margin = 96,
+  space = -0.15
 )
 }
 \arguments{
@@ -69,8 +69,6 @@ show_cif(
 
 \item{color_list}{A named list of colors to use when \code{color_scheme = "manual"} (e.g., \code{list(values = c("red", "blue"))}).}
 
-\item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
-
 \item{top.margin}{Numeric; top margin space for the at-risk table (default = 18).}
 
 \item{right.margin}{Numeric; right margin space for the at-risk table (default = 18).}
@@ -78,6 +76,8 @@ show_cif(
 \item{bottom.margin}{Numeric; bottom margin space for the at-risk table (default = 96).}
 
 \item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
+
+\item{space}{Numeric; amount of space between group labels in the at-risk table (default = -0.15).}
 }
 \value{
 A \code{ggplot} object representing the cumulative incidence function plot.
@@ -91,6 +91,8 @@ It supports customization of axis labels, plot limits, confidence intervals, leg
 }
 \examples{
 
+
+windowsFonts(Arial = windowsFont("Arial"))
 
 ## Showing all events
 cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
@@ -106,15 +108,15 @@ adm_cnr_time = 24)
 CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
 
 
-         #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))  \%>\%
-          #  grid::grid.draw()
+    show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
+         evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+
 
 ## Including a covariate
 
 CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
 
-#show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
-        #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death")) \%>\%
-       # grid::grid.draw()
+show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
+        evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
 
 }

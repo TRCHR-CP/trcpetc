@@ -601,6 +601,8 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
+#' @param space Numeric; amount of space between group labels in the at-risk table (default = -0.15).
+#'
 #' @return A \code{ggplot} object representing the survival or cumulative death function plot.
 #' @examples
 #'
@@ -616,13 +618,13 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #'                                             adm_cnr_time = 24)
 #'
 #' KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
-#' #show_surv(KM, print_fig = FALSE,pvalue_pos = "bottomleft",
-#' #add_legend = TRUE,x_break = seq(0,24,by=3)) #%>%  grid::grid.draw()
+#' show_surv(KM, pvalue_pos = "bottomleft",
+#' add_legend = TRUE,x_break = seq(0,24,by=3))
 
 #'## Including a covariate
 #' KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
-#' #show_surv(KM_Sex,print_fig = FALSE,pvalue_pos = "bottomleft",
-#' #add_legend = TRUE,x_break = seq(0,24,by=3))
+#' show_surv(KM_Sex,pvalue_pos = "bottomleft",
+#' add_legend = TRUE,x_break = seq(0,24,by=3))
 #'
 #'
 #' @export
@@ -645,12 +647,12 @@ show_surv <- function(surv_obj,
                       atrisk_init_pos= NULL,
                       pvalue_pos= c("topleft", "topright", "bottomleft", "bottomright", "left", "right", "top", "bottom"),
                       plot_cdf= FALSE,
-                      print_fig = FALSE,
 
                       top.margin = 18,
                       right.margin = 18,
                       bottom.margin = 96,
-                      left.margin = 96) {
+                      left.margin = 96,
+                      space = -0.15) {
 
   # no need to add pvalues for a single cohort
   add_pvalue<- if (all(names(surv_obj)!='strata')) FALSE else add_pvalue
@@ -753,7 +755,7 @@ show_surv <- function(surv_obj,
     pval <- ifelse(trimws(pval)=="<0.001", "Log-rank p< 0.001", paste0("Log-rank p= ", pval) )
 
 
-    y_bottom<- min(ggplot2::layer_scales(out)$y$range$range[1], out$coordinates$limits$y[1], na.rm= TRUE)
+    y_bottom <- min(ggplot2::layer_scales(out)$y$range$range[1], out$coordinates$limits$y[1], na.rm= TRUE)
     y_top   <- max(ggplot2::layer_scales(out)$y$range$range[2], out$coordinates$limits$y[2], na.rm= TRUE)
     y_mid   <- (y_top + y_bottom)/2
 
@@ -842,25 +844,19 @@ show_surv <- function(surv_obj,
     # xmax = pvalue.x)
   }
 
+  out <- out + plot_theme
+
   if (add_atrisk) out <- add_atrisk(out,
                                     surv_obj = surv_obj,
                                     x_break = x_break,
                                     atrisk_init_pos= atrisk_init_pos,
-                                    plot_theme = plot_theme)
-
-  out <- out + plot_theme
-
-  if(add_atrisk) {
-    out <- out + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
-
-  }
+                                    plot_theme = plot_theme,
+                                    space = space)  + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
 
   out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "off") else  out + ggplot2::coord_cartesian(clip = "off")
 
 
-  if (print_fig) print(out)
-  # print(out, vp= viewport(width = unit(6.5, "inches"), height = unit(6.5, "inches")))
   return(out)
 }
 
@@ -890,18 +886,20 @@ show_surv <- function(surv_obj,
 #' @param y_break Numeric vector specifying y-axis tick positions.
 #' @param color_scheme Character; color scheme to use. Options: "brewer", "grey", "viridis", "manual" (default = "brewer").
 #' @param color_list A named list of colors to use when \code{color_scheme = "manual"} (e.g., \code{list(values = c("red", "blue"))}).
-#' @param print_fig Logical; if \code{TRUE}, prints the plot (default = FALSE).
 #' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
-#'
+#' @param space Numeric; amount of space between group labels in the at-risk table (default = -0.06).
+
 #' @examples
 #'
 #'
+#' windowsFonts(Arial = windowsFont("Arial"))
+#'
 #' ## Showing all events
 #' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
-#'patid = PatientID,
+#' patid = PatientID,
 #' idx_dt = SurgeryDate,
 #' evt_dt = TransplantDate,
 #' end_dt = LastVisitDate,
@@ -913,17 +911,16 @@ show_surv <- function(surv_obj,
 #' CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
 #'
 #'
-# #show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
-#'          #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))  %>%
-#'           #  grid::grid.draw()
+#'     show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
+#'          evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+#'
 #'
 #'## Including a covariate
 #'
 #' CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
 #'
-#' #show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
-#'         #evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death")) %>%
-#'        # grid::grid.draw()
+#' show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
+#'         evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
 #'
 #' @return A \code{ggplot} object representing the cumulative incidence function plot.
 #' @export
@@ -947,13 +944,11 @@ show_cif <- function(surv_obj,
                      y_break= NULL,
                      color_scheme= c("brewer", "grey", "viridis", "manual"),
                      color_list= NULL, #required only if color_scheme= 'manual'. eg color_list= list(values= c('red', 'blue'))
-
-                     print_fig = FALSE,
-
                      top.margin = 18,
                      right.margin = 18,
                      bottom.margin = 96,
-                     left.margin = 96
+                     left.margin = 96,
+                     space = -0.06
 
 ) {
 
@@ -1024,7 +1019,6 @@ show_cif <- function(surv_obj,
                                 # limits= y_lim,
                                 labels= function(x) scales::percent(x, accuracy = 1))
 
-  out<- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "on") else out
 
   if (add_ci) {
     plot_ci_d <- cmprisk_mat %>%
@@ -1163,29 +1157,24 @@ show_cif <- function(surv_obj,
     # xmax = pvalue.x)
   }
 
+
+  out <- out + plot_theme
+
   if (add_atrisk) out <- add_atrisk(out,
                                     surv_obj = surv_obj,
                                     x_break = x_break,
                                     atrisk_init_pos= atrisk_init_pos,
-                                    plot_theme = plot_theme)
-
-  out <- out + plot_theme
-
-  if(add_atrisk) {
-    p <- out + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
-    gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
-    gt$layout$clip[gt$layout$name == 'panel'] <- "off"
-    out <- gt
-    #grid.draw(gt)
-
-  }
+                                    plot_theme = plot_theme,
+                                    space = space) + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
 
 
+  out<- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
 
 
-  if (print_fig) print(out)
-  return(out)
+
+   return(out)
+
 }
 
 
