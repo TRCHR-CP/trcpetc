@@ -341,11 +341,11 @@ add_atrisk <- function(p, surv_obj, space = -0.15 ,x_break= NULL, atrisk_init_po
 
   # ---- get font information ----
   if (is.null(plot_theme)) {
-    font_family<- "Arial"
+    font_family<- "ArialMT"
     font_face  <- "plain"
     font_size  <- 11
   } else {
-    font_family<- if (is.null(plot_theme$text$family) | trimws(plot_theme$text$family) == "") "Arial" else plot_theme$text$family
+    font_family<- if (is.null(plot_theme$text$family) | trimws(plot_theme$text$family) == "") "ArialMT" else plot_theme$text$family
     font_face  <- if (is.null(plot_theme$text$face) | trimws(plot_theme$text$face) == "") "plain" else plot_theme$text$face
     font_size  <- if (is.null(plot_theme$text$size)) 11 else plot_theme$text$size
   }
