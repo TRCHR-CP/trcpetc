@@ -582,7 +582,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #'
 #' @param surv_obj A \code{survfit} object, typically created using survival analysis functions.
 #' @param x_lab Character; label for the x-axis (default = "Time").
-#' @param y_lab Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "The freedom from death".
+#' @param y_lab Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "Overall survival".
 #' @param y_lim Numeric vector of length 2 specifying y-axis limits.
 #' @param x_break Numeric vector specifying x-axis tick positions.
 #' @param y_break Numeric vector specifying y-axis tick positions.
@@ -601,7 +601,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
-#' @param space Numeric; amount of space between group labels in the at-risk table (default = -0.15).
+#' @param space Numeric; amount of space between group labels in the at-risk table (default = 0.15).
 #'
 #' @return A \code{ggplot} object representing the survival or cumulative death function plot.
 #' @examples
@@ -631,7 +631,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @importFrom magrittr %>%
 show_surv <- function(surv_obj,
                       x_lab= 'Time',
-                      y_lab= if (plot_cdf) 'The proportion of deceased subjects' else 'The freedom from death',
+                      y_lab= if (plot_cdf) 'The proportion of deceased subjects' else 'Overall survival',
                       # x_lim= NULL,
                       y_lim= NULL,
                       x_break= NULL,
@@ -652,7 +652,7 @@ show_surv <- function(surv_obj,
                       right.margin = 18,
                       bottom.margin = 96,
                       left.margin = 96,
-                      space = -0.15) {
+                      space = 0.15) {
 
   # no need to add pvalues for a single cohort
   add_pvalue<- if (all(names(surv_obj)!='strata')) FALSE else add_pvalue
@@ -851,7 +851,7 @@ show_surv <- function(surv_obj,
                                     x_break = x_break,
                                     atrisk_init_pos= atrisk_init_pos,
                                     plot_theme = plot_theme,
-                                    space = space)  + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
+                                    space = -space)  + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
 
   out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "off") else  out + ggplot2::coord_cartesian(clip = "off")
@@ -890,7 +890,7 @@ show_surv <- function(surv_obj,
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
 #' @param bottom.margin Numeric; bottom margin space for the at-risk table (default = 96).
 #' @param left.margin Numeric; left margin space for the at-risk table (default = 96).
-#' @param space Numeric; amount of space between group labels in the at-risk table (default = -0.06).
+#' @param space Numeric; amount of space between group labels in the at-risk table (default = 0.06).
 
 #' @examples
 #'
@@ -948,7 +948,7 @@ show_cif <- function(surv_obj,
                      right.margin = 18,
                      bottom.margin = 96,
                      left.margin = 96,
-                     space = -0.06
+                     space = 0.06
 
 ) {
 
@@ -1165,7 +1165,7 @@ show_cif <- function(surv_obj,
                                     x_break = x_break,
                                     atrisk_init_pos= atrisk_init_pos,
                                     plot_theme = plot_theme,
-                                    space = space) + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
+                                    space = -space) + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
 
 

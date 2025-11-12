@@ -29,7 +29,7 @@ show_cif(
   right.margin = 18,
   bottom.margin = 96,
   left.margin = 96,
-  space = -0.06
+  space = 0.06
 )
 }
 \arguments{
@@ -77,7 +77,7 @@ show_cif(
 
 \item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
 
-\item{space}{Numeric; amount of space between group labels in the at-risk table (default = -0.06).}
+\item{space}{Numeric; amount of space between group labels in the at-risk table (default = 0.06).}
 }
 \value{
 A \code{ggplot} object representing the cumulative incidence function plot.

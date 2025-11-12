@@ -7,8 +7,7 @@
 show_surv(
   surv_obj,
   x_lab = "Time",
-  y_lab = if (plot_cdf) "The proportion of deceased subjects" else
-    "The freedom from death",
+  y_lab = if (plot_cdf) "The proportion of deceased subjects" else "Overall survival",
   y_lim = NULL,
   x_break = NULL,
   y_break = NULL,
@@ -27,7 +26,7 @@ show_surv(
   right.margin = 18,
   bottom.margin = 96,
   left.margin = 96,
-  space = -0.15
+  space = 0.15
 )
 }
 \arguments{
@@ -35,7 +34,7 @@ show_surv(
 
 \item{x_lab}{Character; label for the x-axis (default = "Time").}
 
-\item{y_lab}{Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "The freedom from death".}
+\item{y_lab}{Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "Overall survival".}
 
 \item{y_lim}{Numeric vector of length 2 specifying y-axis limits.}
 
@@ -71,7 +70,7 @@ show_surv(
 
 \item{left.margin}{Numeric; left margin space for the at-risk table (default = 96).}
 
-\item{space}{Numeric; amount of space between group labels in the at-risk table (default = -0.15).}
+\item{space}{Numeric; amount of space between group labels in the at-risk table (default = 0.15).}
 
 \item{print_fig}{Logical; if \code{TRUE}, prints the plot (default = FALSE).}
 }
