@@ -9,9 +9,12 @@ figures/
 
 *.Rmd
 
+*.html
+
 *.png
 
 *.bib
 
 *.css
+
 
