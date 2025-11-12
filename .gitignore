@@ -6,8 +6,6 @@
 # Ignore all R Markdown files
 *.Rmd
 
-# Ignore all HTML files (e.g., knitted outputs)
-*.html
 
 *.bib
 
