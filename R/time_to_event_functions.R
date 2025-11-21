@@ -1224,7 +1224,7 @@ show_cif <- function(surv_obj,
 #'
 #'
 #' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
-#'patid = PatientID,
+#' patid = PatientID,
 #' idx_dt = SurgeryDate,
 #' evt_dt = TransplantDate,
 #' end_dt = LastVisitDate,
