@@ -593,9 +593,10 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param add_ci Logical; if \code{TRUE}, adds confidence intervals to the survival curves (default = TRUE).
 #' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
 #' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
+#' @param legend.position Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).
 #' @param add_pvalue Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).
-#' @param atrisk_init_pos Character; position of the "At-risk N:" label.
-#' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
+#' @param atrisk_init_pos Numeric; position of the "At-risk N:" label.
+#' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = topleft).
 #' @param plot_cdf Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).
 #' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
@@ -645,6 +646,7 @@ show_surv <- function(surv_obj,
                       add_ci= TRUE,
                       add_atrisk= TRUE,
                       add_legend= FALSE,
+                      legend.position = "top",
                       add_pvalue= TRUE,
                       atrisk_init_pos= NULL,
                       pvalue_pos= c("topleft", "topright", "bottomleft", "bottomright", "left", "right", "top", "bottom"),
@@ -858,7 +860,7 @@ show_surv <- function(surv_obj,
 
 
   out <- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
-
+  if(add_legend) out <- out  + ggplot2::theme(legend.position = legend.position)
 
   return(out)
 }
@@ -878,8 +880,9 @@ show_surv <- function(surv_obj,
 #' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
 #' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
 #' @param add_pvalue Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).
-#' @param atrisk_init_pos Character; position of the "At-risk N:" label.
+#' @param atrisk_init_pos Numeric; position of the "At-risk N:" label.
 #' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
+#' @param legend.position Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).
 #' @param plot_theme A \code{ggplot2} theme object to customize the appearance of the plot (default = \code{ggplot2::theme_minimal()}).
 #' @param x_lab Character; label for the x-axis (default = "Time").
 #' @param y_lab Character; label for the y-axis (default = "Proportion of subjects").
@@ -936,10 +939,10 @@ show_cif <- function(surv_obj,
                      add_ci= TRUE,
                      add_atrisk= TRUE,
                      add_legend= FALSE,
+                     legend.position = "top",
                      add_pvalue= TRUE,
                      atrisk_init_pos= NULL,
                      pvalue_pos= c("bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom"),
-
                      plot_theme= ggplot2::theme_minimal(),
                      x_lab= 'Time',
                      y_lab= 'Proportion of subjects',
@@ -1174,7 +1177,7 @@ show_cif <- function(surv_obj,
 
 
   out <- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
-
+  if(add_legend) out <- out  + ggplot2::theme(legend.position = legend.position)
 
 
    return(out)
