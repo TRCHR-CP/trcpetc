@@ -584,6 +584,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param x_lab Character; label for the x-axis (default = "Time").
 #' @param y_lab Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "Overall survival".
 #' @param y_lim Numeric vector of length 2 specifying y-axis limits.
+#' @param x_lim Numeric vector of length 2 specifying x-axis limits.
 #' @param x_break Numeric vector specifying x-axis tick positions.
 #' @param y_break Numeric vector specifying y-axis tick positions.
 #' @param color_scheme Character; color scheme to use. Options: "brewer", "grey", "viridis", "manual" (default = "brewer").
@@ -633,7 +634,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 show_surv <- function(surv_obj,
                       x_lab= 'Time',
                       y_lab= if (plot_cdf) 'The proportion of deceased subjects' else 'Overall survival',
-                      # x_lim= NULL,
+                      x_lim= NULL,
                       y_lim= NULL,
                       x_break= NULL,
                       y_break= NULL,
@@ -713,6 +714,7 @@ show_surv <- function(surv_obj,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                                 expand= c(0.01, 0.005),
                                 labels= function(x) scales::comma(x, accuracy = 1))
+
 
   if (add_ci) {
     plot_ci_d <- surv_mat %>%
@@ -855,7 +857,7 @@ show_surv <- function(surv_obj,
                                     space = -space)  + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
 
-  out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "off") else  out + ggplot2::coord_cartesian(clip = "off")
+  out <- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
 
 
   return(out)
@@ -957,8 +959,8 @@ show_cif <- function(surv_obj,
 
 
   #---- prepare survfit for plot ----
-  cmprisk_mat<- prepare_survfit(surv_obj)
-  cmprisk_mat<- cmprisk_mat %>%
+  cmprisk_mat <- prepare_survfit(surv_obj)
+  cmprisk_mat <- cmprisk_mat %>%
     dplyr::filter(state %in% evt_type) %>%
     dplyr::mutate(state_label = dplyr::recode(state, !!!evt_label),
                   state_label = forcats::fct_drop(state_label),
@@ -992,8 +994,8 @@ show_cif <- function(surv_obj,
   # x_break<- if (is.null(x_break)) scales::pretty_breaks(6) else x_break
   # y_break<- if (is.null(y_break)) scales::pretty_breaks(6) else y_break
 
-  out<- ggplot2::ggplot()
-  out<- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
+  out <- ggplot2::ggplot()
+  out <- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
     out +
       ggplot2::geom_step(data= plot_prob_d,
                          ggplot2::aes(x= time, y= prob, group= state_label, color= state_label),
@@ -1009,17 +1011,16 @@ show_cif <- function(surv_obj,
                          ggplot2::aes(x= time, y= prob, group= state_strata, color= state_strata),
                          linewidth = 1.1, show.legend = add_legend)
   }
-  out<- out +
+  out <- out +
     eval(color_fun) +
     ggplot2::scale_x_continuous(name  = x_lab,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                                 expand= c(0.01, 0.005),
-                                # limits = x_lim,
                                 labels= function(x) scales::comma(x, accuracy = 1)) +
     ggplot2::scale_y_continuous(name  = y_lab,
                                 breaks= if (is.null(y_break)) scales::pretty_breaks(6) else y_break,
                                 expand= c(0.01, 0),
-                                # limits= y_lim,
+                                 limits= y_lim,
                                 labels= function(x) scales::percent(x, accuracy = 1))
 
 
@@ -1172,7 +1173,7 @@ show_cif <- function(surv_obj,
 
 
 
-  out<- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
+  out <- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
 
 
 
