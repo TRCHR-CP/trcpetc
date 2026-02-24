@@ -12,6 +12,7 @@ show_cif(
   add_ci = TRUE,
   add_atrisk = TRUE,
   add_legend = FALSE,
+  legend.position = "top",
   add_pvalue = TRUE,
   atrisk_init_pos = NULL,
   pvalue_pos = c("bottomright", "topleft", "topright", "bottomleft", "left", "right",
@@ -45,9 +46,11 @@ show_cif(
 
 \item{add_legend}{Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).}
 
+\item{legend.position}{Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).}
+
 \item{add_pvalue}{Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).}
 
-\item{atrisk_init_pos}{Character; position of the "At-risk N:" label.}
+\item{atrisk_init_pos}{Numeric; position of the "At-risk N:" label.}
 
 \item{pvalue_pos}{Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).}
 
