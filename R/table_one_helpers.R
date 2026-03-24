@@ -146,7 +146,15 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 #' @keywords internal
 #'
 
-kable_table_one <- function(out,pval,include_Missing,total,print_test,caption,bold_variables,full_width){
+kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_width = TRUE,print_test=FALSE){
+
+  out = tableone$tab
+  pval = tableone$pval
+  include_Missing=tableone$include_Missing
+  total = tableone$total
+
+
+
   indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
     dplyr::mutate(row_number = dplyr::row_number()) %>%
     dplyr::select(dplyr::matches("_n$"),row_number)  %>%
