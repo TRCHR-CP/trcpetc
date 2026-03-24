@@ -141,69 +141,6 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 }
 
 
-#' @title kable_table_one
-#' @description creates a kable table one for rmarkdown reports
-#' @keywords internal
-#'
-
-kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_width = TRUE,print_test=FALSE){
-
-  out = tableone$tab
-  pval = tableone$pval
-  include_Missing=tableone$include_Missing
-  total = tableone$total
-
-
-
-  indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
-    dplyr::mutate(row_number = dplyr::row_number()) %>%
-    dplyr::select(dplyr::matches("_n$"),row_number)  %>%
-    dplyr::filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
-    dplyr::pull(row_number)
-
-
-  first_row <- out %>% utils::head(1)  %>%
-    dplyr::select(dplyr::ends_with("_n"))
-
-  variable_names <- gsub("_n", "", names(first_row))
-  n_columns <- paste0(variable_names, "_n")
-  stat_columns <- paste0(variable_names, "_stat")
-
-  headers <- if(total){
-    paste0(variable_names," (N = ",first_row,")")} else{
-      variable_names
-    }
-
-  out <- out %>%
-    dplyr::mutate(bold = bold_variables) %>%
-    dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE))  %>%
-    dplyr::mutate(var_desp = ifelse(
-      (!seq_along(var_desp) %in% indent) & bold,
-      kableExtra::cell_spec(var_desp, bold = TRUE),
-      var_desp)) %>%
-    dplyr::select(
-      dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
-      dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
-      dplyr::any_of(if (print_test) "test" else NULL)
-    ) %>%
-
-    kableExtra::kbl(caption = caption,
-                    booktabs=TRUE,
-                    escape = FALSE,
-                    align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
-                    col.names = c('Variables', rep(c('N', 'Stat'), length(headers)),
-                                  if (pval & !include_Missing) '*P*-value' else character(0) ,
-                                  if (pval & include_Missing) 'Without missing' else character(0) ,
-                                  if (pval & include_Missing) 'With missing' else character(0) ,
-                                  if (print_test) 'Statistical test' else character(0))) %>%
-    kableExtra::row_spec(row = 0, align = "c") %>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                              full_width = full_width) %>%
-    kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
-    kableExtra::add_indent(indent)
-
-  out
-}
 
 
 # Factor desp -------------------------------------------------------------------------
