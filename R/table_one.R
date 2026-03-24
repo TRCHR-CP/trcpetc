@@ -41,15 +41,11 @@
 #'   }
 #' @param round_to_100 Logical; force rounded total to add up to 100 using the largest remainder method for factor variables.
 #' @param drop.unused.levels Logical; removes factor levels with zero counts. Levels with zero are not included in statistical tests.
-#' @param kable_output Logical; if \code{TRUE}, outputs a formatted \code{kable} table including variable descriptions, N, statistics, and p-values.
-#' @param caption Optional character string for the table caption.
 #' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
 #' @param include_Missing Logical; whether to include missing value counts in the summary. Default is \code{FALSE}.
 #' @param Check_box Optional character vector of variable names from a checkbox-style question. In the output table, these variables will be displayed together as levels of a single item, but each level will be analyzed independently with its own statistical test.
 #' @param Check_box_title Optional character string to identify the checkbox column titles.
 #' @param print_unused Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.
-#' @param bold_variables Logical; whether to bold variable names in the output table. Default is \code{TRUE}.
-#' @param full_width Logical; passed to \code{kableExtra::kable_styling()} to control table width.
 #'
 #' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted \code{kable} table if \code{kable_output = TRUE}.
 #'
@@ -86,9 +82,8 @@
 #'
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
-                      drop.unused.levels = FALSE,
-                      kable_output =TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE,
-                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE, bold_variables = TRUE, full_width = NULL) {
+                      drop.unused.levels = FALSE,overall_label = "Overall",include_Missing = FALSE,
+                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE) {
 
   set.seed(seed)
 
@@ -262,14 +257,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   # Creating a kable table -------------------------------------------------------------------------
 
 
+  list(tab = out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total)
 
-  if(kable_output){
-
-    out <-  kable_table_one(out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total,caption=caption,bold_variables=bold_variables,full_width=full_width)
-
-  }
-
-  out
 
 }
 
