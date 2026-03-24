@@ -18,15 +18,11 @@ table_one(
   continuous = "mediqr",
   round_to_100 = FALSE,
   drop.unused.levels = FALSE,
-  kable_output = TRUE,
-  caption = NULL,
   overall_label = "Overall",
   include_Missing = FALSE,
   Check_box = NULL,
   Check_box_title = NULL,
-  print_unused = FALSE,
-  bold_variables = TRUE,
-  full_width = NULL
+  print_unused = FALSE
 )
 }
 \arguments{
@@ -69,10 +65,6 @@ Must be one of:
 
 \item{drop.unused.levels}{Logical; removes factor levels with zero counts. Levels with zero are not included in statistical tests.}
 
-\item{kable_output}{Logical; if \code{TRUE}, outputs a formatted \code{kable} table including variable descriptions, N, statistics, and p-values.}
-
-\item{caption}{Optional character string for the table caption.}
-
 \item{overall_label}{Character string to label the overall summary column. Default is \code{"Overall"}.}
 
 \item{include_Missing}{Logical; whether to include missing value counts in the summary. Default is \code{FALSE}.}
@@ -82,10 +74,6 @@ Must be one of:
 \item{Check_box_title}{Optional character string to identify the checkbox column titles.}
 
 \item{print_unused}{Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.}
-
-\item{bold_variables}{Logical; whether to bold variable names in the output table. Default is \code{TRUE}.}
-
-\item{full_width}{Logical; passed to \code{kableExtra::kable_styling()} to control table width.}
 }
 \value{
 A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted \code{kable} table if \code{kable_output = TRUE}.
