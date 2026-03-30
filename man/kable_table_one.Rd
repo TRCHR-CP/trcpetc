@@ -8,11 +8,48 @@ kable_table_one(
   tableone,
   caption = NULL,
   bold_variables = TRUE,
-  full_width = TRUE,
-  print_test = FALSE
+  full_width = TRUE
 )
 }
-\description{
-creates a kable table one for rmarkdown reports
+\arguments{
+\item{tableone}{A \code{table_one} object created by the \code{\link{table_one}} function..}
+
+\item{caption}{Optional character string providing a table caption.}
+
+\item{bold_variables}{Logical; if \code{TRUE}, variable names are displayed in bold. Default is \code{TRUE}.}
+
+\item{full_width}{Logical;  Controls whether the output table spans the full page width. Default is \code{TRUE}}
 }
-\keyword{internal}
+\description{
+Produces a report ready \code{kable} table from a \code{\link{table_one}} obj
+}
+\examples{
+library(dplyr)
+Comorbidities  <- cardio_data \%>\% select(Diabetes:NoComorbidities) \%>\% names()
+
+work_d <- cardio_data \%>\%
+ mutate(SurgeryType = factor_order(SurgeryType)) \%>\%
+ check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+
+
+
+demo_table <-  table_one(df = work_d ,
+         group = Sex,
+        datadic = cardio_data_dictionary \%>\%
+           rbind(data.frame("VariableName" = "Comorbidities¹",
+                            "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+        var_name = VariableName,
+         var_desp = Label,
+         include_overall = "all",
+         Check_box = Comorbidities,
+         Check_box_title = "Comorbidities¹")
+
+
+ # Creating a report ready kable output
+ options(knitr.kable.NA = '')
+ kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") \%>\%
+ kableExtra::footnote(
+   general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
+   general_title = "",
+   footnote_as_chunk = TRUE)
+}

@@ -12,7 +12,7 @@
 #' following the statistical reporting guidelines of the \emph{Annals of Medicine}. If a grouping variable is provided,
 #' the function can also evaluate between-group differences. The input data frame should consist only of numeric,
 #' logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
-#' Date and datetime variables should be excluded.
+#' Date and datetime variables should be excluded. Used with \code{\link{kable_table_one}} to output a kable report ready table.
 #'See also \code{\link{check_box_convert}} and \code{\link{factor_order}} for data pre-processing functions.
 #'
 #' @param df A data frame consisting of numeric, logical, and factor variables with or without a grouping variable.
@@ -47,13 +47,11 @@
 #' @param Check_box_title Optional character string to identify the checkbox column titles.
 #' @param print_unused Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.
 #'
-#' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted \code{kable} table if \code{kable_output = TRUE}.
+#' @return A data frame containing summary statistics by variable type, optionally stratified by group.
 #'
 #' @examples
-
-
 #' library(dplyr)
-#'Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+#' Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
 #'
 #'work_d <- cardio_data %>%
 #'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
@@ -61,25 +59,31 @@
 #'
 #'
 #'
-#'table_one(df = work_d ,
+#'demo_table <-  table_one(df = work_d ,
 #'          group = Sex,
-#'          datadic = cardio_data_dictionary %>%
+#'         datadic = cardio_data_dictionary %>%
 #'            rbind(data.frame("VariableName" = "Comorbidities¹",
-#'            "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
-#'          var_name = VariableName,
+#'                             "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+#'         var_name = VariableName,
 #'          var_desp = Label,
-#'          caption =  "Summary table overall and stratified by sex",
 #'          include_overall = "all",
 #'          Check_box = Comorbidities,
-#'          Check_box_title = "Comorbidities¹")%>%
+#'          Check_box_title = "Comorbidities¹")
+#'
+#'
+#'  # Creating a report ready kable output
+#'  options(knitr.kable.NA = '')
+#'  kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") %>%
 #'  kableExtra::footnote(
 #'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
 #'    general_title = "",
 #'    footnote_as_chunk = TRUE)
+#'
 #' @export
 #' @importFrom magrittr %>%
 #' @importFrom data.table :=
-#'
+
+
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,overall_label = "Overall",include_Missing = FALSE,
@@ -201,7 +205,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
   if(!pval) summary$pval = summary$pval.Missing = summary$pval.No.Missing <- NULL
-  if(!print_test ) summary$print_test  <- NULL
+  if(!print_test) summary$test  <- NULL
 
   #Optionally removing the continuous variables
   if(!"meansd" %in% (continuous)) summary <- summary %>% dplyr::filter(!grepl("_meansd$", row_id))
@@ -252,8 +256,6 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
     ))
 
 
-
-
   list(tab = out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total)
 
 
@@ -265,17 +267,52 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
 #' @title kable_table_one
-#' @description creates a kable table one for rmarkdown reports
-#' @keywords internal
+#' @description Produces a report ready \code{kable} table from a \code{\link{table_one}} obj
+#'
+#' @param tableone A \code{table_one} object created by the \code{\link{table_one}} function..
+#' @param caption Optional character string providing a table caption.
+#' @param bold_variables Logical; if \code{TRUE}, variable names are displayed in bold. Default is \code{TRUE}.
+#' @param full_width Logical;  Controls whether the output table spans the full page width. Default is \code{TRUE}
+#'
+#' @examples
+#' library(dplyr)
+#' Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+#'
+#'work_d <- cardio_data %>%
+#'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
+#'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+#'
+#'
+#'
+#'demo_table <-  table_one(df = work_d ,
+#'          group = Sex,
+#'         datadic = cardio_data_dictionary %>%
+#'            rbind(data.frame("VariableName" = "Comorbidities¹",
+#'                             "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+#'         var_name = VariableName,
+#'          var_desp = Label,
+#'          include_overall = "all",
+#'          Check_box = Comorbidities,
+#'          Check_box_title = "Comorbidities¹")
+#'
+#'
+#'  # Creating a report ready kable output
+#'  options(knitr.kable.NA = '')
+#'  kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") %>%
+#'  kableExtra::footnote(
+#'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+#'    general_title = "",
+#'    footnote_as_chunk = TRUE)
+#' @importFrom magrittr %>%
 #' @export
 
-kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_width = TRUE,print_test=FALSE){
+kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_width = TRUE){
 
   out = tableone$tab
   pval = tableone$pval
   include_Missing=tableone$include_Missing
   total = tableone$total
-
+  print_test = tableone$print_test
 
 
   indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%

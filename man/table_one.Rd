@@ -76,7 +76,7 @@ Must be one of:
 \item{print_unused}{Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.}
 }
 \value{
-A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted \code{kable} table if \code{kable_output = TRUE}.
+A data frame containing summary statistics by variable type, optionally stratified by group.
 }
 \description{
 Generates a table of summary statistics for descriptive analysis.
@@ -86,7 +86,7 @@ The \code{table_one} function computes summary statistics for continuous, logica
 following the statistical reporting guidelines of the \emph{Annals of Medicine}. If a grouping variable is provided,
 the function can also evaluate between-group differences. The input data frame should consist only of numeric,
 logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
-Date and datetime variables should be excluded.
+Date and datetime variables should be excluded. Used with \code{\link{kable_table_one}} to output a kable report ready table.
 See also \code{\link{check_box_convert}} and \code{\link{factor_order}} for data pre-processing functions.
 }
 \examples{
@@ -99,19 +99,24 @@ work_d <- cardio_data \%>\%
 
 
 
-table_one(df = work_d ,
+demo_table <-  table_one(df = work_d ,
          group = Sex,
-         datadic = cardio_data_dictionary \%>\%
+        datadic = cardio_data_dictionary \%>\%
            rbind(data.frame("VariableName" = "Comorbidities¹",
-           "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
-         var_name = VariableName,
+                            "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+        var_name = VariableName,
          var_desp = Label,
-         caption =  "Summary table overall and stratified by sex",
          include_overall = "all",
          Check_box = Comorbidities,
-         Check_box_title = "Comorbidities¹")\%>\%
+         Check_box_title = "Comorbidities¹")
+
+
+ # Creating a report ready kable output
+ options(knitr.kable.NA = '')
+ kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") \%>\%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
    general_title = "",
    footnote_as_chunk = TRUE)
+
 }
