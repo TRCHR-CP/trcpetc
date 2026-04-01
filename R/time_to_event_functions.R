@@ -579,6 +579,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #'
 #' @details
 #' This function visualizes survival data using a \code{survfit} object. It supports plotting either the survival curve or the cumulative death function (CDF), with options for axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+#'  Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 #'
 #' @param surv_obj A \code{survfit} object, typically created using survival analysis functions.
 #' @param x_lab Character; label for the x-axis (default = "Time").
@@ -873,6 +874,7 @@ show_surv <- function(surv_obj,
 #' @details
 #' This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
 #' It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+#' Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 #' @param surv_obj  A \code{survfit} object, such as one returned by \code{estimate_cif()}.
 #' @param evt_type Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).
 #' @param evt_label A function to relabel event types for plotting (default uses \code{c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"}).

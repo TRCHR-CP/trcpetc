@@ -86,6 +86,7 @@ Displays either the survival function or the cumulative death function based on 
 }
 \details{
 This function visualizes survival data using a \code{survfit} object. It supports plotting either the survival curve or the cumulative death function (CDF), with options for axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+ Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 }
 \examples{
 

@@ -91,6 +91,7 @@ Displays the cumulative incidence function (CIF) for competing risks data, with 
 \details{
 This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
 It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 }
 \examples{
 
