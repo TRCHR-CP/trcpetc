@@ -19,6 +19,8 @@ kable_table_one(
 \item{bold_variables}{Logical; if \code{TRUE}, variable names are displayed in bold. Default is \code{TRUE}.}
 
 \item{full_width}{Logical;  Controls whether the output table spans the full page width. Default is \code{TRUE}}
+
+\item{...}{Additional arguments for the function kableExtra::kbl; (eg. format = "pandoc" can be used if outputting to word)}
 }
 \description{
 Produces a report ready \code{kable} table from a \code{\link{table_one}} obj

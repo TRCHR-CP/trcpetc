@@ -273,7 +273,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 #' @param caption Optional character string providing a table caption.
 #' @param bold_variables Logical; if \code{TRUE}, variable names are displayed in bold. Default is \code{TRUE}.
 #' @param full_width Logical;  Controls whether the output table spans the full page width. Default is \code{TRUE}
-#'
+#' @param ... Additional arguments for the function kableExtra::kbl; (eg. format = "pandoc" can be used if outputting to word)
+
 #' @examples
 #' library(dplyr)
 #' Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
@@ -355,7 +356,7 @@ kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_w
                                   if (pval & !include_Missing) '*P*-value' else character(0) ,
                                   if (pval & include_Missing) 'Without missing' else character(0) ,
                                   if (pval & include_Missing) 'With missing' else character(0) ,
-                                  if (print_test) 'Statistical test' else character(0))) %>%
+                                  if (print_test) 'Statistical test' else character(0)),...) %>%
     kableExtra::row_spec(row = 0, align = "c") %>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                               full_width = full_width) %>%
