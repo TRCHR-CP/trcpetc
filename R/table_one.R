@@ -342,6 +342,12 @@ kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_w
       (!seq_along(var_desp) %in% indent) & bold,
       kableExtra::cell_spec(var_desp, bold = TRUE),
       var_desp)) %>%
+      dplyr::mutate(
+    dplyr::across(
+      dplyr::any_of(c("pval", "pval.No.Missing", "pval.Missing")),
+      ~ gsub("<", "&lt;", .)
+    )
+  ) %>%
     dplyr::select(
       dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
       dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
@@ -356,7 +362,7 @@ kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_w
                                   if (pval & !include_Missing) '*P*-value' else character(0) ,
                                   if (pval & include_Missing) 'Without missing' else character(0) ,
                                   if (pval & include_Missing) 'With missing' else character(0) ,
-                                  if (print_test) 'Statistical test' else character(0)),...) %>%
+                                  if (print_test) 'Statistical test' else character(0))) %>%
     kableExtra::row_spec(row = 0, align = "c") %>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                               full_width = full_width) %>%
