@@ -8,6 +8,7 @@ show_surv(
   surv_obj,
   x_lab = "Time",
   y_lab = if (plot_cdf) "The proportion of deceased subjects" else "Overall survival",
+  x_lim = NULL,
   y_lim = NULL,
   x_break = NULL,
   y_break = NULL,
@@ -17,6 +18,7 @@ show_surv(
   add_ci = TRUE,
   add_atrisk = TRUE,
   add_legend = FALSE,
+  legend.position = "top",
   add_pvalue = TRUE,
   atrisk_init_pos = NULL,
   pvalue_pos = c("topleft", "topright", "bottomleft", "bottomright", "left", "right",
@@ -36,6 +38,8 @@ show_surv(
 
 \item{y_lab}{Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "Overall survival".}
 
+\item{x_lim}{Numeric vector of length 2 specifying x-axis limits.}
+
 \item{y_lim}{Numeric vector of length 2 specifying y-axis limits.}
 
 \item{x_break}{Numeric vector specifying x-axis tick positions.}
@@ -54,11 +58,13 @@ show_surv(
 
 \item{add_legend}{Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).}
 
+\item{legend.position}{Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).}
+
 \item{add_pvalue}{Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).}
 
-\item{atrisk_init_pos}{Character; position of the "At-risk N:" label.}
+\item{atrisk_init_pos}{Numeric; position of the "At-risk N:" label.}
 
-\item{pvalue_pos}{Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).}
+\item{pvalue_pos}{Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = topleft).}
 
 \item{plot_cdf}{Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).}
 
@@ -80,6 +86,7 @@ Displays either the survival function or the cumulative death function based on 
 }
 \details{
 This function visualizes survival data using a \code{survfit} object. It supports plotting either the survival curve or the cumulative death function (CDF), with options for axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+ Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 }
 \examples{
 

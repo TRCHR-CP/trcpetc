@@ -12,7 +12,7 @@
 #' following the statistical reporting guidelines of the \emph{Annals of Medicine}. If a grouping variable is provided,
 #' the function can also evaluate between-group differences. The input data frame should consist only of numeric,
 #' logical, and factor variables. Factor variables with only two levels should be converted to logical variables.
-#' Date and datetime variables should be excluded.
+#' Date and datetime variables should be excluded. Used with \code{\link{kable_table_one}} to output a kable report ready table.
 #'See also \code{\link{check_box_convert}} and \code{\link{factor_order}} for data pre-processing functions.
 #'
 #' @param df A data frame consisting of numeric, logical, and factor variables with or without a grouping variable.
@@ -41,23 +41,17 @@
 #'   }
 #' @param round_to_100 Logical; force rounded total to add up to 100 using the largest remainder method for factor variables.
 #' @param drop.unused.levels Logical; removes factor levels with zero counts. Levels with zero are not included in statistical tests.
-#' @param kable_output Logical; if \code{TRUE}, outputs a formatted \code{kable} table including variable descriptions, N, statistics, and p-values.
-#' @param caption Optional character string for the table caption.
 #' @param overall_label Character string to label the overall summary column. Default is \code{"Overall"}.
 #' @param include_Missing Logical; whether to include missing value counts in the summary. Default is \code{FALSE}.
 #' @param Check_box Optional character vector of variable names from a checkbox-style question. In the output table, these variables will be displayed together as levels of a single item, but each level will be analyzed independently with its own statistical test.
 #' @param Check_box_title Optional character string to identify the checkbox column titles.
 #' @param print_unused Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.
-#' @param bold_variables Logical; whether to bold variable names in the output table. Default is \code{TRUE}.
-#' @param full_width Logical; passed to \code{kableExtra::kable_styling()} to control table width.
 #'
-#' @return A data frame containing summary statistics by variable type, optionally stratified by group and formatted for reporting, or a formatted \code{kable} table if \code{kable_output = TRUE}.
+#' @return A data frame containing summary statistics by variable type, optionally stratified by group.
 #'
 #' @examples
-
-
 #' library(dplyr)
-#'Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+#' Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
 #'
 #'work_d <- cardio_data %>%
 #'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
@@ -65,30 +59,35 @@
 #'
 #'
 #'
-#'table_one(df = work_d ,
+#'demo_table <-  table_one(df = work_d ,
 #'          group = Sex,
-#'          datadic = cardio_data_dictionary %>%
+#'         datadic = cardio_data_dictionary %>%
 #'            rbind(data.frame("VariableName" = "Comorbidities¹",
-#'            "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
-#'          var_name = VariableName,
+#'                             "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+#'         var_name = VariableName,
 #'          var_desp = Label,
-#'          caption =  "Summary table overall and stratified by sex",
 #'          include_overall = "all",
 #'          Check_box = Comorbidities,
-#'          Check_box_title = "Comorbidities¹")%>%
+#'          Check_box_title = "Comorbidities¹")
+#'
+#'
+#'  # Creating a report ready kable output
+#'  options(knitr.kable.NA = '')
+#'  kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") %>%
 #'  kableExtra::footnote(
 #'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
 #'    general_title = "",
 #'    footnote_as_chunk = TRUE)
+#'
 #' @export
 #' @importFrom magrittr %>%
 #' @importFrom data.table :=
-#'
+
+
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
                       total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
-                      drop.unused.levels = FALSE,
-                      kable_output =TRUE,caption = NULL,overall_label = "Overall",include_Missing = FALSE,
-                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE, bold_variables = TRUE, full_width = NULL) {
+                      drop.unused.levels = FALSE,overall_label = "Overall",include_Missing = FALSE,
+                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE) {
 
   set.seed(seed)
 
@@ -206,7 +205,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
   if(!pval) summary$pval = summary$pval.Missing = summary$pval.No.Missing <- NULL
-  if(!print_test ) summary$print_test  <- NULL
+  if(!print_test) summary$test  <- NULL
 
   #Optionally removing the continuous variables
   if(!"meansd" %in% (continuous)) summary <- summary %>% dplyr::filter(!grepl("_meansd$", row_id))
@@ -257,19 +256,120 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
     ))
 
 
+  list(tab = out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total)
 
-
-  # Creating a kable table -------------------------------------------------------------------------
-
-
-
-  if(kable_output){
-
-    out <-  kable_table_one(out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total,caption=caption,bold_variables=bold_variables,full_width=full_width)
-
-  }
-
-  out
 
 }
+
+
+
+# Kable table one  -------------------------------------------------------------------------
+
+
+#' @title kable_table_one
+#' @description Produces a report ready \code{kable} table from a \code{\link{table_one}} obj
+#'
+#' @param tableone A \code{table_one} object created by the \code{\link{table_one}} function..
+#' @param caption Optional character string providing a table caption.
+#' @param bold_variables Logical; if \code{TRUE}, variable names are displayed in bold. Default is \code{TRUE}.
+#' @param full_width Logical;  Controls whether the output table spans the full page width. Default is \code{TRUE}
+#' @param ... Additional arguments for the function kableExtra::kbl; (eg. format = "pandoc" can be used if outputting to word)
+
+#' @examples
+#' library(dplyr)
+#' Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+#'
+#'work_d <- cardio_data %>%
+#'  mutate(SurgeryType = factor_order(SurgeryType)) %>%
+#'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+#'
+#'
+#'
+#'demo_table <-  table_one(df = work_d ,
+#'          group = Sex,
+#'         datadic = cardio_data_dictionary %>%
+#'            rbind(data.frame("VariableName" = "Comorbidities¹",
+#'                             "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+#'         var_name = VariableName,
+#'          var_desp = Label,
+#'          include_overall = "all",
+#'          Check_box = Comorbidities,
+#'          Check_box_title = "Comorbidities¹")
+#'
+#'
+#'  # Creating a report ready kable output
+#'  options(knitr.kable.NA = '')
+#'  kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") %>%
+#'  kableExtra::footnote(
+#'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+#'    general_title = "",
+#'    footnote_as_chunk = TRUE)
+#' @importFrom magrittr %>%
+#' @export
+
+kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_width = TRUE){
+
+  out = tableone$tab
+  pval = tableone$pval
+  include_Missing=tableone$include_Missing
+  total = tableone$total
+  print_test = tableone$print_test
+
+
+  indent <-  out %>% dplyr::filter(row_id != "Total_N") %>%
+    dplyr::mutate(row_number = dplyr::row_number()) %>%
+    dplyr::select(dplyr::matches("_n$"),row_number)  %>%
+    dplyr::filter(rowSums(is.na(.)) == (ncol(.)-1)) %>%
+    dplyr::pull(row_number)
+
+
+  first_row <- out %>% utils::head(1)  %>%
+    dplyr::select(dplyr::ends_with("_n"))
+
+  variable_names <- gsub("_n", "", names(first_row))
+  n_columns <- paste0(variable_names, "_n")
+  stat_columns <- paste0(variable_names, "_stat")
+
+  headers <- if(total){
+    paste0(variable_names," (N = ",first_row,")")} else{
+      variable_names
+    }
+
+  out <- out %>%
+    dplyr::mutate(bold = bold_variables) %>%
+    dplyr::filter(!(dplyr::row_number() == 1 & total == TRUE))  %>%
+    dplyr::mutate(var_desp = ifelse(
+      (!seq_along(var_desp) %in% indent) & bold,
+      kableExtra::cell_spec(var_desp, bold = TRUE),
+      var_desp)) %>%
+      dplyr::mutate(
+    dplyr::across(
+      dplyr::any_of(c("pval", "pval.No.Missing", "pval.Missing")),
+      ~ gsub("<", "&lt;", .)
+    )
+  ) %>%
+    dplyr::select(
+      dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
+      dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
+      dplyr::any_of(if (print_test) "test" else NULL)
+    ) %>%
+
+    kableExtra::kbl(caption = caption,
+                    booktabs=TRUE,
+                    escape = FALSE,
+                    align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
+                    col.names = c('Variables', rep(c('N', 'Stat'), length(headers)),
+                                  if (pval & !include_Missing) '*P*-value' else character(0) ,
+                                  if (pval & include_Missing) 'Without missing' else character(0) ,
+                                  if (pval & include_Missing) 'With missing' else character(0) ,
+                                  if (print_test) 'Statistical test' else character(0))) %>%
+    kableExtra::row_spec(row = 0, align = "c") %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                              full_width = full_width) %>%
+    kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
+    kableExtra::add_indent(indent)
+
+  out
+}
+
 

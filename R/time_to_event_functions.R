@@ -579,11 +579,13 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #'
 #' @details
 #' This function visualizes survival data using a \code{survfit} object. It supports plotting either the survival curve or the cumulative death function (CDF), with options for axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+#'  Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 #'
 #' @param surv_obj A \code{survfit} object, typically created using survival analysis functions.
 #' @param x_lab Character; label for the x-axis (default = "Time").
 #' @param y_lab Character; label for the y-axis. If \code{plot_cdf = TRUE}, defaults to "The proportion of deceased subjects"; otherwise, "Overall survival".
 #' @param y_lim Numeric vector of length 2 specifying y-axis limits.
+#' @param x_lim Numeric vector of length 2 specifying x-axis limits.
 #' @param x_break Numeric vector specifying x-axis tick positions.
 #' @param y_break Numeric vector specifying y-axis tick positions.
 #' @param color_scheme Character; color scheme to use. Options: "brewer", "grey", "viridis", "manual" (default = "brewer").
@@ -592,9 +594,10 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 #' @param add_ci Logical; if \code{TRUE}, adds confidence intervals to the survival curves (default = TRUE).
 #' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
 #' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
+#' @param legend.position Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).
 #' @param add_pvalue Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).
-#' @param atrisk_init_pos Character; position of the "At-risk N:" label.
-#' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
+#' @param atrisk_init_pos Numeric; position of the "At-risk N:" label.
+#' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = topleft).
 #' @param plot_cdf Logical; if \code{TRUE}, plots the cumulative death function instead of the survival curve (default = FALSE).
 #' @param top.margin Numeric; top margin space for the at-risk table (default = 18).
 #' @param right.margin Numeric; right margin space for the at-risk table (default = 18).
@@ -633,7 +636,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
 show_surv <- function(surv_obj,
                       x_lab= 'Time',
                       y_lab= if (plot_cdf) 'The proportion of deceased subjects' else 'Overall survival',
-                      # x_lim= NULL,
+                      x_lim= NULL,
                       y_lim= NULL,
                       x_break= NULL,
                       y_break= NULL,
@@ -644,6 +647,7 @@ show_surv <- function(surv_obj,
                       add_ci= TRUE,
                       add_atrisk= TRUE,
                       add_legend= FALSE,
+                      legend.position = "top",
                       add_pvalue= TRUE,
                       atrisk_init_pos= NULL,
                       pvalue_pos= c("topleft", "topright", "bottomleft", "bottomright", "left", "right", "top", "bottom"),
@@ -713,6 +717,7 @@ show_surv <- function(surv_obj,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                                 expand= c(0.01, 0.005),
                                 labels= function(x) scales::comma(x, accuracy = 1))
+
 
   if (add_ci) {
     plot_ci_d <- surv_mat %>%
@@ -855,8 +860,8 @@ show_surv <- function(surv_obj,
                                     space = -space)  + ggplot2::theme(plot.margin= grid::unit(c(top = top.margin, right = right.margin, bottom = bottom.margin, left= left.margin), "bigpts"))
 
 
-  out <- if (!is.null(y_lim)) out + ggplot2::coord_cartesian(ylim = y_lim, clip = "off") else  out + ggplot2::coord_cartesian(clip = "off")
-
+  out <- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
+  if(add_legend) out <- out  + ggplot2::theme(legend.position = legend.position)
 
   return(out)
 }
@@ -869,6 +874,7 @@ show_surv <- function(surv_obj,
 #' @details
 #' This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
 #' It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+#' Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 #' @param surv_obj  A \code{survfit} object, such as one returned by \code{estimate_cif()}.
 #' @param evt_type Integer or vector of integers; the event type(s) of interest to be plotted (default = 1).
 #' @param evt_label A function to relabel event types for plotting (default uses \code{c('0' = "Event free",'1' = "Event",'2'="Competing",'3' = "Second Competing"}).
@@ -876,8 +882,9 @@ show_surv <- function(surv_obj,
 #' @param add_atrisk Logical; if \code{TRUE}, adds an at-risk table below the plot (default = TRUE).
 #' @param add_legend Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).
 #' @param add_pvalue Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).
-#' @param atrisk_init_pos Character; position of the "At-risk N:" label.
+#' @param atrisk_init_pos Numeric; position of the "At-risk N:" label.
 #' @param pvalue_pos Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).
+#' @param legend.position Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).
 #' @param plot_theme A \code{ggplot2} theme object to customize the appearance of the plot (default = \code{ggplot2::theme_minimal()}).
 #' @param x_lab Character; label for the x-axis (default = "Time").
 #' @param y_lab Character; label for the y-axis (default = "Proportion of subjects").
@@ -934,10 +941,10 @@ show_cif <- function(surv_obj,
                      add_ci= TRUE,
                      add_atrisk= TRUE,
                      add_legend= FALSE,
+                     legend.position = "top",
                      add_pvalue= TRUE,
                      atrisk_init_pos= NULL,
                      pvalue_pos= c("bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom"),
-
                      plot_theme= ggplot2::theme_minimal(),
                      x_lab= 'Time',
                      y_lab= 'Proportion of subjects',
@@ -957,8 +964,8 @@ show_cif <- function(surv_obj,
 
 
   #---- prepare survfit for plot ----
-  cmprisk_mat<- prepare_survfit(surv_obj)
-  cmprisk_mat<- cmprisk_mat %>%
+  cmprisk_mat <- prepare_survfit(surv_obj)
+  cmprisk_mat <- cmprisk_mat %>%
     dplyr::filter(state %in% evt_type) %>%
     dplyr::mutate(state_label = dplyr::recode(state, !!!evt_label),
                   state_label = forcats::fct_drop(state_label),
@@ -992,8 +999,8 @@ show_cif <- function(surv_obj,
   # x_break<- if (is.null(x_break)) scales::pretty_breaks(6) else x_break
   # y_break<- if (is.null(y_break)) scales::pretty_breaks(6) else y_break
 
-  out<- ggplot2::ggplot()
-  out<- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
+  out <- ggplot2::ggplot()
+  out <- if (nlevels(plot_prob_d$strata)==1 & nlevels(plot_prob_d$state)>1) {
     out +
       ggplot2::geom_step(data= plot_prob_d,
                          ggplot2::aes(x= time, y= prob, group= state_label, color= state_label),
@@ -1009,17 +1016,16 @@ show_cif <- function(surv_obj,
                          ggplot2::aes(x= time, y= prob, group= state_strata, color= state_strata),
                          linewidth = 1.1, show.legend = add_legend)
   }
-  out<- out +
+  out <- out +
     eval(color_fun) +
     ggplot2::scale_x_continuous(name  = x_lab,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                                 expand= c(0.01, 0.005),
-                                # limits = x_lim,
                                 labels= function(x) scales::comma(x, accuracy = 1)) +
     ggplot2::scale_y_continuous(name  = y_lab,
                                 breaks= if (is.null(y_break)) scales::pretty_breaks(6) else y_break,
                                 expand= c(0.01, 0),
-                                # limits= y_lim,
+                                 limits= y_lim,
                                 labels= function(x) scales::percent(x, accuracy = 1))
 
 
@@ -1172,8 +1178,8 @@ show_cif <- function(surv_obj,
 
 
 
-  out<- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
-
+  out <- if (!is.null(x_lim) | !is.null(y_lim)) out + ggplot2::coord_cartesian(xlim= x_lim, ylim = y_lim, clip = "off") else out + ggplot2::coord_cartesian(clip = "off")
+  if(add_legend) out <- out  + ggplot2::theme(legend.position = legend.position)
 
 
    return(out)
@@ -1224,7 +1230,7 @@ show_cif <- function(surv_obj,
 #'
 #'
 #' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
-#'patid = PatientID,
+#' patid = PatientID,
 #' idx_dt = SurgeryDate,
 #' evt_dt = TransplantDate,
 #' end_dt = LastVisitDate,

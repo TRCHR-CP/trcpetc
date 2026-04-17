@@ -12,6 +12,7 @@ show_cif(
   add_ci = TRUE,
   add_atrisk = TRUE,
   add_legend = FALSE,
+  legend.position = "top",
   add_pvalue = TRUE,
   atrisk_init_pos = NULL,
   pvalue_pos = c("bottomright", "topleft", "topright", "bottomleft", "left", "right",
@@ -45,9 +46,11 @@ show_cif(
 
 \item{add_legend}{Logical; if \code{TRUE}, includes a legend in the plot (default = FALSE).}
 
+\item{legend.position}{Character; position of the "legend:" label. Options include "left", "right", "top", "bottom" (default = top).}
+
 \item{add_pvalue}{Logical; if \code{TRUE}, adds a p-value to the plot (default = TRUE).}
 
-\item{atrisk_init_pos}{Character; position of the "At-risk N:" label.}
+\item{atrisk_init_pos}{Numeric; position of the "At-risk N:" label.}
 
 \item{pvalue_pos}{Character vector indicating where to place the p-value on the plot. Options include "bottomright", "topleft", "topright", "bottomleft", "left", "right", "top", "bottom" (default = all).}
 
@@ -88,6 +91,7 @@ Displays the cumulative incidence function (CIF) for competing risks data, with 
 \details{
 This function visualizes the cumulative incidence of events in the presence of competing risks using a \code{survfit} object.
 It supports customization of axis labels, plot limits, confidence intervals, legends, p-values, and at-risk tables.
+Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, and units = "in". These dimensions are the default with the trcptemplate or can be saved with tiff(file = "myplot.tiff", width = 6.5, height = 5, units = "in", res = 300)
 }
 \examples{
 
