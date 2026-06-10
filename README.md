@@ -2,7 +2,11 @@ Welcome to trcpetc!
 
 
 
-To install onto R use remotes::install\_github('TRCHR-CP/trcpetc')
+To install onto R use 
+
+
+
+remotes::install\_github('TRCHR-CP/trcpetc',build\_vignettes = TRUE)
 
 
 
@@ -12,21 +16,17 @@ To read the vignette, use
 
 
 
-browseVignettes("trcpetc")
-
-
-
-Please clone (or pull) repository to your local drive, make changes, and push, if needed)
+vignette('trcpetc-intro',package='trcpetc')
 
 
 
 
 
-If you update package, use 
+Please clone (or pull) repository to your local drive, make changes, and push, if needed. If you update package, use
 
 devtools::check()
 
-and also 
+and also
 
 devtools::build\_vignette()
 
