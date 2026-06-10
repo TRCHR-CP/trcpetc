@@ -1,0 +1,641 @@
+---
+title: "trcpetc R package introduction"
+author: 
+    - "TRCP team, UHN"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{trcpetc R package introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r setup, include=FALSE}
+library(trcpetc)
+library(knitr)
+library(kableExtra)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, cache = FALSE, echo = FALSE}
+# Here we should load the data
+data(cardio_data)
+```
+
+
+# Welcome to trcpetc
+
+This vignette is designed to help you get acquainted with the new functionality introduced in the `trcpetc` package, which is an update to the previously used `fanetc` package.
+
+In addition to new functionality, the package includes a sample dataset called `cardio_data`, along with a corresponding data dictionary named `cardio_data_dictionary`. All examples in this vignette use this dataset as a consistent reference point.
+
+This package begins by describing how to install the package and reviewing common possible errors you may find. Then there are some working examples of the main package features. Then, there is a comprehensive summary of all updates and changes. Following is the comments section where I have added some general comments on the package and would appreciate feedback. And lastly are the planned continued updates.
+
+This vignette begins by explaining how to install the package and outlines common setup errors you might encounter. It then provides practical examples showcasing the package’s main features, followed by a summary of recent updates and changes. In the comments section, I’ve included general observations and questions about the package and would appreciate your feedback and insights. Finally, the vignette concludes with a list of planned updates that are currently in development but not yet included in this version of trcpetc.
+
+# Instalation
+You can install trcpetc directly from github using the code `remotes::install_github('TRCHR-CP/trcpetc')`
+
+# setup Errors
+   - Newer versions of dplyr, and other packages are required for trcpetc to work. The package will likely not work on older docker containers and has only been reviewed in the container with R version 4.5.1 .
+   - After installing the package on docker, loading the package, and running the table_one() function I got an error “lazy-load database ‘/usr/local/lib/R/site-library/trcpetc/R/trcpetc.rdb’ is corrupt”.
+      - I was able to resolve this by restarting the r session and loading the package again.
+
+# Descriptive tables
+
+## Pre-processing
+
+  - Before using `table_one()`, there are now two functions available for pre-processing data, allowing you to display it in a way that may be more interpretable in the final table.
+
+  - These include the functions `factor_order()` and `check_box_convert()`
+
+### `factor_order()`
+
+```{r cars}
+# Without factor_order
+t1 <- cardio_data %>% select(SurgeryType) %>% table_one()
+kable_table_one(t1)
+
+```
+
+```{r }
+# With factor_order
+t1 <- cardio_data %>% 
+  mutate(SurgeryType = factor_order(SurgeryType)) %>% select(SurgeryType) %>% table_one()
+kable_table_one(t1)
+
+```
+
+### `check_box_convert()`
+  - This function is used to format columns that are part of a single “check box” question.
+
+  - It accepts a list of column names (check_box_cols) as input. These columns must contain either logical (TRUE/FALSE) values or binary indicators (0/1).
+
+  - The function converts these columns to logical format and assumes that if none of the options are selected (i.e., all values are FALSE or 0), then all should be treated as missing (NA).
+
+  - The optional title argument allows you to create a new column that serves as a header for the checkbox group. This column will be TRUE for rows with at least one selected option and NA otherwise.
+
+  - In the table_one() function, this information can be incorporated using the check_box argument for the column names and check_box_title for the title names. This ensures proper formatting and allows multiple checkbox groups and titles to be included.
+
+  - I recommend adding a footnote to clarify that percentages may not sum to 100%, as respondents can select multiple options.
+
+  - See example below with and without applying `check_box_convert()`, and an example with multiple check box questions
+
+```{r }
+# List of Comorbidities columns 
+
+Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+
+## Without checkbox question (Assuming missing all questions is FALSE)
+t1 <- cardio_data %>% select(Comorbidities) %>% 
+   table_one()
+kable_table_one(t1)
+```
+
+```{r }
+# Example with one checkbox question (Assumes missing all questions is missing)
+
+t1 <- cardio_data %>% select(Comorbidities) %>% 
+  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>% 
+  table_one(Check_box = Comorbidities,
+            Check_box_title = "Comorbidities¹") 
+kable_table_one(t1) %>%
+  kableExtra::footnote(
+    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+    general_title = "",
+    footnote_as_chunk = TRUE
+  ) 
+
+```
+
+```{r }
+## Example with two different checkbox questions
+Comorbidities1  <- cardio_data %>% select(Diabetes:COPD) %>% names()
+Comorbidities2  <- cardio_data %>% select(CKD:CAD) %>% names()
+
+t1 <- cardio_data %>% select(Comorbidities1,Comorbidities2) %>% 
+  check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  %>% 
+  check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  %>% 
+  table_one(Check_box = Comorbidities,
+            Check_box_title = c("Comorbidities1¹","Comorbidities2¹"))
+
+kable_table_one(t1) %>%
+  kableExtra::footnote(
+    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+    general_title = "",
+    footnote_as_chunk = TRUE
+  ) 
+
+```
+
+## `table_one()` and `kable_table_one()`
+  - Use `table_one()` function first to create a list containing the results.
+  - `kable_table_one` will create a clean report-ready kable table.
+
+```{r }
+Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+
+work_d <- cardio_data %>% 
+  mutate(SurgeryType = factor_order(SurgeryType)) %>% 
+  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹") 
+
+
+
+t1 <- table_one(df = work_d , 
+                group = Sex,  
+                datadic = cardio_data_dictionary %>% 
+                  rbind(data.frame("VariableName" = "Comorbidities¹", "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
+                var_name = VariableName, 
+                var_desp = Label,
+                # caption =  "Summary table overall and stratified by sex",
+                include_overall = "all",
+                Check_box = Comorbidities,
+                Check_box_title = "Comorbidities¹") 
+
+kable_table_one(t1, caption = "Summary table overall and stratified by sex") %>%
+  kableExtra::footnote(
+    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
+    general_title = "",
+    footnote_as_chunk = TRUE) 
+
+```
+
+# Descriptive Survival functions
+
+## `construct_surv_cmprisk_var()`
+  - The previous fanetc functions `construct_surv_var()` and `construct_cmprisk_var()` have been combined into a single function for creating survival and CIF datasets.
+
+  - You can specify the time units as “days” (default), “weeks”, “months”, or “years”.
+
+  - Administrative censoring can also be included with the adm_cnr_time argument and does not require an additional function.
+
+  - The function assumes CIF data when a competing event is included, but this can be overridden using the cmprisk argument.
+
+```{r}
+## For survival
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                           patid = PatientID,
+                           idx_dt = SurgeryDate,
+                           evt_dt = DeathDate,
+                           end_dt = LastVisitDate,
+                           append = TRUE,
+                           units = "months",
+                           adm_cnr_time = 24)
+
+# For competing risks
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                           patid = PatientID,
+                           idx_dt = SurgeryDate,
+                           evt_dt = TransplantDate,
+                           end_dt = LastVisitDate,
+                           death_dt = DeathDate,
+                           append = TRUE,
+                           units = "months",
+                           adm_cnr_time = 24)
+
+```
+
+## `estimate_cif_km`
+
+  - The previous fanetc functions `estimate_km()` and `estimate_cif()` have been combined into a single function for estimating KM and CIF.
+  - When evt is a numeric column, it will produce the KM estimates.
+  - When evt is a factor it will produce CIF estimates.
+  
+```{r}
+## For survival
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                           patid = PatientID,
+                           idx_dt = SurgeryDate,
+                           evt_dt = DeathDate,
+                           end_dt = LastVisitDate,
+                           append = TRUE,
+                           units = "months",
+                           adm_cnr_time = 24)
+
+KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time) 
+KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex) 
+
+
+
+# For competing risks
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                           patid = PatientID,
+                           idx_dt = SurgeryDate,
+                           evt_dt = TransplantDate,
+                           end_dt = LastVisitDate,
+                           death_dt = DeathDate,
+                           append = TRUE,
+                           units = "months",
+                           adm_cnr_time = 24)
+
+CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time) 
+CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex) 
+```
+
+## `summarize_km()`
+
+  - This function will produce a clean report-ready kable table displaying the results from the KM model.
+
+```{r, fig.width=6, fig.height=6}
+## Example without a covariate
+## to show proportion of deceased patients, you can set failure_fun = TRUE
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                           patid = PatientID,
+                           idx_dt = SurgeryDate,
+                           evt_dt = DeathDate,
+                           end_dt = LastVisitDate,
+                           append = TRUE,
+                           units = "months",
+                           adm_cnr_time = 24)
+
+KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time) 
+summarize_km(KM, failure_fun = FALSE, times = seq(0, 24, by = 3), overall_label = "All patients",time_lab = "Time since surgery (months)",caption = "Overall Survival for all patients")
+
+
+```
+
+```{r}
+## Example with a covariate
+## to show proportion of deceased patients, you can set failure_fun = TRUE
+KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex) 
+summarize_km(KM_Sex, failure_fun = FALSE, times = seq(0, 24, by = 3), overall_label = "All patients",time_lab = "Time since surgery (months)",caption = "Overall Survival by sex")
+
+
+
+```
+
+## `summarize_cif()`
+  - This function will produce a clean report-ready kable table displaying the results from the CIF model.
+  - The argument evt_type is used to specify which events to report.
+  - The argument evt_label is used to specify the column names for each event type.
+  
+  
+  
+```{r}
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                           patid = PatientID,
+                           idx_dt = SurgeryDate,
+                           evt_dt = TransplantDate,
+                           end_dt = LastVisitDate,
+                           death_dt = DeathDate,
+                           append = TRUE,
+                           units = "months",
+                           adm_cnr_time = 24)
+
+CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time) 
+
+## Presenting one event for all patients 
+  summarize_cif(CIF,times = seq(0, 24, by = 3), time_lab = "Time since surgery (months)",evt_type = 1,caption = "Time to transplant for all patients",
+  evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+  
+```
+
+```{r}
+## Presenting all events for all patients 
+    summarize_cif(CIF, times = seq(0, 24, by = 3), time_lab = "Time since surgery (months)", caption = "Time to transplant for all patients",
+  evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+
+```
+
+```{r}
+CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex) 
+
+## Presenting only the events by a covariate
+
+  summarize_cif(CIF_Sex, times = seq(0, 24, by = 3), time_lab = "Time since surgery (months)",evt_type = 1,caption = "Time to transplant by sex",
+  evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+
+```
+
+```{r}
+## Presenting all events by a covariate 
+
+
+  summarize_cif(CIF_Sex, times = seq(0, 24, by = 3), time_lab = "Time since surgery (months)",caption = "Time to transplant by sex",
+ evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+
+
+```
+
+## `show_surv`
+
+  - The show_surv() and show_cif() function will print the number at risk table just by adding the function grid.draw()
+
+```{r, fig.width=6, fig.height=6}
+## All patients 
+survival_data <-  construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                             evt_dt = DeathDate,
+                                            end_dt = LastVisitDate,
+                                             append = TRUE,
+                                             units = "months",
+                                            adm_cnr_time = 24)
+
+ KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+ show_surv(KM, pvalue_pos = "bottomleft",add_legend = TRUE,x_break = seq(0,24,by=3),atrisk_init_pos = -0.15,
+           x_lab = "Time since surgery (months)") 
+ 
+```
+
+
+```{r, fig.width=6, fig.height=6}
+## Stratified by a covariate
+ KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+ show_surv(KM_Sex,pvalue_pos = "bottomleft",add_legend = TRUE,x_break = seq(0,24,by=3),atrisk_init_pos = -0.15,
+           x_lab = "Time since surgery (months)") 
+```
+
+## `show_cif()`
+```{r, fig.width=6, fig.height=6}
+## Showing all events for all patients 
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                            evt_dt = TransplantDate,
+                                            end_dt = LastVisitDate,
+                                            death_dt = DeathDate,
+                                            append = TRUE,
+                                            units = "months",
+                                            adm_cnr_time = 24)
+
+ CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+
+  show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
+           evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"),
+           x_lab = "Time since surgery (months)",
+           color_scheme = "manual",
+           color_list = list(values= c("#33A02C", "#377EB8", "#E41A1C"))) +
+  guides(
+    fill  = "none",                 # ❌ remove duplicate legend
+    color = guide_legend(title = NULL)  # ❌ remove "state" title
+  ) +
+theme(
+  legend.position = "right"
+)
+  
+```
+
+```{r, fig.width=6, fig.height=6}
+## Including a covariate and stratified by a covariate
+ CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+
+show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
+         evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"),
+         x_lab = "Time since surgery (months)")
+
+
+```
+
+## `median_time_to_event()`
+
+  - Computes the time to reach a specified cumulative incidence probability
+  - Can be used for the median or other specified probabilities
+
+```{r, fig.width=6, fig.height=6}
+## Showing all events 
+cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
+                                            patid = PatientID,
+                                            idx_dt = SurgeryDate,
+                                            evt_dt = TransplantDate,
+                                            end_dt = LastVisitDate,
+                                            death_dt = DeathDate,
+                                            append = TRUE,
+                                            units = "months",
+                                            adm_cnr_time = 24)
+
+ CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+
+median_time_to_event(survfitms_obj = CIF, target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+
+```
+
+
+```{r}
+CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+ median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Male", target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+```
+
+```{r}
+median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+```
+
+
+# Full summary of updates
+
+## General Package updates
+  - Removed all Imports from the package namespace.
+   - This follows best practices for R package development, ensuring that loading your package does not automatically attach other packages.
+   - In the source code, all external functions are now explicitly referenced using their namespace (e.g., `dplyr::filter()`).
+   - You will notice this if you run a new R session and compare the messages when running library(fanetc) and library(trcpetc)
+  -Updated exported functions
+   - Only the necessary functions are now exported by the package.
+   - Internal functions remain accessible using the triple-colon operator (e.g., trcpetc:::run_logrank_test()).
+  - Updated help files with examples.
+
+
+## New and removed functions
+
+**Combined functions**
+
+  - `construct_surv_cmprisk_var()`
+    - A combination of `construct_cmprisk_var()` and `construct_surv_var()`
+  - `estimate_cif_km()`
+    - A combination of estimate_cif and estimate_km
+   
+**New functions** 
+
+  - `check_box_convert()`
+    - Converts checkbox-style variables into logical format for inclusion in a Table 1
+  - `factor_order()`
+    - Orders a factor variable by descending frequency
+  - `median_time_to_event()`
+    - Used for calculating the median time to event from the CIF function. Also can compute the time to reach any specified cumulative incidence probability.
+
+**New internal functions**
+
+  - `exact_round_100()`
+    - Used in table_one to round percentages to exactly 100%
+  - `table_one_overall()`
+    - Creates a table_one for all patients which can be combined with a stratified table 
+  - `table_one_stratify()`
+    - Creates a stratified table_one which can be combined with an overall table
+  - `kable_table_one()`
+    - Produces a kable version of table_one
+  - titles_non_missing()
+    - Used for creating variable titles for check_box questions
+
+**Removed functions**
+
+  - `admin_censor_cmprisk()`
+    - Incorporated into `construct_surv_cmprisk_var`
+  - `admin_censor_surv()`
+    - Incorporated into construct_surv_cmprisk_var -`factor_dist()`
+    - Believe this function is a previous version of `factor_desc()`
+
+## All exteral functions in fanetc
+
+**calculate_type3_mi()**
+
+  - No changes
+  
+**check_box_convert()**
+
+  - A new function
+  - Converts checkbox-style variables into logical format for inclusion in a Table 1
+ 
+**construct_surv_cmprisk_var()**
+
+  - Combines construct_cmprisk_var() and construct_surv_var() to a single function.
+  - When a competing event date is included as an argument the function will construct variables for competing risk data, otherwise will construct variables for survival risk data.
+  - Alternatively, the argument cmprisk can be specified as TRUE to construct variables for competing risk data or FALSE to construct variables for survival data
+  - The argument units can be used to specify the units of time. Accepted values are: “days”, “weeks”, “months”, or “years”.
+  - Where weeks are days/7, months are days/30.44 and years are days/365.25
+  - The argument adm_cnr_time is used to administrative censor data at a specificed time point.
+    - The functions admin_censor_surv() and admin_censor_cmprisk() are no longer required.
+  - Updated the survival and competing risk data to be consistent, where the censoring date is only used when event dates are missing.
+    - When events or competing events happen after the censoring date they are used as the event time.
+
+**estimate_cif_km()**
+
+  - Combines estimate_cif() and estimate_km() to a single function.
+  - Use the evt column to decide which type of estimate to run.
+  - For survival data: a numeric event indicator (1 = event occurred, 0 = censored).
+  - For competing risks data: a factor event indicator (0 = censored, 1 = Event 1, 2 = Event 2, …)
+  - Uses the same default confidence intervals as estimate_km()and estimate_cif()
+    - For KM uses log-log confidence intervals.
+    - For CIF uses log confidence intervals.
+
+**factor_order()**
+
+  - A new function
+  - Orders a factor variable by descending frequency
+
+**format_pvalue()**
+
+  - No changes
+
+**generate_mi_glm_termplot_df()**
+
+  - No changes
+
+**show_cif**
+
+  - The function will output a CIF curve with a number at risk table without the need for any work arounds
+  - The additional arguments top.margin, right.margin, bottom.margin, and left.margin are required to create the margins for the number at risk table
+  - Updated bug, so the argument add_legend will display a legend
+  - The argument evt_labels has been updated to be more user friendly and no longer requires a function.
+  - The argument “space” was included to define the amount of space between groups in a stratified number-at-risk table
+
+**show_surv()**
+
+  - The function will output a KM curve with a number at risk table without the need for any work arounds
+  - The additional arguments top.margin, right.margin, bottom.margin, and left.margin are required to create the margins for the number at risk table
+  - The argument “space” was included to define the amount of space between groups in a stratified number-at-risk table
+  - The default y-axis has been changed from “The freedom from death” to “Overall survival”
+
+**summarize_cif()** 
+
+  - Updated to format results as a clean kable table, when the argument kable_output = TRUE (default).
+    - Additional arguments for the kable table include:
+      - Caption; includes a caption with the table
+      - full_width; to control table width.
+      - time_lab; a label for the time column (eg. Time since surgery (Years))
+      - overall_label; When there is no stratifying group and only one event type is displayed a label for the probabilities column.
+  - The argument evt_type is used to specify which type of events to include.
+  - The evt_label argument is used to label the specific event types. The defaults are evt_label = c(‘0’ = “Event free”, ‘1’ = “Transplant”, ‘2’= “Death”)
+  - Updated a bug when confidence intervals are displayed as NA%, NA%
+    - 0.0% [NA%, NA%] will now be displayed as 0.0% [0.0%, 0.0%]
+
+**summarize_coxph()**
+
+  - No changes
+
+**summarize_km()**
+
+  - Updated to format results as a clean kable table, when the argument kable_output = TRUE (default).
+    - Additional arguments for the kable table include:
+      - Caption; includes a caption with the table
+      - full_width; to control table width.
+      - time_lab; a label for the time column (eg. Time since surgery (Years))
+      - overall_label; When there is no stratifying group a label for the probabilities column.
+
+**summarize_mi_coxph()**
+
+  - No changes
+
+**summarize_mi_glm()**
+
+  - No changes
+  
+**table_one()**
+
+  - Additional arguments: 
+    - overall_label: A label for the summary of all patients 
+  - Option to display overall summaries alongside group summaries
+  - Can show overall summaries for all patients or only those with non-missing values for the grouping variable by specifying the argument include_overall as one of: “none”, “group”, or “all”
+  - Option to produce the total N for each column with the argument total
+  - Option to suppress p-values with the argument pval = FALSE
+  - Option to print the statistical test performed with print_test = TRUE
+  - Option to specify which summary statistic to produce for continuous variables, can be either “mediqr” and/or “meadsd”
+  - Option to force percentages to equal 100% when rounded with round_to_100 = TRUE
+  - Option to drop unused levels, will exclude variable levels with none in them using drop.unused.levels = TRUE
+  - Option to add a column with the missing in a grouped variable using include_Missing = TRUE
+  - Option to format checkbox questions and display a title using Check_box and Check_box_title
+  - Option to print the variables not included in the summary table with print_unused = TRUE
+  - Sets a random seed to ensure reproducible p-values using seed = 123
+
+**kable_table_one()**
+
+  - Ability to output a clean, report-ready kable table.
+  - Additional arguments for the kable table include: 
+    - caption: Includes a caption with the table 
+    - full_width: Controls table width
+    - bold_variables: Option to bold all variables
+
+**updateWorksheet()**
+
+  - No changes
+
+## Comments
+
+  - The current bug from summarize_mi_glm() where p-values are not displayed for factor variables with 2 levels comes from the fact that this type of data does not produce the individual p-values for each factor levels and only the overall p-value. This is inconsistent with how p-values are displayed for summarize_coxph() and summarize_mi_coxph() Would appreciate input on everyone’s preference for p-values with factor variables and I will update all three functions the same way. Unless there is a reason to have different outputs for each function.
+
+  - To be consistent with fanetc the default confidence intervals for Kaplan-Meier survival is using log-log transformed confidence intervals and for CIF using log transformed confidence intervals. Is this how we would like to keep it?
+
+  - The function `factor_dist()` is not used by any of the other functions and is currently removed from the package. I believe it was an internal function that was changed to be `factor_desp()`. If anyone is using this function I can add it back in
+
+  - P-values for factor variables and logical variables are calculated in slightly different ways.
+
+  - Both types of variables use Fisher’s Exact Test.
+
+    - For 2×2 tables, results will be consistent because hybrid and simulate.p.value options only apply to tables larger than 2×2.
+    - For tables larger than 2×2:
+
+      - Factor variables: Always use simulate.p.value = TRUE with 9,999 replicates and hybrid = TRUE.
+      
+  - Logical variables:
+
+    - First attempt an exact test.
+    - If that fails, fallback to simulation with 5,000 replicates.
+    - hybrid = TRUE is used for multi-group comparisons.
+
+  - I’m not certain whether these differences have a meaningful impact on results, or if one approach is definitively better. I am open to suggestions here.
+
+  - I am unsure how the function updateWorksheet() is utilized and have no planned updates.
+  
+## Planned upcoming updated
+
+  - Option to produce a table_one with paired data
+  - Update the `summarize_mi_glm()`, `summarize_mi_coxph()`, and `summarize_coxph()` have cleaner labels and be kable ready
+    - Appreciate input on how you like to present your summary tables
+    - Once updated, included examples and updated documentation
+
+
+
+
+
