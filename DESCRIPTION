@@ -2,10 +2,9 @@ Type: Package
 Package: trcpetc
 Title: Descriptive table
 Version: 0.1.0
-Author: Chun-Po Steve Fan
+Author: Original version by Chun-Po Steve Fan
 Maintainer: Jessica Weiss <jessica.weiss@uhn.ca>
-Description: Miscellaneous functions that Steve wrote to facilitate TRCP
-    data analysis project.
+Description: Miscellaneous functions to facilitate data analysis projects.
 License: What license is it under?
 Depends: 
     R (>= 3.5)
@@ -30,6 +29,10 @@ Imports:
     mice,
     tibble,
     viridis
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
