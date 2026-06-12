@@ -307,7 +307,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 #' @importFrom magrittr %>%
 #' @export
 
-kable_table_one <- function(tableone,caption = NULL,bold_variables = TRUE,full_width = TRUE){
+kable_table_one <- function(tableone,caption = "", bold_variables = TRUE,full_width = TRUE){
 
   out = tableone$tab
   pval = tableone$pval
