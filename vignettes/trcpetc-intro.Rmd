@@ -175,11 +175,28 @@ kable_table_one(t1, caption = "Summary table overall and stratified by sex") %>%
 
 ```
 
-By default, a grouped `table_one()` reports standardized mean differences (SMDs) rather than p-values. Use `stat_test = "pval"` for p-values or `stat_test = "none"` to omit between-group statistics. SMDs follow the unweighted `tableone` implementation: continuous and logical variables use absolute pairwise mean differences standardized by the average within-group variance, while factors use generalized Mahalanobis distances between multinomial proportion vectors. With more than two groups, pairwise SMDs are averaged.
+By default, a grouped `table_one()` reports standardized mean differences
+(SMDs) rather than p-values. Use `stat_test = "pval"` for p-values or
+`stat_test = "none"` to omit between-group statistics.
 
 ### Methods when SMDs are reported
 
-When a grouping variable is supplied, standardized mean differences are reported by default. For continuous variables, the SMD is the absolute difference between group means divided by the square root of the average within-group variances. For logical variables, the group mean is the proportion of TRUE observations and the Bernoulli variance, $p(1-p)$, is used. For factors, the SMD is the generalized Mahalanobis distance between the group-specific multinomial proportion vectors, using the average multinomial covariance matrix. For more than two groups, the displayed SMD is the arithmetic mean of all pairwise SMDs. These are unweighted SMDs and do not depend on a hypothesis-test p-value.
+When a grouping variable is supplied, standardized mean differences are
+reported by default. For continuous variables, the SMD is the absolute
+difference between group means divided by the square root of the average
+within-group variances. For logical variables, the group mean is the
+proportion of `TRUE` observations and the Bernoulli variance, $p(1-p)$, is
+used.
+
+For factor variables, `table_one()` uses the Mahalanobis-distance method of
+Yang and Dalton (2012). All $k$ categories are retained in each group's
+proportion vector, and a full $k x k$ multinomial covariance matrix is built.
+The covariance matrix is singular because the category proportions sum to
+one, so `MASS::ginv()` is used to calculate its Moore-Penrose generalized
+inverse. With more than two groups, the displayed SMD is the arithmetic mean
+of all pairwise distances. These are unweighted SMDs and do not depend on a
+hypothesis-test p-value. The results agree with the unweighted factor SMD
+from `tableone::CreateTableOne()` and `tableone::ExtractSmd()`.
 
 ### Methods when p-values are reported
 

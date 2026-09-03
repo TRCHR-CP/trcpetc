@@ -58,6 +58,27 @@ table <- cardio_data %>%
 kable_table_one(table, caption = "Baseline characteristics by sex")
 ```
 
+### SMD calculation
+
+The grouped `table_one()` output reports unweighted standardized mean
+differences by default. For continuous variables, the SMD is the absolute
+difference in group means divided by the square root of the average within-
+group variances. For logical variables, the group mean is the proportion of
+`TRUE` values and the Bernoulli variance $p(1-p)$ is used.
+
+For factor variables, `table_one()` uses the Mahalanobis-distance approach of
+Yang and Dalton (2012). It constructs each group's complete vector of category
+proportions and the corresponding full $k x k$ multinomial covariance matrix.
+Because this covariance matrix is singular, its Moore-Penrose generalized
+inverse is calculated with `MASS::ginv()`. With more than two groups, the
+reported SMD is the arithmetic mean of the pairwise distances. This matches
+the unweighted factor SMD produced by `tableone::CreateTableOne()` and
+`tableone::ExtractSmd()` for the same data.
+
+SMDs are effect-size measures and do not depend on hypothesis-test p-values.
+Use `stat_test = "pval"` when p-values are preferred, or
+`stat_test = "none"` to omit between-group statistics.
+
 Useful preparation functions include:
 
 - `factor_order()` orders factor levels by frequency;
@@ -176,3 +197,17 @@ To run the test suite from a local clone:
 install.packages(c("devtools", "testthat"))
 devtools::test()
 ```
+
+## References
+
+Yang, D. and Dalton, J. E. (2012). A unified approach to measuring the effect
+size between two groups using SAS. *SAS Global Forum*, 335, 1-6.
+
+Li, L. and Greene, T. (2013). A weighting analogue to pair matching in
+propensity score analysis. *International Journal of Biostatistics*, 9(2),
+215-234.
+
+Austin, P. C. and Stuart, E. A. (2015). Moving towards best practice when
+using inverse probability of treatment weighting (IPTW) using the propensity
+score to estimate causal treatment effects in observational studies.
+*Statistics in Medicine*, 34(28), 3661-3679.

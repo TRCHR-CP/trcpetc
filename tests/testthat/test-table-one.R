@@ -38,6 +38,36 @@ testthat::test_that("factor SMD uses group by level proportions", {
   )
 })
 
+testthat::test_that("factor SMD uses all categories with a generalized inverse", {
+  dat <- data.frame(
+    group = factor(rep(c("A", "B"), each = 30)),
+    factor = factor(c(
+      rep(c("a", "b", "c"), c(20, 7, 3)),
+      rep(c("a", "b", "c"), c(5, 10, 15))
+    ))
+  )
+
+  result <- trcpetc::table_one(dat, group = group, stat_test = "smd")$tab
+  counts <- table(dat$group, dat$factor)
+  proportions <- prop.table(counts, margin = 1)
+  covariance <- lapply(seq_len(nrow(proportions)), function(i) {
+    probability <- proportions[i, ]
+    matrix <- -outer(probability, probability)
+    diag(matrix) <- probability * (1 - probability)
+    matrix
+  })
+  difference <- proportions[1, ] - proportions[2, ]
+  expected <- sqrt(as.numeric(
+    t(difference) %*% MASS::ginv((covariance[[1]] + covariance[[2]]) / 2) %*%
+      difference
+  ))
+
+  testthat::expect_equal(
+    result$smd[result$variable == "factor" & result$row_id == "factor"],
+    formatC(expected, digits = 3, format = "f")
+  )
+})
+
 testthat::test_that("table_one selects p-values or no comparison statistic", {
   dat <- data.frame(
     group = factor(c("A", "A", "B", "B")),

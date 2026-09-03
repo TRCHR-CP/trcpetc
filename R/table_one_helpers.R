@@ -20,7 +20,6 @@ continuous_smd <- function(variable, group, binary = FALSE) {
 
 categorical_smd <- function(tab) {
   proportions <- prop.table(tab, margin = 1)
-  if (ncol(proportions) > 1) proportions <- proportions[, -1, drop = FALSE]
   covariances <- lapply(seq_len(nrow(proportions)), function(i) {
     p <- proportions[i, ]
     covariance <- -outer(p, p)
