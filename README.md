@@ -85,6 +85,20 @@ Useful preparation functions include:
 - `check_box_convert()` converts checkbox-style columns to logical variables;
 - `format_pvalue()` formats p-values for display.
 
+When a logical variable has no observed values in a group, its summary is
+shown as `0 (-)` rather than `0 (NaN%)`. Observed zero values are still shown
+as `0 (0%)`.
+
+When a table object is needed for use in R Markdown or Quarto, first request
+the data-frame output and then apply `kable_table_time_to_event()`. Its
+`caption` is passed to `kableExtra`, allowing the document format to provide
+automatic table numbering.
+
+```r
+km_table <- summarize_km(km, kable_output = FALSE)
+kable_table_time_to_event(km_table, caption = "Overall survival")
+```
+
 ## Survival and competing risks
 
 Create analysis-ready time and event variables with
@@ -92,6 +106,10 @@ Create analysis-ready time and event variables with
 survival data; with competing event dates it prepares competing-risks data.
 `estimate_cif_km()` then estimates either a Kaplan-Meier curve or cumulative
 incidence functions based on the event variable supplied.
+
+The time axis in `show_surv()` and `show_cif()` preserves decimal values, so
+year-scale analyses do not need to be converted to months just to avoid
+rounded axis labels.
 
 ```r
 survival_data <- construct_surv_cmprisk_var(
@@ -153,6 +171,7 @@ return values. The exported functions are grouped below by purpose.
 | `estimate_cif_km()` | Estimate Kaplan-Meier curves or cumulative incidence functions. |
 | `summarize_km()` | Create tabular Kaplan-Meier summaries. |
 | `summarize_cif()` | Create tabular cumulative-incidence summaries. |
+| `kable_table_time_to_event()` | Format a Kaplan-Meier or CIF summary as a report-ready table. |
 | `show_surv()` | Plot Kaplan-Meier curves with numbers at risk. |
 | `show_cif()` | Plot cumulative-incidence curves with numbers at risk. |
 | `median_time_to_event()` | Estimate the time to a specified event probability. |

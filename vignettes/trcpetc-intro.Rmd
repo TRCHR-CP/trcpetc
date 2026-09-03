@@ -277,6 +277,8 @@ CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = 
 ## `summarize_km()`
 
   - This function will produce a clean report-ready kable table displaying the results from the KM model.
+  - If a logical variable has no observed values in a group, its summary is
+    displayed as `0 (-)` rather than `0 (NaN%)`.
 
 ```{r, fig.width=6, fig.height=6}
 ## Example without a covariate
@@ -294,6 +296,14 @@ KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
 summarize_km(KM, failure_fun = FALSE, times = seq(0, 24, by = 3), overall_label = "All patients",time_lab = "Time since surgery (months)",caption = "Overall Survival for all patients")
 
 
+```
+
+To use the summary in a numbered R Markdown or Quarto table, request the
+data-frame output and pass it to `kable_table_time_to_event()` with a caption:
+
+```{r}
+km_table <- summarize_km(KM, times = seq(0, 24, by = 3), kable_output = FALSE)
+kable_table_time_to_event(km_table, caption = "Overall survival")
 ```
 
 ```{r}

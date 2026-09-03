@@ -374,8 +374,11 @@ logical_desp <- function(df, group) {
                   })
 
     freq <- formatC(out[1], format= "d", big.mark = ",")
-    pct <- formatC(out[2]*100, digits= pct_digits, format= "f")
-    pct <- paste0(pct, "%")
+    pct <- if (is.na(out[2]) || is.nan(out[2])) {
+      "-"
+    } else {
+      paste0(formatC(out[2]*100, digits= pct_digits, format= "f"), "%")
+    }
     out <- paste0(freq, " (", pct, ")")
     out
   }

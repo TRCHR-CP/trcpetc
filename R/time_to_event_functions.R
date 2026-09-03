@@ -585,6 +585,38 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
   out
 }
 
+#' @title Format a time-to-event summary table
+#' @description Formats the data-frame output from \code{summarize_km()} or
+#' \code{summarize_cif()} as a report-ready kable table.
+#' @param table A data frame returned by \code{summarize_km()} or
+#' \code{summarize_cif()} with \code{kable_output = FALSE}.
+#' @param caption Optional table caption. In R Markdown and Quarto, this can
+#' be used for automatic table numbering according to the document format.
+#' @param full_width Logical; whether the table should span the full page width.
+#' @param ... Additional arguments passed to \code{kableExtra::kbl()}.
+#' @return A formatted \code{kableExtra} table.
+#' @examples
+#' survival_data <- construct_surv_cmprisk_var(cardio_data,
+#'   patid = PatientID, idx_dt = SurgeryDate, evt_dt = DeathDate,
+#'   end_dt = LastVisitDate, units = "months")
+#' km <- estimate_cif_km(survival_data, evt = evt, evt_time = evt_time)
+#' km_table <- summarize_km(km, kable_output = FALSE)
+#' kable_table_time_to_event(km_table, caption = "Overall survival")
+#' @export
+kable_table_time_to_event <- function(table, caption = NULL, full_width = NULL, ...) {
+  if (!is.data.frame(table)) {
+    stop("`table` must be a data frame returned with `kable_output = FALSE`.")
+  }
+
+  table %>%
+    kableExtra::kbl(caption = caption, booktabs = TRUE, escape = FALSE, ...) %>%
+    kableExtra::row_spec(row = 0, align = "c") %>%
+    kableExtra::kable_styling(
+      bootstrap_options = c("striped", "hover", "condensed"),
+      full_width = full_width
+    )
+}
+
 
 #' @title Plot Survival or Cumulative Death Function
 #' @description Displays either the survival function or the cumulative death function based on a \code{survfit} object, with optional customization and stratification. #See also \code{\link{construct_surv_cmprisk_var}},\code{\link{estimate_cif_km}}, \code{\link{summarize_km}}, \code{\link{summarize_cif}}, and \code{\link{show_cif}}   for related functions.
@@ -729,7 +761,7 @@ show_surv <- function(surv_obj,
     ggplot2::scale_x_continuous(name  = x_lab,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                                 expand= c(0.01, 0.005),
-                                labels= function(x) scales::comma(x, accuracy = 1))
+                                labels= scales::label_number(trim = FALSE))
 
 
   if (add_ci) {
@@ -1036,7 +1068,7 @@ show_cif <- function(surv_obj,
     ggplot2::scale_x_continuous(name  = x_lab,
                                 breaks= if (is.null(x_break)) scales::pretty_breaks(6) else x_break,
                                 expand= c(0.01, 0.005),
-                                labels= function(x) scales::comma(x, accuracy = 1)) +
+                                labels= scales::label_number(trim = FALSE)) +
     ggplot2::scale_y_continuous(name  = y_lab,
                                 breaks= if (is.null(y_break)) scales::pretty_breaks(6) else y_break,
                                 expand= c(0.01, 0),

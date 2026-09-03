@@ -128,6 +128,24 @@ testthat::test_that("one-group tables and checkbox validation work", {
   )
 })
 
+testthat::test_that("all-missing logical summaries use a dash percentage", {
+  dat <- data.frame(
+    group = factor(c("A", "A", "B", "B")),
+    flag = c(NA, NA, FALSE, FALSE)
+  )
+
+  result <- trcpetc::table_one(dat, group = group, stat_test = "none")$tab
+
+  testthat::expect_equal(
+    result$A_stat[result$variable == "flag"],
+    "0 (-)"
+  )
+  testthat::expect_equal(
+    result$B_stat[result$variable == "flag"],
+    "0 (0%)"
+  )
+})
+
 testthat::test_that("survival construction validates and censors dates", {
   dat <- data.frame(
     id = 1:3,
