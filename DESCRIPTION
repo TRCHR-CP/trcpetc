@@ -1,11 +1,17 @@
 Type: Package
 Package: trcpetc
-Title: Descriptive table
+Title: Descriptive Tables and Clinical Time-to-Event Analysis
 Version: 0.1.0
-Author: Original version by Chun-Po Steve Fan
-Maintainer: Jessica Weiss <jessica.weiss@uhn.ca>
+Authors@R: c(
+    person("Jessica", "Weiss", email = "jessica.weiss@uhn.ca", role = c("aut", "cre"), comment = "University Health Network (UHN)"),
+    person("Rong", "Huang", role = "aut", comment = "University Health Network (UHN)"),
+    person("Brigitte", "Mueller", role = "aut", comment = "University Health Network (UHN)"),
+    person("Chun-Po Steve", "Fan", role = "aut", comment = "Original author of fanetc")
+    )
 Description: Miscellaneous functions to facilitate data analysis projects. Descriptive tables report standardized mean differences (SMDs) by default when a grouping variable is supplied. For numeric and logical variables, SMDs are absolute pairwise differences in group means divided by the square root of the average within-group variances (Bernoulli variance is used for logical variables). For factors, SMDs are generalized Mahalanobis distances between group-specific multinomial proportions using the average multinomial covariance matrix; with more than two groups, the reported value is the mean of all pairwise SMDs. These calculations follow the unweighted implementation in the tableone package.
-License: What license is it under?
+License: MIT + file LICENSE
+URL: https://github.com/TRCHR-CP/trcpetc, https://github.com/fanstev1/fanetc
+BugReports: https://github.com/TRCHR-CP/trcpetc/issues
 Depends: 
     R (>= 3.5)
 Imports: 

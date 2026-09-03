@@ -7,9 +7,9 @@
 two_sample_test(df, group)
 }
 \arguments{
-\item{x}{Numeric variable}
+\item{df}{Data frame containing the numeric variables.}
 
-\item{grp}{Factor variable}
+\item{group}{Factor grouping variable.}
 }
 \value{
 a 2-tuple vectors reporting p-values

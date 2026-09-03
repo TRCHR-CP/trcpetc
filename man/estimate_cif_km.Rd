@@ -16,7 +16,7 @@ For competing risks data: a factor event indicator (0 = censored, 1 = Event 1, 2
 
 \item{group}{A grouping variable for stratified survival curves.}
 
-\item{conf.type}{The type of confidence interval used by   \code{survival::survfit()}. When "default" is inputted uses log-log for Kaplan-Meier and log for CIF}
+\item{conf.type}{The confidence-interval transformation passed to \code{survival::survfit()}. With the default value, Kaplan-Meier estimates use the log-log transformation and CIF estimates use the log transformation.}
 
 \item{...}{Additional arguments passed to \code{survival::survfit()}.}
 }
@@ -29,8 +29,7 @@ Computes Kaplan-Meier survival estimates and cumulative incidence (CIF) from a d
 \details{
 The function will produce  Kaplan-Meier survival estimates when evt is numeric and will produce CIF estimates when evt is a factor
 
-The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
-transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
+The function analyzes the data (df) using the Kaplan-Meier method with pointwise 95% confidence intervals. By default, the intervals use the log-log transformation. For competing-risks data, the default intervals use the log transformation. The input data are stored in the call(), which can be used in
 run_logrank_test().
 
 The function analyzes the competing data (df) using Andersen-Johansen method in estimating cumulative incidence

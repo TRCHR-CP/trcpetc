@@ -196,6 +196,10 @@ table_one_stratify <- function(df,group,total = TRUE,round_to_100 = FALSE,drop.u
 #' If there are more than 1 group, then fisher exact tests are applied to assess the between-group differences.
 #'
 #' @param df Dataframe
+#' @param group Optional grouping variable.
+#' @param includeNA Logical; whether to include missing values as a level.
+#' @param round_to_100 Logical; whether rounded percentages should sum to 100.
+#' @param drop.unused.levels Logical; whether to remove unused factor levels.
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.unused.levels = FALSE) {
 
@@ -258,7 +262,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
 
     # fisher exact test
     test <- try(stats::fisher.test(freq[rowSums(freq) != 0, ], hybrid = TRUE, conf.int = FALSE, simulate.p.value= TRUE, B= 9999), silent = TRUE)
-    test <- if (class(test)=="try-error") NA else test$p.value
+    test <- if (inherits(test, "try-error")) NA else test$p.value
 
     # total
     total <- margin.table(freq, 2) %>%
@@ -357,6 +361,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
 #' than 1 group, then fisher exact tests are applied to assess the between-group differences.
 #'
 #' @param df Dataframe
+#' @param group Optional grouping variable.
 #' @return a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.
 logical_desp <- function(df, group) {
 
@@ -365,7 +370,7 @@ logical_desp <- function(df, group) {
     out <- sapply(fun,
                   function(f) {
                     res <- try(f(x, na.rm= TRUE), silent = TRUE)
-                    res <- if (class(res)== "try-error") NA else res
+                    res <- if (inherits(res, "try-error")) NA else res
                     return(res)
                   })
 
@@ -447,6 +452,7 @@ logical_desp <- function(df, group) {
 #' An internal function that applies fisher exact tests to assess the between-group differences in logical variables
 #'
 #' @param df Dataframe
+#' @param group Grouping variable used for the test.
 #' @return a dataframe of a single column of character variables indicating p-values.
 fisher_test <- function(df, group) {
 
@@ -477,7 +483,7 @@ fisher_test <- function(df, group) {
                                        fisher_test()
 
                                      # res<- if (class(res)=="try-error") NA else res$p.value
-                                     res<- if (class(res)=="try-error") {
+                                     res<- if (inherits(res, "try-error")) {
                                        fisher_test<- if (dplyr::n_groups(df)==2) {
                                          function(...) try(stats::fisher.test(..., conf.int= FALSE, simulate.p.value = TRUE, B=5000), silent = TRUE)
                                        } else {
@@ -486,7 +492,7 @@ fisher_test <- function(df, group) {
                                        res_try<- df %>%
                                          table() %>%
                                          fisher_test()
-                                       if (class(res_try)=="try-error") NA else res_try$p.value
+                                       if (inherits(res_try, "try-error")) NA else res_try$p.value
                                      } else res$p.value
                                      res
                                    })) %>%
@@ -511,6 +517,7 @@ fisher_test <- function(df, group) {
 #' An internal function that report mean, standard deviation, median and interquartile range by group.
 #'
 #' @param df Dataframe
+#' @param group Optional grouping variable.
 #' @return a dataframe consisting of columns of character variables.
 numeric_desp <- function(df, group) {
   group <- rlang::enquo(group)
@@ -633,7 +640,7 @@ mean_sd <- function(x) {
   out <- sapply(funs,
                function(f) {
                  res<- try(f(x, na.rm= TRUE), silent = TRUE)
-                 res<- if (class(res)== "try-error") NA else res
+                 res<- if (inherits(res, "try-error")) NA else res
                  return(res)
                })
 
@@ -668,7 +675,7 @@ med_iqr <- function(x) {
   out<- sapply(funs,
                function(f) {
                  res <- try(f(x, na.rm= TRUE), silent = TRUE)
-                 res <- if (class(res)== "try-error") NA else res
+                 res <- if (inherits(res, "try-error")) NA else res
                  return(res)
                })
   if (length(x[!is.na(x)])==0) {
@@ -694,8 +701,8 @@ med_iqr <- function(x) {
 #' An internal function that tests equality of location parameter using two sample t-tests with unequal
 #' variance when mean is reported and nonparametric rank-sum tests otherwise in comparing of two groups.
 #'
-#' @param x Numeric variable
-#' @param grp Factor variable
+#' @param df Data frame containing the numeric variables.
+#' @param group Factor grouping variable.
 #' @return a 2-tuple vectors reporting p-values
 
 two_sample_test <- function(df, group) {
@@ -714,14 +721,14 @@ two_sample_test <- function(df, group) {
                                         function(df) {
                                           fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                                           res<- try(stats::t.test(fml, data= df, var.equal = FALSE), silent = FALSE)
-                                          if (class(res)=="try-error") NA_real_ else res$p.value
+                                          if (inherits(res, "try-error")) NA_real_ else res$p.value
                                         }),
                   wilcox= purrr::map_dbl(data,
                                          function(df) {
                                            # if (!is.factor(df[rlang::quo_name(group)])) df[rlang::quo_name(group)]<- factor(df[rlang::quo_name(group)])
                                            fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                                            res<- try(stats::wilcox.test(fml, data= df), silent = FALSE)
-                                           if (class(res)=="try-error") NA_real_ else res$p.value
+                                           if (inherits(res, "try-error")) NA_real_ else res$p.value
                                          })) %>%
     dplyr::select(-data) %>%
     # tidyr::unnest(cols = c(ttest, wilcox)) %>%
@@ -739,8 +746,8 @@ two_sample_test <- function(df, group) {
 #' @details An internal function that tests equality of location parameter using one way ANOVA with unequal
 #' variance when mean is reported and nonparametric Kruskal-Wallis tests otherwise in comparing >2 groups.
 #'
-#' @param x Numeric variable
-#' @param grp Factor variable
+#' @param df Data frame containing the numeric variables.
+#' @param group Factor grouping variable.
 #' @return a 2-tuple vectors reporting p-values
 
 k_sample_test <- function(df, group) {
@@ -758,13 +765,13 @@ k_sample_test <- function(df, group) {
                                          function(df) {
                                            fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                                            res<- try(stats::oneway.test(fml, data= df, var.equal = FALSE), silent = FALSE)
-                                           if (class(res)=="try-error") NA_real_ else res$p.value
+                                          if (inherits(res, "try-error")) NA_real_ else res$p.value
                                          }),
                   kruskal= purrr::map_dbl(data,
                                           function(df) {
                                             fml<- stats::as.formula(paste0("value ~ factor(", rlang::quo_name(group), ")"))
                                             res<- try(stats::kruskal.test(fml, data= df), silent = FALSE)
-                                            if (class(res)=="try-error") NA_real_ else res$p.value
+                                            if (inherits(res, "try-error")) NA_real_ else res$p.value
                                           })) %>%
     dplyr::select(-data) %>%
     # tidyr::unnest(cols = c(ttest, wilcox)) %>%
@@ -813,6 +820,8 @@ exact_round_100 <- function(values,digits = 1){
 
 #' @title recode_missing
 #'
+#' @param x A vector in which coded missing values should be replaced.
+#' @param na.value Values to replace with \code{NA}.
 #' @details
 #' An internal function that replace missing value code with NA.
 #'

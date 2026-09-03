@@ -6,6 +6,11 @@
 \usage{
 recode_missing(x, na.value = NULL)
 }
+\arguments{
+\item{x}{A vector in which coded missing values should be replaced.}
+
+\item{na.value}{Values to replace with \code{NA}.}
+}
 \value{
 input variable with NA
 }

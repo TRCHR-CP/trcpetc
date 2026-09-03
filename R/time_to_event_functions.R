@@ -18,6 +18,7 @@
 #' @param surv_varname 	an option of character vector of length 2, the 1st of which is the name of the time variable; the other is the name of the event indicator.
 #' @param units Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days (default) ", "weeks", "months", or "years".
 #' @param adm_cnr_time  a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).
+#' @param append Logical; if \code{TRUE}, append the generated variables to the input data frame.
 #' @param ... all competing event dates
 #' @examples
 #'
@@ -110,8 +111,8 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
     dplyr::mutate(first_evt = ifelse(rlang::is_empty((evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt))])), NA, (evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt))])),
                   first_evt = ifelse(is.na(first_evt) &  !rlang::is_empty(!!end_dt) ,'censored_0', first_evt),
                   first_evt_dt =  dplyr::coalesce(pmin(!!evt_dt, !!!cmp_evt_dt, na.rm = TRUE), !!end_dt),
-                  first_evt = ifelse(!is.na(!!end_dt) & first_evt_dt > !!end_dt, 'censored_0', first_evt),
-                  first_evt_dt = ifelse(!is.na(!!end_dt) & first_evt_dt > !!end_dt, !!end_dt, first_evt_dt),
+                  first_evt = dplyr::if_else(!is.na(!!end_dt) & first_evt_dt > !!end_dt, 'censored_0', first_evt),
+                  first_evt_dt = dplyr::if_else(!is.na(!!end_dt) & first_evt_dt > !!end_dt, !!end_dt, first_evt_dt),
                   time2evt = dplyr::case_when(is.infinite(first_evt_dt) | is.na(first_evt_dt) ~ NA_real_,TRUE ~ as.numeric(first_evt_dt - !!idx_dt)),
                   evt = dplyr::case_when( is.na(time2evt) ~ NA_integer_, TRUE ~ as.integer(gsub('^(cmp_evt|evt|censored)_', '', first_evt))),
                   time2evt = dplyr::case_when(units == "days"  ~ time2evt,
@@ -196,15 +197,14 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
 #' @param evt For survival data: a numeric event indicator (1 = event occurred, 0 = censored).
 #'            For competing risks data: a factor event indicator (0 = censored, 1 = Event 1, 2 = Event 2, ...).
 #' @param group A grouping variable for stratified survival curves.
-#' @param conf.type The type of confidence interval used by   \code{survival::survfit()}. When "default" is inputted uses log-log for Kaplan-Meier and log for CIF
+#' @param conf.type The confidence-interval transformation passed to \code{survival::survfit()}. With the default value, Kaplan-Meier estimates use the log-log transformation and CIF estimates use the log transformation.
 #' @param ... Additional arguments passed to \code{survival::survfit()}.
 #' @return A \code{survfit} object containing the survival estimates.
 #' @details
 #'
 #' The function will produce  Kaplan-Meier survival estimates when evt is numeric and will produce CIF estimates when evt is a factor
 #'
-#' The function analyzes the data (df) using Kaplan-Meier survival method with pointwise 95% CI estimated using log-log
-#' transformation (same as SAS's defualt). The function store the input data in the call(), which can be used in
+#' The function analyzes the data (df) using the Kaplan-Meier method with pointwise 95% confidence intervals. By default, the intervals use the log-log transformation. For competing-risks data, the default intervals use the log transformation. The input data are stored in the call(), which can be used in
 #' run_logrank_test().
 #'
 #'The function analyzes the competing data (df) using Andersen-Johansen method in estimating cumulative incidence
@@ -515,7 +515,7 @@ summarize_cif <- function(fit, times = NULL, kable_output = TRUE,caption = NULL,
       reshape2::dcast(times ~ states, value.var = 'stat')
   }
 
-  out <- out %>% dplyr::mutate(dplyr::across(dplyr::where(is.character), ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .)))
+  out <- out %>% dplyr::mutate_if(is.character, ~ gsub("0.0% \\[NA%, NA%\\]", "0.0% [0.0%, 0.0%]", .))
 
   if(kable_output){
 
@@ -916,7 +916,9 @@ show_surv <- function(surv_obj,
 #' @examples
 #'
 #'
-#' windowsFonts(Arial = windowsFont("Arial"))
+#' if (interactive() && identical(.Platform$OS.type, "windows")) {
+#'   windowsFonts(Arial = windowsFont("Arial"))
+#' }
 #'
 #' ## Showing all events
 #' cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,

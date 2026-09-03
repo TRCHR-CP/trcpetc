@@ -35,6 +35,8 @@ show_surv               Plot Survival or Cumulative Death Function
 summarize_cif           Summarize Cumulative Incidence Function (CIF)
 summarize_coxph         summarize_coxph
 summarize_km            Summarize Kaplan-Meier Estimates
+summarize_mi_coxph      summarize_mi_coxph
+summarize_mi_glm        summarize_mi_glm
 table_one               table_one
 titles_non_missing      titles_non_missing
 two_sample_test         two_sample_test

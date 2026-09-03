@@ -13,6 +13,19 @@ add_atrisk(
   plot_theme = NULL
 )
 }
+\arguments{
+\item{p}{A ggplot object containing the survival curve.}
+
+\item{surv_obj}{A \code{survfit} object used to calculate the at-risk table.}
+
+\item{space}{Numeric spacing between strata labels.}
+
+\item{x_break}{Numeric time points for the at-risk table.}
+
+\item{atrisk_init_pos}{Numeric initial vertical position for the at-risk label.}
+
+\item{plot_theme}{Optional ggplot2 theme used to determine text styling.}
+}
 \description{
 Create atrisk table
 }

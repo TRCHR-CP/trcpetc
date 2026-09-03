@@ -29,11 +29,12 @@ data(cardio_data)
 
 # Welcome to trcpetc
 
-This vignette is designed to help you get acquainted with the new functionality introduced in the `trcpetc` package, which is an update to the previously used `fanetc` package.
+This vignette introduces the `trcpetc` package, which was developed at
+University Health Network (UHN) by Jessica Weiss, Rong Huang, and Brigitte
+Mueller. It builds on work from `fanetc`, originally written by Chun-Po Steve
+Fan at UHN.
 
 In addition to new functionality, the package includes a sample dataset called `cardio_data`, along with a corresponding data dictionary named `cardio_data_dictionary`. All examples in this vignette use this dataset as a consistent reference point.
-
-This package begins by describing how to install the package and reviewing common possible errors you may find. Then there are some working examples of the main package features. Then, there is a comprehensive summary of all updates and changes. Following is the comments section where I have added some general comments on the package and would appreciate feedback. And lastly are the planned continued updates.
 
 This vignette begins by explaining how to install the package and outlines common setup errors you might encounter. It then provides practical examples showcasing the package’s main features, followed by a summary of recent updates and changes. In the comments section, I’ve included general observations and questions about the package and would appreciate your feedback and insights. Finally, the vignette concludes with a list of planned updates that are currently in development but not yet included in this version of trcpetc.
 
@@ -573,7 +574,9 @@ median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_pro
 
 **summarize_coxph()**
 
-  - No changes
+  - Reports Type III (omnibus) p-values by default.
+  - Set `pval = "both"` to retain the omnibus p-value and add p-values for
+    individual model coefficients.
 
 **summarize_km()**
 
@@ -586,11 +589,15 @@ median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_pro
 
 **summarize_mi_coxph()**
 
-  - No changes
+  - Uses the same p-value presentation as `summarize_coxph()`.
+  - The default is `pval = "omnibus"`; use `pval = "both"` for omnibus and
+    pooled coefficient-level p-values.
 
 **summarize_mi_glm()**
 
-  - No changes
+  - Uses the same p-value presentation as the Cox-model summaries.
+  - The default is `pval = "omnibus"`; use `pval = "both"` for omnibus and
+    pooled coefficient-level p-values.
   
 **table_one()**
 
@@ -625,9 +632,18 @@ median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_pro
 
 ## Comments
 
-  - The current bug from summarize_mi_glm() where p-values are not displayed for factor variables with 2 levels comes from the fact that this type of data does not produce the individual p-values for each factor levels and only the overall p-value. This is inconsistent with how p-values are displayed for summarize_coxph() and summarize_mi_coxph() Would appreciate input on everyone’s preference for p-values with factor variables and I will update all three functions the same way. Unless there is a reason to have different outputs for each function.
+  - For model summaries, an omnibus p-value tests a factor as a whole. This is
+    the default because it avoids presenting a single level-specific p-value as
+    the result for a multi-level factor. Use `pval = "both"` when the
+    coefficient-level comparisons against the reference level are also needed.
 
-  - To be consistent with fanetc the default confidence intervals for Kaplan-Meier survival is using log-log transformed confidence intervals and for CIF using log transformed confidence intervals. Is this how we would like to keep it?
+  - The `pval` option is available consistently in `summarize_coxph()`,
+    `summarize_mi_coxph()`, and `summarize_mi_glm()`.
+
+  - By default, Kaplan-Meier confidence intervals use the log-log
+    transformation and competing-risks confidence intervals use the log
+    transformation. These defaults can be changed through the `conf.type`
+    argument of `estimate_cif_km()`.
 
   - The function `factor_dist()` is not used by any of the other functions and is currently removed from the package. I believe it was an internal function that was changed to be `factor_desp()`. If anyone is using this function I can add it back in
 

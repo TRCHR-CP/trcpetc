@@ -10,6 +10,8 @@ extract_atrisk(fit, time.list, time.scale = 1)
 \item{fit}{a survfit object}
 
 \item{time.list}{a numeric vector specifying the time points at which the number of at-risk subjects is calculated.}
+
+\item{time.scale}{Numeric scale used to convert the fit time values.}
 }
 \value{
 A dataframe containing the number of at risk patients at time-, overall or by strata

@@ -50,7 +50,8 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 #' cardio_data %>% select(Comorbidities) %>%
 #'  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
 #'  table_one(Check_box = Comorbidities,
-#'            Check_box_title = "Comorbidities¹")%>%
+#'            Check_box_title = "Comorbidities¹") %>%
+#'  kable_table_one() %>%
 #'  kableExtra::footnote(
 #'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
 #'    general_title = "",
@@ -68,8 +69,9 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 #' cardio_data %>% select(Comorbidities1,Comorbidities2) %>%
 #'  check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  %>%
 #'  check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  %>%
-#'  table_one(Check_box = Comorbidities,
-#'            Check_box_title = c("Comorbidities¹","Comorbidities2¹"))%>%
+#'  table_one(Check_box = c(Comorbidities1, Comorbidities2),
+#'            Check_box_title = c("Comorbidities1¹","Comorbidities2¹")) %>%
+#'  kable_table_one() %>%
 #'  kableExtra::footnote(
 #'    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
 #'    general_title = "",
@@ -80,6 +82,18 @@ titles_non_missing <- function(df, columns, new_col_name = "Title") {
 #' @export
 
 check_box_convert <- function(df, check_box_cols, title = NULL) {
+
+  check_box_data <- df %>% dplyr::select(dplyr::all_of(check_box_cols))
+  if (any(!vapply(check_box_data, function(x) is.logical(x) || is.numeric(x), logical(1)))) {
+    stop("Checkbox columns must be logical or numeric 0/1 values.")
+  }
+  invalid_values <- check_box_data %>%
+    unlist(use.names = FALSE) %>%
+    stats::na.omit() %>%
+    unique()
+  if (any(!invalid_values %in% c(0, 1, TRUE, FALSE))) {
+    stop("Checkbox columns must contain only 0, 1, TRUE, FALSE, or NA.")
+  }
 
 
   out <- df %>%

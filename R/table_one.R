@@ -146,7 +146,7 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
       paste0(
         df %>%
           dplyr::ungroup() %>%
-          dplyr::select(dplyr::where(~ is.character(.) || lubridate::is.Date(.))) %>%
+          dplyr::select_if(~ is.character(.) || lubridate::is.Date(.)) %>%
           colnames(),
         collapse = ", "
       )))
@@ -289,7 +289,6 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 #' @param caption Optional character string providing a table caption.
 #' @param bold_variables Logical; if \code{TRUE}, variable names are displayed in bold. Default is \code{TRUE}.
 #' @param full_width Logical;  Controls whether the output table spans the full page width. Default is \code{TRUE}
-#' @param ... Additional arguments for the function kableExtra::kbl; (eg. format = "pandoc" can be used if outputting to word)
 
 #' @examples
 #' library(dplyr)

@@ -96,7 +96,9 @@ Figures are formatted to fit a 6.5×5 inch layout when width = 6.5, height = 5, 
 \examples{
 
 
-windowsFonts(Arial = windowsFont("Arial"))
+if (interactive() && identical(.Platform$OS.type, "windows")) {
+  windowsFonts(Arial = windowsFont("Arial"))
+}
 
 ## Showing all events
 cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,

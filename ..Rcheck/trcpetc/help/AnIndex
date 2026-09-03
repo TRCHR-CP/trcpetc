@@ -30,6 +30,8 @@ show_surv	show_surv
 summarize_cif	summarize_cif
 summarize_coxph	summarize_coxph
 summarize_km	summarize_km
+summarize_mi_coxph	summarize_mi_coxph
+summarize_mi_glm	summarize_mi_glm
 table_one	table_one
 table_one_stratify	table_one_stratify
 titles_non_missing	titles_non_missing

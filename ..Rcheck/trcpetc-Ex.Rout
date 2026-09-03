@@ -1,7 +1,7 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -20,6 +20,18 @@ Type 'q()' to quit R.
 > pkgname <- "trcpetc"
 > source(file.path(R.home("share"), "R", "examples-header.R"))
 > options(warn = 1)
+> base::assign(".ExTimings", "trcpetc-Ex.timings", pos = 'CheckExEnv')
+> base::cat("name\tuser\tsystem\telapsed\n", file=base::get(".ExTimings", pos = 'CheckExEnv'))
+> base::assign(".format_ptime",
++ function(x) {
++   if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]
++   if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]
++   options(OutDec = '.')
++   format(x[1L:3L], digits = 7L)
++ },
++ pos = 'CheckExEnv')
+> 
+> ### * </HEADER>
 > library('trcpetc')
 > 
 > base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
@@ -30,6 +42,7 @@ Type 'q()' to quit R.
 > 
 > flush(stderr()); flush(stdout())
 > 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 > ### Name: check_box_convert
 > ### Title: check box convert
 > ### Aliases: check_box_convert
@@ -55,10 +68,6 @@ The following objects are masked from ‘package:base’:
 > ## Without checkbox question (Assuming missing all questions is FALSE)
 > cardio_data %>% select(Comorbidities) %>%
 +  table_one()
-Note: Using an external vector in selections is ambiguous.
-ℹ Use `all_of(Comorbidities)` instead of `Comorbidities` to silence this message.
-ℹ See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
-This message is displayed once per session.
 $tab
                row_id        variable        var_desp Overall_n Overall_stat
 1             Total_N         Total N            <NA>       185          185
@@ -89,13 +98,1752 @@ $total
 > cardio_data %>% select(Comorbidities) %>%
 +  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
 +  table_one(Check_box = Comorbidities,
-+            Check_box_title = "Comorbidities¹")%>%
++            Check_box_title = "Comorbidities¹") %>%
++  kable_table_one() %>%
 +  kableExtra::footnote(
 +    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
 +    general_title = "",
 +    footnote_as_chunk = TRUE
 +  )
-Error in if (!kable_format %in% c("html", "latex")) { : 
-  argument is of length zero
-Calls: %>% -> <Anonymous>
-Execution halted
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;border-bottom: 0;">
+<caption></caption>
+ <thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Overall (N = 185)</div></th>
+</tr>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Variables </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Comorbidities¹</span> </td>
+   <td style="text-align:center;"> 147 </td>
+   <td style="text-align:center;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Diabetes </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 33 (22%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Hypertension </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 35 (24%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> COPD </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 41 (28%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> CKD </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 39 (27%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> CAD </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 38 (26%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> NoComorbidities </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 19 (13%) </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> ¹Patients could present with more than one comorbidity, totals may not sum to 100%.</td></tr></tfoot>
+</table>> 
+> 
+> ## Example with two different checkbox questions
+> 
+> Comorbidities1  <- cardio_data %>% select(Diabetes:COPD) %>% names()
+> Comorbidities2  <- cardio_data %>% select(CKD:CAD) %>% names()
+> 
+> 
+> 
+> cardio_data %>% select(Comorbidities1,Comorbidities2) %>%
++  check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  %>%
++  check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  %>%
++  table_one(Check_box = c(Comorbidities1, Comorbidities2),
++            Check_box_title = c("Comorbidities1¹","Comorbidities2¹")) %>%
++  kable_table_one() %>%
++  kableExtra::footnote(
++    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
++    general_title = "",
++    footnote_as_chunk = TRUE
++  )
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;border-bottom: 0;">
+<caption></caption>
+ <thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Overall (N = 185)</div></th>
+</tr>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Variables </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Comorbidities1¹</span> </td>
+   <td style="text-align:center;"> 91 </td>
+   <td style="text-align:center;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Diabetes </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 33 (36%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Hypertension </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 35 (38%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> COPD </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 41 (45%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Comorbidities2¹</span> </td>
+   <td style="text-align:center;"> 66 </td>
+   <td style="text-align:center;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> CKD </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 39 (59%) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> CAD </td>
+   <td style="text-align:center;"> NA </td>
+   <td style="text-align:center;"> 38 (58%) </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> ¹Patients could present with more than one comorbidity, totals may not sum to 100%.</td></tr></tfoot>
+</table>> 
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("check_box_convert", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+
+detaching ‘package:dplyr’
+
+> nameEx("construct_surv_cmprisk_var")
+> ### * construct_surv_cmprisk_var
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: construct_surv_cmprisk_var
+> ### Title: construct survival or competing risks process
+> ### Aliases: construct_surv_cmprisk_var
+> 
+> ### ** Examples
+> 
+> 
+> 
+> ## For survival
+> 
+> survival_data <-  construct_surv_cmprisk_var(cardio_data,
++                                             patid = PatientID,
++                                             idx_dt = SurgeryDate,
++                                             evt_dt = DeathDate,
++                                             end_dt = LastVisitDate,
++                                             append = TRUE,
++                                             units = "months",
++                                             adm_cnr_time = 24)
+> 
+> KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+> KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+> 
+> 
+> # For competing risks
+> cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
++                                            patid = PatientID,
++                                            idx_dt = SurgeryDate,
++                                            evt_dt = TransplantDate,
++                                            end_dt = LastVisitDate,
++                                            death_dt = DeathDate,
++                                            append = TRUE,
++                                            units = "months",
++                                            adm_cnr_time = 24)
+> 
+> CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+> CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("construct_surv_cmprisk_var", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("estimate_cif_km")
+> ### * estimate_cif_km
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: estimate_cif_km
+> ### Title: Kaplan-Meier survival and cumulative incidence (CIF) estimates
+> ### Aliases: estimate_cif_km
+> 
+> ### ** Examples
+> 
+> 
+> 
+> ## For survival
+> 
+> survival_data <-  construct_surv_cmprisk_var(cardio_data,
++                                             patid = PatientID,
++                                             idx_dt = SurgeryDate,
++                                             evt_dt = DeathDate,
++                                             end_dt = LastVisitDate,
++                                             append = TRUE,
++                                             units = "months",
++                                             adm_cnr_time = 24)
+> 
+> KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+> KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+> 
+> 
+> # For competing risks
+> cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
++                                            patid = PatientID,
++                                            idx_dt = SurgeryDate,
++                                            evt_dt = TransplantDate,
++                                            end_dt = LastVisitDate,
++                                            death_dt = DeathDate,
++                                            append = TRUE,
++                                            units = "months",
++                                            adm_cnr_time = 24)
+> 
+> CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+> CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("estimate_cif_km", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("factor_order")
+> ### * factor_order
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: factor_order
+> ### Title: Order a factor variable by descending frequency.
+> ### Aliases: factor_order
+> 
+> ### ** Examples
+> 
+> 
+> 
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> cardio_data %>% select(SurgeryType) %>% table_one()
+$tab
+                           row_id    variable           var_desp Overall_n
+1                         Total_N     Total N               <NA>       185
+2                     SurgeryType SurgeryType        SurgeryType       185
+3       SurgeryType_Aortic_repair SurgeryType      Aortic repair      <NA>
+4  SurgeryType_Aortic_replacement SurgeryType Aortic replacement      <NA>
+5                SurgeryType_CABG SurgeryType               CABG      <NA>
+6                SurgeryType_LVAD SurgeryType               LVAD      <NA>
+7                SurgeryType_Maze SurgeryType               Maze      <NA>
+8       SurgeryType_Mitral_repair SurgeryType      Mitral repair      <NA>
+9  SurgeryType_Mitral_replacement SurgeryType Mitral replacement      <NA>
+10         SurgeryType_Transplant SurgeryType         Transplant      <NA>
+   Overall_stat
+1           185
+2          <NA>
+3       14 (8%)
+4        9 (5%)
+5      38 (21%)
+6       11 (6%)
+7        8 (4%)
+8      23 (12%)
+9      60 (32%)
+10     22 (12%)
+
+$pval
+[1] FALSE
+
+$stat_test
+[1] "none"
+
+$include_Missing
+[1] FALSE
+
+$print_test
+[1] FALSE
+
+$total
+[1] TRUE
+
+> 
+> cardio_data %>%
++  mutate(SurgeryType = factor_order(SurgeryType)) %>% select(SurgeryType) %>% table_one()
+$tab
+                           row_id    variable           var_desp Overall_n
+1                         Total_N     Total N               <NA>       185
+2                     SurgeryType SurgeryType        SurgeryType       185
+3  SurgeryType_Mitral_replacement SurgeryType Mitral replacement      <NA>
+4                SurgeryType_CABG SurgeryType               CABG      <NA>
+5       SurgeryType_Mitral_repair SurgeryType      Mitral repair      <NA>
+6          SurgeryType_Transplant SurgeryType         Transplant      <NA>
+7       SurgeryType_Aortic_repair SurgeryType      Aortic repair      <NA>
+8                SurgeryType_LVAD SurgeryType               LVAD      <NA>
+9  SurgeryType_Aortic_replacement SurgeryType Aortic replacement      <NA>
+10               SurgeryType_Maze SurgeryType               Maze      <NA>
+   Overall_stat
+1           185
+2          <NA>
+3      60 (32%)
+4      38 (21%)
+5      23 (12%)
+6      22 (12%)
+7       14 (8%)
+8       11 (6%)
+9        9 (5%)
+10       8 (4%)
+
+$pval
+[1] FALSE
+
+$stat_test
+[1] "none"
+
+$include_Missing
+[1] FALSE
+
+$print_test
+[1] FALSE
+
+$total
+[1] TRUE
+
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("factor_order", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+
+detaching ‘package:dplyr’
+
+> nameEx("kable_table_one")
+> ### * kable_table_one
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: kable_table_one
+> ### Title: kable_table_one
+> ### Aliases: kable_table_one
+> 
+> ### ** Examples
+> 
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+> 
+> work_d <- cardio_data %>%
++  mutate(SurgeryType = factor_order(SurgeryType)) %>%
++  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+> 
+> 
+> 
+> demo_table <-  table_one(df = work_d ,
++          group = Sex,
++         datadic = cardio_data_dictionary %>%
++            rbind(data.frame("VariableName" = "Comorbidities¹",
++                             "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
++         var_name = VariableName,
++          var_desp = Label,
++          include_overall = "all",
++          Check_box = Comorbidities,
++          Check_box_title = "Comorbidities¹")
+> 
+> 
+>  # Creating a report ready kable output
+>  options(knitr.kable.NA = '')
+>  kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") %>%
++  kableExtra::footnote(
++    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
++    general_title = "",
++    footnote_as_chunk = TRUE)
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;border-bottom: 0;">
+<caption>Summary table overall and stratified by sex</caption>
+ <thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Overall (N = 185)</div></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Female (N = 86)</div></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Male (N = 94)</div></th>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+</tr>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Variables </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+   <th style="text-align:right;text-align: center;"> SMD </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Age (years)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 51 (38 – 69) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 51 (40 – 71) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 50 (37 – 63) </td>
+   <td style="text-align:right;"> 0.090 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">NYHA Functional Class</span> </td>
+   <td style="text-align:center;"> 135 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 66 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 66 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.288 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> I </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 31 (23%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 16 (24%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (21%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> II </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 0 (0%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 0 (0%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 0 (0%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> III </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 52 (39%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 21 (32%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 30 (45%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> IV </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 52 (39%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 29 (44%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 22 (33%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Ejection Fraction (%)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 44.7 (31.8 – 56.0) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 45.2 (32.0 – 56.2) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 44.3 (31.2 – 56.4) </td>
+   <td style="text-align:right;"> 0.004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Body Mass Index (kg/m²)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 26.6 (22.8 – 30.2) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 25.4 (22.1 – 30.1) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 27.4 (23.5 – 30.1) </td>
+   <td style="text-align:right;"> 0.199 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Heart Rate (bpm)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 83 (67 – 99) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 84 (67 – 98) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 83 (67 – 100) </td>
+   <td style="text-align:right;"> 0.058 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Systolic Blood Pressure (mmHg)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 133 (110 – 154) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 130 (111 – 154) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 135 (111 – 156) </td>
+   <td style="text-align:right;"> 0.070 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Diastolic Blood Pressure (mmHg)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 80 (70 – 92) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 78 (69 – 89) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 84 (73 – 94) </td>
+   <td style="text-align:right;"> 0.397 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Smoking Status</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.215 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Current </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 61 (33%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 33 (38%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 27 (29%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Former </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 69 (37%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 28 (33%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 38 (40%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Never </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 55 (30%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 25 (29%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 29 (31%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">History of Myocardial Infarction</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 89 (48%) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 40 (47%) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 45 (48%) </td>
+   <td style="text-align:right;"> 0.027 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Comorbidities¹</span> </td>
+   <td style="text-align:center;"> 147 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 69 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 75 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Diabetes Mellitus </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 33 (22%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 18 (26%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (19%) </td>
+   <td style="text-align:right;"> 0.179 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Hypertension </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 35 (24%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (20%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 20 (27%) </td>
+   <td style="text-align:right;"> 0.151 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Chronic Obstructive Pulmonary Disease </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 41 (28%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 20 (29%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 20 (27%) </td>
+   <td style="text-align:right;"> 0.052 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Chronic Kidney Disease </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 39 (27%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 17 (25%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 21 (28%) </td>
+   <td style="text-align:right;"> 0.076 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Coronary Artery Disease </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 38 (26%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 17 (25%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 21 (28%) </td>
+   <td style="text-align:right;"> 0.076 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> No known comorbidities </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 19 (13%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 8 (12%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 10 (13%) </td>
+   <td style="text-align:right;"> 0.053 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Type of Surgery</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.549 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Mitral replacement </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 60 (32%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 30 (35%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 30 (32%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> CABG </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 38 (21%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 12 (14%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 25 (27%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Mitral repair </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 23 (12%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (16%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 9 (10%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Transplant </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 22 (12%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 15 (17%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 6 (6%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Aortic repair </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (8%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 7 (8%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 7 (7%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> LVAD </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 11 (6%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 3 (3%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 8 (9%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Aortic replacement </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 9 (5%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 3 (3%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 5 (5%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Maze </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 8 (4%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 2 (2%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 4 (4%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> ¹Patients could present with more than one comorbidity, totals may not sum to 100%.</td></tr></tfoot>
+</table>> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("kable_table_one", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+
+detaching ‘package:dplyr’
+
+> nameEx("median_time_to_event")
+> ### * median_time_to_event
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: median_time_to_event
+> ### Title: Calculate Median Time to Event for a Specific State
+> ### Aliases: median_time_to_event
+> 
+> ### ** Examples
+> 
+> 
+> 
+> cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
++ patid = PatientID,
++ idx_dt = SurgeryDate,
++ evt_dt = TransplantDate,
++ end_dt = LastVisitDate,
++ death_dt = DeathDate,
++ append = TRUE,
++ units = "months",
++ adm_cnr_time = 24)
+> 
+> 
+> CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+> 
+> median_time_to_event(survfitms_obj = CIF, target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+$time
+[1] NA
+
+$lower_ci
+[1] NA
+
+$upper_ci
+[1] NA
+
+$target_probability
+[1] 0.2
+
+$max_followup
+[1] 24
+
+$final_cif
+[1] 0.1595057
+
+$n_at_risk
+1 
+0 
+
+$n_events
+[1] 17
+
+$interpolated
+[1] TRUE
+
+attr(,"class")
+[1] "time_estimate"
+> 
+> CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+> median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Male",
++ target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+$time
+[1] NA
+
+$lower_ci
+[1] NA
+
+$upper_ci
+[1] NA
+
+$target_probability
+[1] 0.2
+
+$max_followup
+[1] 24
+
+$final_cif
+[1] 0.09027354
+
+$n_at_risk
+1 
+0 
+
+$n_events
+[1] 17
+
+$interpolated
+[1] TRUE
+
+attr(,"class")
+[1] "time_estimate"
+> median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female",
++ target_prob= 0.2,evt_type = 1, interpolate = TRUE)
+$time
+[1] 22.15251
+
+$lower_ci
+[1] NA
+
+$upper_ci
+[1] NA
+
+$target_probability
+[1] 0.2
+
+$max_followup
+[1] 24
+
+$final_cif
+[1] 0.2258208
+
+$n_at_risk
+1 
+0 
+
+$n_events
+[1] 17
+
+$interpolated
+[1] TRUE
+
+attr(,"class")
+[1] "time_estimate"
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("median_time_to_event", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("show_cif")
+> ### * show_cif
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: show_cif
+> ### Title: Plot Cumulative Incidence Function for Competing Risks
+> ### Aliases: show_cif
+> 
+> ### ** Examples
+> 
+> 
+> 
+> if (interactive() && identical(.Platform$OS.type, "windows")) {
++   windowsFonts(Arial = windowsFont("Arial"))
++ }
+> 
+> ## Showing all events
+> cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
++ patid = PatientID,
++ idx_dt = SurgeryDate,
++ evt_dt = TransplantDate,
++ end_dt = LastVisitDate,
++ death_dt = DeathDate,
++ append = TRUE,
++ units = "months",
++ adm_cnr_time = 24)
+> 
+> CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+> 
+> 
+>     show_cif(CIF,evt_type = c(0,1,2),add_legend = TRUE,x_break = seq(0,24,by=3),
++          evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"),
++ x_lab = "Time since surgery (months)")
+Warning: Removed 40 rows containing missing values or values outside the scale range
+(`geom_ribbon()`).
+> 
+> 
+> ## Including a covariate
+> 
+> CIF_Sex <- estimate_cif_km(cmp_risk_data , evt = evt,evt_time = evt_time,group = Sex)
+> 
+> show_cif(CIF_Sex,evt_type = c(1),add_legend = FALSE,x_break = seq(0,24,by=3),
++         evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"),
++ x_lab = "Time since surgery (months)")
+5 cases omitted due to missing values
+Warning: Removed 60 rows containing missing values or values outside the scale range
+(`geom_ribbon()`).
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("show_cif", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("show_surv")
+> ### * show_surv
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: show_surv
+> ### Title: Plot Survival or Cumulative Death Function
+> ### Aliases: show_surv
+> 
+> ### ** Examples
+> 
+> 
+> ## All patients
+> 
+> survival_data <-  construct_surv_cmprisk_var(cardio_data,
++                                             patid = PatientID,
++                                             idx_dt = SurgeryDate,
++                                             evt_dt = DeathDate,
++                                             end_dt = LastVisitDate,
++                                             append = TRUE,
++                                             units = "months",
++                                             adm_cnr_time = 24)
+> 
+> KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+> show_surv(KM, pvalue_pos = "bottomleft",
++ add_legend = TRUE,x_break = seq(0,24,by=3),
++ x_lab = "Time since surgery (months)")
+The parameter y_lim was set to y_lim= c(0, 1) for survival function.
+> ## Including a covariate
+> KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+> show_surv(KM_Sex,pvalue_pos = "bottomleft",
++ add_legend = TRUE,x_break = seq(0,24,by=3),
++ x_lab = "Time since surgery (months)")
+The parameter y_lim was set to y_lim= c(0, 1) for survival function.
+Warning: Removed 2 rows containing missing values or values outside the scale range
+(`geom_ribbon()`).
+> 
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("show_surv", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("summarize_cif")
+> ### * summarize_cif
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: summarize_cif
+> ### Title: Summarize Cumulative Incidence Function (CIF)
+> ### Aliases: summarize_cif
+> 
+> ### ** Examples
+> 
+> 
+> 
+> cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
++                                            patid = PatientID,
++                                            idx_dt = SurgeryDate,
++                                            evt_dt = TransplantDate,
++                                            end_dt = LastVisitDate,
++                                            death_dt = DeathDate,
++                                            append = TRUE,
++                                            units = "months",
++                                            adm_cnr_time = 24)
+> 
+> CIF <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time)
+> 
+> ## Presenting one event for all patients
+> summarize_cif(CIF,time_lab = "Time since surgery (months)",evt_type = 1,
++ caption = "Time to transplant for all patients",
++               evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>Time to transplant for all patients</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Time since surgery (months) </th>
+   <th style="text-align:center;text-align: center;"> Overall </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> 3.7% [1.7%, 8.1%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> 7.6% [4.3%, 13.4%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> 12.2% [7.4%, 20.1%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> 13.6% [8.4%, 22.0%] </td>
+  </tr>
+</tbody>
+</table>> 
+> ## Presenting all events for all patients
+> summarize_cif(CIF,time_lab = "Time since surgery (months)",
++ caption = "Time to transplant for all patients",
++               evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>Time to transplant for all patients</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Time since surgery (months) </th>
+   <th style="text-align:center;text-align: center;"> Event free </th>
+   <th style="text-align:center;text-align: center;"> Transplant </th>
+   <th style="text-align:center;text-align: center;"> Death </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:center;"> 100.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> 82.0% [76.6%, 87.9%] </td>
+   <td style="text-align:center;"> 3.7% [1.7%, 8.1%] </td>
+   <td style="text-align:center;"> 14.3% [10.0%, 20.4%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> 78.2% [72.1%, 84.8%] </td>
+   <td style="text-align:center;"> 7.6% [4.3%, 13.4%] </td>
+   <td style="text-align:center;"> 14.3% [10.0%, 20.4%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> 73.5% [66.4%, 81.3%] </td>
+   <td style="text-align:center;"> 12.2% [7.4%, 20.1%] </td>
+   <td style="text-align:center;"> 14.3% [10.0%, 20.4%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> 72.1% [64.7%, 80.3%] </td>
+   <td style="text-align:center;"> 13.6% [8.4%, 22.0%] </td>
+   <td style="text-align:center;"> 14.3% [10.0%, 20.4%] </td>
+  </tr>
+</tbody>
+</table>> 
+> CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = Sex)
+> ## Presenting only the events by a covariate
+> 
+> summarize_cif(CIF_Sex,time_lab = "Time since surgery (months)",evt_type = 1,
++ caption = "Time to transplant by sex",
++ evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>Time to transplant by sex</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Time since surgery (months) </th>
+   <th style="text-align:center;text-align: center;"> Female </th>
+   <th style="text-align:center;text-align: center;"> Male </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> 4.1% [1.3%, 12.4%] </td>
+   <td style="text-align:center;"> 3.6% [1.2%, 10.9%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> 9.3% [4.3%, 20.0%] </td>
+   <td style="text-align:center;"> 6.5% [2.8%, 15.3%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> 16.3% [8.8%, 30.2%] </td>
+   <td style="text-align:center;"> 9.0% [4.0%, 20.2%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> 18.8% [10.5%, 33.6%] </td>
+   <td style="text-align:center;"> 9.0% [4.0%, 20.2%] </td>
+  </tr>
+</tbody>
+</table>> 
+> 
+> ## Presenting all events by a covariate
+> 
+> 
+> summarize_cif(CIF_Sex, time_lab = "Time since surgery (months)",
++ caption = "Time to transplant by sex",
++              evt_label = c('0' = "Event free", '1' = "Transplant", '2'= "Death"))
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>Time to transplant by sex</caption>
+ <thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Event free</div></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Transplant</div></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Death</div></th>
+</tr>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Time since surgery (months) </th>
+   <th style="text-align:center;text-align: center;"> Female </th>
+   <th style="text-align:center;text-align: center;"> Male </th>
+   <th style="text-align:center;text-align: center;"> Female </th>
+   <th style="text-align:center;text-align: center;"> Male </th>
+   <th style="text-align:center;text-align: center;"> Female </th>
+   <th style="text-align:center;text-align: center;"> Male </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:center;"> 100.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 100.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+   <td style="text-align:center;"> 0.0% [0.0%, 0.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> 94.7% [89.8%, 99.9%] </td>
+   <td style="text-align:center;"> 70.7% [62.0%, 80.7%] </td>
+   <td style="text-align:center;"> 4.1% [1.3%, 12.4%] </td>
+   <td style="text-align:center;"> 3.6% [1.2%, 10.9%] </td>
+   <td style="text-align:center;"> 1.2% [0.2%, 8.5%] </td>
+   <td style="text-align:center;"> 25.7% [18.2%, 36.3%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> 89.5% [82.4%, 97.3%] </td>
+   <td style="text-align:center;"> 67.8% [58.7%, 78.3%] </td>
+   <td style="text-align:center;"> 9.3% [4.3%, 20.0%] </td>
+   <td style="text-align:center;"> 6.5% [2.8%, 15.3%] </td>
+   <td style="text-align:center;"> 1.2% [0.2%, 8.5%] </td>
+   <td style="text-align:center;"> 25.7% [18.2%, 36.3%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> 82.5% [72.9%, 93.5%] </td>
+   <td style="text-align:center;"> 65.3% [55.5%, 76.8%] </td>
+   <td style="text-align:center;"> 16.3% [8.8%, 30.2%] </td>
+   <td style="text-align:center;"> 9.0% [4.0%, 20.2%] </td>
+   <td style="text-align:center;"> 1.2% [0.2%, 8.5%] </td>
+   <td style="text-align:center;"> 25.7% [18.2%, 36.3%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> 80.0% [69.7%, 91.9%] </td>
+   <td style="text-align:center;"> 65.3% [55.5%, 76.8%] </td>
+   <td style="text-align:center;"> 18.8% [10.5%, 33.6%] </td>
+   <td style="text-align:center;"> 9.0% [4.0%, 20.2%] </td>
+   <td style="text-align:center;"> 1.2% [0.2%, 8.5%] </td>
+   <td style="text-align:center;"> 25.7% [18.2%, 36.3%] </td>
+  </tr>
+</tbody>
+</table>> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("summarize_cif", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("summarize_km")
+> ### * summarize_km
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: summarize_km
+> ### Title: Summarize Kaplan-Meier Estimates
+> ### Aliases: summarize_km
+> 
+> ### ** Examples
+> 
+> 
+> survival_data <-  construct_surv_cmprisk_var(cardio_data,
++                                             patid = PatientID,
++                                             idx_dt = SurgeryDate,
++                                             evt_dt = DeathDate,
++                                             end_dt = LastVisitDate,
++                                             append = TRUE,
++                                             units = "months",
++                                             adm_cnr_time = 24)
+> 
+> KM <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time)
+> summarize_km(KM,overall_label = "All patients",
++ time_lab = "Time since surgery (months)",caption = "Overall Survival by sex")
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>Overall Survival by sex</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Time since surgery (months) </th>
+   <th style="text-align:center;text-align: center;"> All patients </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:center;"> 100.0% [100.0%, 100.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> 85.7% [79.7%, 90.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> 85.7% [79.7%, 90.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> 85.7% [79.7%, 90.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> 85.7% [79.7%, 90.0%] </td>
+  </tr>
+</tbody>
+</table>> 
+> KM_Sex <- estimate_cif_km(survival_data, evt = evt,evt_time = evt_time,group = Sex)
+> summarize_km(KM_Sex,overall_label = "All patients",
++ time_lab = "Time since surgery (months)",caption = "Overall Survival for all patients")
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<caption>Overall Survival for all patients</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Time since surgery (months) </th>
+   <th style="text-align:center;text-align: center;"> Female </th>
+   <th style="text-align:center;text-align: center;"> Male </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:center;"> 100.0% [100.0%, 100.0%] </td>
+   <td style="text-align:center;"> 100.0% [100.0%, 100.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> 98.8% [91.8%, 99.8%] </td>
+   <td style="text-align:center;"> 74.3% [64.2%, 82.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> 98.8% [91.8%, 99.8%] </td>
+   <td style="text-align:center;"> 74.3% [64.2%, 82.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> 98.8% [91.8%, 99.8%] </td>
+   <td style="text-align:center;"> 74.3% [64.2%, 82.0%] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> 98.8% [91.8%, 99.8%] </td>
+   <td style="text-align:center;"> 74.3% [64.2%, 82.0%] </td>
+  </tr>
+</tbody>
+</table>> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("summarize_km", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("table_one")
+> ### * table_one
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: table_one
+> ### Title: table_one
+> ### Aliases: table_one
+> 
+> ### ** Examples
+> 
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+> 
+> work_d <- cardio_data %>%
++  mutate(SurgeryType = factor_order(SurgeryType)) %>%
++  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")
+> 
+> 
+> 
+> demo_table <-  table_one(df = work_d ,
++          group = Sex,
++         datadic = cardio_data_dictionary %>%
++            rbind(data.frame("VariableName" = "Comorbidities¹",
++                             "Label" ="Comorbidities¹", "Description"= "All Comorbidities")),
++         var_name = VariableName,
++          var_desp = Label,
++          include_overall = "all",
++          Check_box = Comorbidities,
++          Check_box_title = "Comorbidities¹")
+> 
+> 
+>  # Creating a report ready kable output
+>  options(knitr.kable.NA = '')
+>  kable_table_one(demo_table,caption =  "Summary table overall and stratified by sex") %>%
++  kableExtra::footnote(
++    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
++    general_title = "",
++    footnote_as_chunk = TRUE)
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;border-bottom: 0;">
+<caption>Summary table overall and stratified by sex</caption>
+ <thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Overall (N = 185)</div></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Female (N = 86)</div></th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">Male (N = 94)</div></th>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1"></th>
+</tr>
+  <tr>
+   <th style="text-align:left;text-align: center;"> Variables </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+   <th style="text-align:center;text-align: center;"> N </th>
+   <th style="text-align:center;text-align: center;"> Stat </th>
+   <th style="text-align:right;text-align: center;"> SMD </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Age (years)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 51 (38 – 69) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 51 (40 – 71) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 50 (37 – 63) </td>
+   <td style="text-align:right;"> 0.090 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">NYHA Functional Class</span> </td>
+   <td style="text-align:center;"> 135 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 66 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 66 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.288 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> I </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 31 (23%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 16 (24%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (21%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> II </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 0 (0%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 0 (0%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 0 (0%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> III </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 52 (39%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 21 (32%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 30 (45%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> IV </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 52 (39%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 29 (44%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 22 (33%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Ejection Fraction (%)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 44.7 (31.8 – 56.0) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 45.2 (32.0 – 56.2) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 44.3 (31.2 – 56.4) </td>
+   <td style="text-align:right;"> 0.004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Body Mass Index (kg/m²)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 26.6 (22.8 – 30.2) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 25.4 (22.1 – 30.1) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 27.4 (23.5 – 30.1) </td>
+   <td style="text-align:right;"> 0.199 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Heart Rate (bpm)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 83 (67 – 99) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 84 (67 – 98) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 83 (67 – 100) </td>
+   <td style="text-align:right;"> 0.058 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Systolic Blood Pressure (mmHg)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 133 (110 – 154) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 130 (111 – 154) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 135 (111 – 156) </td>
+   <td style="text-align:right;"> 0.070 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Diastolic Blood Pressure (mmHg)</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 80 (70 – 92) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 78 (69 – 89) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 84 (73 – 94) </td>
+   <td style="text-align:right;"> 0.397 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Smoking Status</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.215 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Current </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 61 (33%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 33 (38%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 27 (29%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Former </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 69 (37%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 28 (33%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 38 (40%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Never </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 55 (30%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 25 (29%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 29 (31%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">History of Myocardial Infarction</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 89 (48%) </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;"> 40 (47%) </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;"> 45 (48%) </td>
+   <td style="text-align:right;"> 0.027 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Comorbidities¹</span> </td>
+   <td style="text-align:center;"> 147 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 69 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 75 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Diabetes Mellitus </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 33 (22%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 18 (26%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (19%) </td>
+   <td style="text-align:right;"> 0.179 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Hypertension </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 35 (24%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (20%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 20 (27%) </td>
+   <td style="text-align:right;"> 0.151 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Chronic Obstructive Pulmonary Disease </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 41 (28%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 20 (29%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 20 (27%) </td>
+   <td style="text-align:right;"> 0.052 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Chronic Kidney Disease </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 39 (27%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 17 (25%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 21 (28%) </td>
+   <td style="text-align:right;"> 0.076 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Coronary Artery Disease </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 38 (26%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 17 (25%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 21 (28%) </td>
+   <td style="text-align:right;"> 0.076 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> No known comorbidities </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 19 (13%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 8 (12%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 10 (13%) </td>
+   <td style="text-align:right;"> 0.053 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> <span style=" font-weight: bold;    ">Type of Surgery</span> </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 86 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 94 </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:right;"> 0.549 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Mitral replacement </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 60 (32%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 30 (35%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 30 (32%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> CABG </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 38 (21%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 12 (14%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 25 (27%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Mitral repair </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 23 (12%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (16%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 9 (10%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Transplant </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 22 (12%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 15 (17%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 6 (6%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Aortic repair </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 14 (8%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 7 (8%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 7 (7%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> LVAD </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 11 (6%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 3 (3%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 8 (9%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Aortic replacement </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 9 (5%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 3 (3%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 5 (5%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;padding-left: 2em;" indentlevel="1"> Maze </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 8 (4%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 2 (2%) </td>
+   <td style="text-align:center;">  </td>
+   <td style="text-align:center;"> 4 (4%) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> ¹Patients could present with more than one comorbidity, totals may not sum to 100%.</td></tr></tfoot>
+</table>> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("table_one", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> ### * <FOOTER>
+> ###
+> cleanEx()
+
+detaching ‘package:dplyr’
+
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  13.94 0.338 14.477 0 0 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

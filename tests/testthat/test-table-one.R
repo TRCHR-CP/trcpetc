@@ -79,3 +79,47 @@ testthat::test_that("default SMD output works with bundled cardio_data", {
   testthat::expect_true(any(!is.na(result$smd)))
   testthat::expect_true(grepl("SMD", rendered, fixed = TRUE))
 })
+
+testthat::test_that("one-group tables and checkbox validation work", {
+  dat <- data.frame(
+    group = factor(c("A", "A")),
+    value = c(1, 2),
+    flag = c(TRUE, FALSE),
+    category = factor(c("x", "y"))
+  )
+
+  result <- trcpetc::table_one(dat, group = group)$tab
+  testthat::expect_true(nrow(result) > 0)
+  testthat::expect_true("smd" %in% names(result))
+
+  testthat::expect_error(
+    trcpetc::check_box_convert(data.frame(a = c(0, 2)), check_box_cols = "a"),
+    "only 0, 1"
+  )
+})
+
+testthat::test_that("survival construction validates and censors dates", {
+  dat <- data.frame(
+    id = 1:3,
+    idx = as.Date(c("2020-01-01", "2020-01-01", "2020-01-01")),
+    evt = as.Date(c(NA, "2020-01-05", "2020-01-20")),
+    end = as.Date(c(NA, "2020-01-10", "2020-01-10"))
+  )
+
+  result <- trcpetc::construct_surv_cmprisk_var(
+    dat, patid = id, idx_dt = idx, evt_dt = evt, end_dt = end
+  )
+  testthat::expect_true(is.na(result$evt_time[1]))
+  testthat::expect_equal(result$evt[2], 1)
+  testthat::expect_equal(result$evt[3], 0)
+  testthat::expect_error(
+    trcpetc::construct_surv_cmprisk_var(
+      dat, patid = id, idx_dt = idx, evt_dt = evt, end_dt = end, units = "month"
+    ),
+    "units"
+  )
+})
+
+testthat::test_that("decimalplaces returns the modal precision", {
+  testthat::expect_equal(trcpetc:::decimalplaces(c(1.1, 2.2, 3.33)), 1)
+})

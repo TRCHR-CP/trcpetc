@@ -14,6 +14,14 @@ factor_desp(
 }
 \arguments{
 \item{df}{Dataframe}
+
+\item{group}{Optional grouping variable.}
+
+\item{includeNA}{Logical; whether to include missing values as a level.}
+
+\item{round_to_100}{Logical; whether rounded percentages should sum to 100.}
+
+\item{drop.unused.levels}{Logical; whether to remove unused factor levels.}
 }
 \value{
 a dataframe consisting of columns of character variables indicating the frequency and proportion of logical variables.

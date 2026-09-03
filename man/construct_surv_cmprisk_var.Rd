@@ -35,6 +35,8 @@ construct_surv_cmprisk_var(
 
 \item{units}{Character string specifying the unit of time for the time-to-event analysis. Accepted values are: "days (default) ", "weeks", "months", or "years".}
 
+\item{append}{Logical; if \code{TRUE}, append the generated variables to the input data frame.}
+
 \item{adm_cnr_time}{a numeric vector specifying the time point at which administrative censoring is applied (in the same units as units).}
 
 \item{...}{all competing event dates}

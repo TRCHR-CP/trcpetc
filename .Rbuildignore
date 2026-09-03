@@ -1,3 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^dev$
+^README\.html$
+^notes_install_update_test\.R$
+^\.Rcheck$
+^\.git$

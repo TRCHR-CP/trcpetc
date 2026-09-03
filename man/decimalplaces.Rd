@@ -8,6 +8,8 @@ decimalplaces(x, max_dec = 4L)
 }
 \arguments{
 \item{x}{a continuous variable}
+
+\item{max_dec}{Maximum number of decimal places to return.}
 }
 \value{
 the most frequent number of digits in the variable

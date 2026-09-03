@@ -1,6 +1,18 @@
 pkgname <- "trcpetc"
 source(file.path(R.home("share"), "R", "examples-header.R"))
 options(warn = 1)
+base::assign(".ExTimings", "trcpetc-Ex.timings", pos = 'CheckExEnv')
+base::cat("name\tuser\tsystem\telapsed\n", file=base::get(".ExTimings", pos = 'CheckExEnv'))
+base::assign(".format_ptime",
+function(x) {
+  if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]
+  if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]
+  options(OutDec = '.')
+  format(x[1L:3L], digits = 7L)
+},
+pos = 'CheckExEnv')
+
+### * </HEADER>
 library('trcpetc')
 
 base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
@@ -11,6 +23,7 @@ nameEx("check_box_convert")
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: check_box_convert
 ### Title: check box convert
 ### Aliases: check_box_convert
@@ -30,7 +43,8 @@ cardio_data %>% select(Comorbidities) %>%
 cardio_data %>% select(Comorbidities) %>%
  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
  table_one(Check_box = Comorbidities,
-           Check_box_title = "Comorbidities¹")%>%
+           Check_box_title = "Comorbidities¹") %>%
+ kable_table_one() %>%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
    general_title = "",
@@ -48,8 +62,9 @@ Comorbidities2  <- cardio_data %>% select(CKD:CAD) %>% names()
 cardio_data %>% select(Comorbidities1,Comorbidities2) %>%
  check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  %>%
  check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  %>%
- table_one(Check_box = Comorbidities,
-           Check_box_title = c("Comorbidities¹","Comorbidities2¹"))%>%
+ table_one(Check_box = c(Comorbidities1, Comorbidities2),
+           Check_box_title = c("Comorbidities1¹","Comorbidities2¹")) %>%
+ kable_table_one() %>%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
    general_title = "",
@@ -60,12 +75,15 @@ cardio_data %>% select(Comorbidities1,Comorbidities2) %>%
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("check_box_convert", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("construct_surv_cmprisk_var")
 ### * construct_surv_cmprisk_var
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: construct_surv_cmprisk_var
 ### Title: construct survival or competing risks process
 ### Aliases: construct_surv_cmprisk_var
@@ -106,12 +124,15 @@ CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = 
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("construct_surv_cmprisk_var", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("estimate_cif_km")
 ### * estimate_cif_km
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: estimate_cif_km
 ### Title: Kaplan-Meier survival and cumulative incidence (CIF) estimates
 ### Aliases: estimate_cif_km
@@ -152,12 +173,15 @@ CIF_Sex <- estimate_cif_km(cmp_risk_data, evt = evt,evt_time = evt_time,group = 
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("estimate_cif_km", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("factor_order")
 ### * factor_order
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: factor_order
 ### Title: Order a factor variable by descending frequency.
 ### Aliases: factor_order
@@ -176,12 +200,15 @@ cardio_data %>%
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("factor_order", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("kable_table_one")
 ### * kable_table_one
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: kable_table_one
 ### Title: kable_table_one
 ### Aliases: kable_table_one
@@ -219,12 +246,15 @@ demo_table <-  table_one(df = work_d ,
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("kable_table_one", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("median_time_to_event")
 ### * median_time_to_event
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: median_time_to_event
 ### Title: Calculate Median Time to Event for a Specific State
 ### Aliases: median_time_to_event
@@ -257,12 +287,15 @@ target_prob= 0.2,evt_type = 1, interpolate = TRUE)
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("median_time_to_event", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("show_cif")
 ### * show_cif
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: show_cif
 ### Title: Plot Cumulative Incidence Function for Competing Risks
 ### Aliases: show_cif
@@ -271,7 +304,9 @@ flush(stderr()); flush(stdout())
 
 
 
-windowsFonts(Arial = windowsFont("Arial"))
+if (interactive() && identical(.Platform$OS.type, "windows")) {
+  windowsFonts(Arial = windowsFont("Arial"))
+}
 
 ## Showing all events
 cmp_risk_data <- construct_surv_cmprisk_var(cardio_data,
@@ -303,12 +338,15 @@ x_lab = "Time since surgery (months)")
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("show_cif", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("show_surv")
 ### * show_surv
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: show_surv
 ### Title: Plot Survival or Cumulative Death Function
 ### Aliases: show_surv
@@ -341,12 +379,15 @@ x_lab = "Time since surgery (months)")
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("show_surv", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("summarize_cif")
 ### * summarize_cif
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: summarize_cif
 ### Title: Summarize Cumulative Incidence Function (CIF)
 ### Aliases: summarize_cif
@@ -395,12 +436,15 @@ caption = "Time to transplant by sex",
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("summarize_cif", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("summarize_km")
 ### * summarize_km
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: summarize_km
 ### Title: Summarize Kaplan-Meier Estimates
 ### Aliases: summarize_km
@@ -428,12 +472,15 @@ time_lab = "Time since surgery (months)",caption = "Overall Survival for all pat
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("summarize_km", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 cleanEx()
 nameEx("table_one")
 ### * table_one
 
 flush(stderr()); flush(stdout())
 
+base::assign(".ptime", proc.time(), pos = "CheckExEnv")
 ### Name: table_one
 ### Title: table_one
 ### Aliases: table_one
@@ -472,6 +519,8 @@ demo_table <-  table_one(df = work_d ,
 
 
 
+base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+base::cat("table_one", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
 ### * <FOOTER>
 ###
 cleanEx()

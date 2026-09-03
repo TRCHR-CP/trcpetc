@@ -8,6 +8,8 @@ numeric_desp(df, group)
 }
 \arguments{
 \item{df}{Dataframe}
+
+\item{group}{Optional grouping variable.}
 }
 \value{
 a dataframe consisting of columns of character variables.

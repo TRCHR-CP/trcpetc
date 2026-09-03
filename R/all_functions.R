@@ -1,11 +1,21 @@
 
 #' @title summarize_coxph
 #'
+#' @param mdl A fitted \code{coxph} or \code{coxph.penal} model.
+#' @param exponentiate Logical; whether to exponentiate estimates and confidence limits.
+#' @param maxlabel Maximum number of labels passed to the model summary.
+#' @param alpha Significance level used to calculate confidence intervals.
+#' @param pval Character string specifying whether to report omnibus p-values
+#' or both omnibus and coefficient-level p-values. Defaults to "omnibus".
 #' @details
-#' The function summarizes the fitted cox model with the type 3 error based on Wald's statistics.
+#' The function summarizes the fitted cox model with Type III (omnibus) tests
+#' based on Wald statistics.
 #'
 #' @export
-summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05) {
+summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05,
+                            pval= c("omnibus", "both")) {
+
+  pval_type <- match.arg(pval)
 
   if (!any(class(mdl) %in% c("coxph", "coxph.penal"))) stop("Not a coxph or coxph.penal object.")
 
@@ -13,9 +23,9 @@ summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05)
     as.data.frame() %>%
     tibble::rownames_to_column("term")
 
-  if (any(class(mdl)== "coxph.penal")) {
+  if (inherits(mdl, "coxph.penal")) {
     out<- dplyr::rename(out, se= 'se(coef)')
-  } else if (all(class(mdl)== "coxph")) {
+  } else if (inherits(mdl, "coxph")) {
     out<- dplyr::rename(out, se= 'se(coef)', p= 'Pr(>|z|)')
     # names(out)[grep("^p", names(out), ignore.case = TRUE)]<- "p"
   }
@@ -30,7 +40,7 @@ summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05)
                                paste0(formatC(coef, format= "f", digits= 3, flag= "#"), " [",
                                       formatC(conf_low, format= "f", digits= 3, flag= "#"), ", ",
                                       formatC(conf_high, format= "f", digits= 3, flag= "#"), "]")),
-                  pval= format_pvalue(p)) %>%
+                  pval= if (pval_type == "both") format_pvalue(p) else NA_character_) %>%
     dplyr::select(dplyr::one_of(c("term", "stat", "pval")))
 
   type3_coxph<- function(mdl, beta_var= vcov(mdl)) {
@@ -50,7 +60,7 @@ summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05)
                    # calculate Wald's test statistics and p-value
                    wald_stat<- as.numeric( t(cc) %*% solve(vv) %*% cc )
                    pval<- stats::pchisq(wald_stat,
-                                 df= if (any(class(mdl)=="coxph.penal") && !is.na(mdl$df[i])) mdl$df[i] else df,
+                                 df= if (inherits(mdl, "coxph.penal") && !is.na(mdl$df[i])) mdl$df[i] else df,
                                  lower.tail  = FALSE)
 
                    data.frame(df= round(df, 0), stat= wald_stat, chisq_p= pval)
@@ -67,7 +77,10 @@ summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05)
     #   match(names(attr(mdl$terms, "dataClasses"))[-term_excld],
     #                   attr(mdl$terms, "term.labels"))
     #   ]
-    var_label<- grep("(strata|cluster|tt|ridge|pspline|frailty)\\(.*\\)", attr(mdl$terms, "term.labels"), value = T, invert = T)
+    varseq <- unique(varseq)
+    term_labels <- grep("(strata|cluster|tt|ridge|pspline|frailty)\\(.*\\)",
+              attr(mdl$terms, "term.labels"), value = TRUE, invert = TRUE)
+    var_label <- ifelse(varseq == 0, "(Intercept)", term_labels[varseq])
     out<- cbind(variable= var_label, out, stringsAsFactors= FALSE)
     out
   }
@@ -75,7 +88,7 @@ summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05)
   type3_out<- type3_coxph(mdl)
 
   out<- type3_out %>%
-     dplyr::filter(df> 1) %>%
+    dplyr::filter(variable != "(Intercept)") %>%
     dplyr::mutate(pval= format_pvalue(chisq_p)) %>%
     dplyr::select(variable, pval) %>%
     dplyr::rename(term= variable) %>%
@@ -88,6 +101,8 @@ summarize_coxph <- function(mdl, exponentiate= TRUE, maxlabel= 100, alpha= 0.05)
 
 #' @title calculate_type3_mi
 #'
+#' @param mira_obj A \code{mira} object containing multiply imputed model fits.
+#' @param vcov_fun Optional function used to calculate each model covariance matrix.
 #' @details
 #' The function calculates the  3 p-values based on Wald's statistics.
 #'
@@ -150,8 +165,20 @@ calculate_type3_mi <- function(mira_obj, vcov_fun= NULL) {
   out
 }
 
+#' @title summarize_mi_glm
+#' @description Summarize a generalized linear model fitted across multiply
+#' imputed data sets.
+#' @param mira_obj A \code{mira} object containing multiply imputed GLM fits.
+#' @param exponentiate Logical; whether to exponentiate estimates and confidence limits.
+#' @param alpha Significance level used to calculate confidence intervals.
+#' @param vcov_fun Optional function used to calculate each model covariance matrix.
+#' @param pval Character string specifying whether to report omnibus p-values
+#' or both omnibus and coefficient-level p-values. Defaults to "omnibus".
 #' @export
-summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun= NULL) {
+summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05,
+                             vcov_fun= NULL, pval= c("omnibus", "both")) {
+
+  pval_type <- match.arg(pval)
 
   out<- calculate_type3_mi(mira_obj, vcov_fun= vcov_fun)
 
@@ -163,6 +190,14 @@ summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun
   type3_out<- out %>%
     dplyr::bind_rows() %>%
     dplyr::mutate(pval= format_pvalue(chisq_p))
+
+  individual_pvals <- if (pval_type == "both") {
+    mice::pool(mira_obj) %>%
+      summary() %>%
+      dplyr::transmute(term = as.character(term), pval = format_pvalue(p.value))
+  } else {
+    data.frame(term = character(), pval = character(), stringsAsFactors = FALSE)
+  }
 
   glm_out<- mitools::MIcombine(mitools::MIextract(mira_obj$analyses, fun= coef),
                       mitools::MIextract(mira_obj$analyses, fun= if (is.null(vcov_fun)) vcov else vcov_fun)) %$%
@@ -176,7 +211,7 @@ summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun
                   conf_low = if (exponentiate) exp(conf_low) else conf_low,
                   conf_high= if (exponentiate) exp(conf_high) else conf_high,
                   stat = sprintf("%4.3f [%4.3f, %4.3f]", est, conf_low, conf_high),
-                  pval= type3_out$pval[charmatch(gsub("TRUE$", "", term), type3_out$var)]) %>%
+                  pval= individual_pvals$pval[charmatch(term, individual_pvals$term)]) %>%
     dplyr::select(term, stat, pval, rid, dplyr::everything())  %>%
     dplyr::rename(var= term)
 
@@ -184,7 +219,7 @@ summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun
 
 
   type3_out <- type3_out %>%
-     dplyr::filter(df>1) %>%
+    dplyr::filter(var != "(Intercept)") %>%
     dplyr::select(var, pval, rid)
 
   glm_out %>%
@@ -195,8 +230,18 @@ summarize_mi_glm <- function(mira_obj, exponentiate= FALSE, alpha= .05, vcov_fun
 
 }
 
+#' @title summarize_mi_coxph
+#' @description Summarize a Cox model fitted across multiply imputed data sets.
+#' @param cox_mira A \code{mira} object containing multiply imputed Cox model fits.
+#' @param exponentiate Logical; whether to exponentiate estimates and confidence limits.
+#' @param alpha Significance level used to calculate confidence intervals.
+#' @param pval Character string specifying whether to report omnibus p-values
+#' or both omnibus and coefficient-level p-values. Defaults to "omnibus".
 #' @export
-summarize_mi_coxph <- function(cox_mira, exponentiate= TRUE, alpha= .05) {
+summarize_mi_coxph <- function(cox_mira, exponentiate= TRUE, alpha= .05,
+                     pval= c("omnibus", "both")) {
+
+  pval_type <- match.arg(pval)
 
    out<- calculate_type3_mi(cox_mira)
   # names(out)<- attr(tmp$terms, "term.labels")[unique(varseq)]
@@ -208,7 +253,7 @@ summarize_mi_coxph <- function(cox_mira, exponentiate= TRUE, alpha= .05) {
   type3_out<- out %>%
     dplyr::bind_rows() %>%
     dplyr::mutate(pval= format_pvalue(chisq_p)) %>%
-     dplyr::filter(df>1) %>%
+    dplyr::filter(var != "(Intercept)") %>%
     dplyr::select(var, pval, rid)
 
   cox_out<- cox_mira %>%
@@ -226,7 +271,7 @@ summarize_mi_coxph <- function(cox_mira, exponentiate= TRUE, alpha= .05) {
                  conf_high= `97.5 %`) %>%
     dplyr::mutate(var= as.character(term),
                   stat = sprintf("%4.3f [%4.3f, %4.3f]", est, conf_low, conf_high),
-                  pval= format_pvalue(pval)) %>%
+                  pval= if (pval_type == "both") format_pvalue(pval) else NA_character_) %>%
     dplyr::select(var, stat, pval, est, conf_low, conf_high) %>%
     dplyr::full_join(out_tmp, by= c("var" = "term"))
 
@@ -237,6 +282,15 @@ summarize_mi_coxph <- function(cox_mira, exponentiate= TRUE, alpha= .05) {
   # dplyr::bind_rows(cox_out, type3_out) %>% dplyr::arrange(rid, var)
 }
 
+#' @title Prepare multiply imputed GLM term-plot data
+#' @description Creates fitted term values and confidence intervals from a
+#' generalized linear model fitted across multiply imputed data sets.
+#' @param mira_obj A \code{mira} object containing multiply imputed GLM fits.
+#' @param terms Terms to include, specified as model-term positions.
+#' @param center_at Optional values at which to center each term.
+#' @param vcov_fun Optional function used to calculate each model covariance matrix.
+#' @param ... Additional arguments reserved for compatibility.
+#' @return A list of data frames containing fitted term values and confidence intervals.
 #' @export
 generate_mi_glm_termplot_df <- function(mira_obj,
                                        terms= NULL,

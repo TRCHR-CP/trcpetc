@@ -15,6 +15,16 @@ format_pvalue(
 }
 \arguments{
 \item{x}{Numeric variable}
+
+\item{eps}{Threshold used for displaying small p-values.}
+
+\item{trim}{Logical; whether to trim leading whitespace.}
+
+\item{droptrailing0}{Logical; whether to drop trailing zeroes.}
+
+\item{pad}{Logical; whether to pad formatted values.}
+
+\item{...}{Additional arguments passed to \code{format.pval()}.}
 }
 \value{
 character variables reporting p-values

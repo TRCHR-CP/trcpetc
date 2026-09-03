@@ -6,6 +6,9 @@
 \usage{
 prepare_survfit(surv_obj)
 }
+\arguments{
+\item{surv_obj}{A \code{survfit} object to prepare for tabulation.}
+}
 \description{
 prepare survfit for survival table
 }

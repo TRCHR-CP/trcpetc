@@ -8,6 +8,8 @@ fisher_test(df, group)
 }
 \arguments{
 \item{df}{Dataframe}
+
+\item{group}{Grouping variable used for the test.}
 }
 \value{
 a dataframe of a single column of character variables indicating p-values.

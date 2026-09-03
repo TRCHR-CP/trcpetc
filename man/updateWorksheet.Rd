@@ -12,6 +12,8 @@ updateWorksheet(wb, sheetName, x, ...)
 \item{sheetName}{a name of the sheet to be updated}
 
 \item{x}{a dataframe to be write in the \code{wb} object}
+
+\item{...}{Additional arguments reserved for compatibility.}
 }
 \value{
 a \code{wb} object

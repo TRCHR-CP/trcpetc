@@ -1,12 +1,42 @@
 * using log directory ‘/home/rstudio/data/Staff/Brigitte Mueller/R-Packages/TRCPETC/..Rcheck’
-* using R version 4.0.3 (2020-10-10)
-* using platform: x86_64-pc-linux-gnu (64-bit)
+* using R version 4.5.1 (2025-06-13)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+    GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+* running under: Ubuntu 24.04.3 LTS
 * using session charset: UTF-8
-* using option ‘--no-manual’
+* using options ‘--no-manual --as-cran’
 * checking for file ‘./DESCRIPTION’ ... OK
 * checking extension type ... Package
 * this is package ‘trcpetc’ version ‘0.1.0’
 * package encoding: UTF-8
+* checking CRAN incoming feasibility ... NOTE
+Maintainer: ‘Jessica Weiss <jessica.weiss@uhn.ca>’
+
+New submission
+
+Non-FOSS package license (What license is it under?)
+
+No Authors@R field in DESCRIPTION.
+Please add one, modifying
+  Authors@R: c(person(given = c("Original", "version", "by", "Chun-Po", "Steve"),
+                      family = "Fan",
+                      role = "aut"),
+               person(given = "Jessica",
+                      family = "Weiss",
+                      role = "cre",
+                      email = "jessica.weiss@uhn.ca"))
+as necessary.
+
+Package has a VignetteBuilder field but no prebuilt vignette index.
+
+The Title field should be in title case. Current version is:
+  ‘Descriptive table’
+In title case that is:
+  ‘Descriptive Table’
+
+The build time stamp is missing.
 * checking package namespace information ... OK
 * checking package dependencies ... OK
 * checking if this is a source package ... OK
@@ -20,24 +50,34 @@ Found the following hidden files and directories:
   .git
 These were most likely included in error. See section ‘Package
 structure’ in the ‘Writing R Extensions’ manual.
+
+CRAN-pack does not know about
+  ..Rcheck
+  .git
 * checking for portable file names ... OK
 * checking for sufficient/correct file permissions ... OK
 * checking whether package ‘trcpetc’ can be installed ... OK
 * checking installed package size ... OK
 * checking package directory ... OK
+* checking for future file timestamps ... OK
 * checking DESCRIPTION meta-information ... WARNING
 Non-standard license specification:
   What license is it under?
 Standardizable: FALSE
 Checking should be performed on sources prepared by ‘R CMD build’.
-* checking top-level files ... OK
+* checking top-level files ... NOTE
+Non-standard files/directories found at top level:
+  ‘README.html’ ‘dev’ ‘notes_install_update_test.R’ ‘trcpetc.Rproj’
 * checking for left-over files ... OK
 * checking index information ... OK
 * checking package subdirectories ... WARNING
 Found the following directory with the name of a check directory:
   ./..Rcheck
 Most likely, these were included erroneously.
-* checking R files for non-ASCII characters ... OK
+Found the following directory with the name of a version control directory:
+  ./.git
+These should not be in a package tarball.
+* checking code files for non-ASCII characters ... OK
 * checking R files for syntax errors ... OK
 * checking whether the package can be loaded ... OK
 * checking whether the package can be loaded with stated dependencies ... OK
@@ -45,76 +85,97 @@ Most likely, these were included erroneously.
 * checking whether the namespace can be loaded with stated dependencies ... OK
 * checking whether the namespace can be unloaded cleanly ... OK
 * checking loading without being on the library search path ... OK
-* checking dependencies in R code ... NOTE
-Missing or unexported object: ‘dplyr::where’
+* checking use of S3 registration ... OK
+* checking dependencies in R code ... OK
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
-* checking R code for possible problems ... OK
+* checking R code for possible problems ... NOTE
+Found if() conditions comparing class() to string:
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(test) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res_try) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/table_one_helpers.R’: if (class(res) == "try-error") ...
+File ‘TRCPETC/R/utility_functions.R’: if (class(out$strata) != "factor") ...
+File ‘TRCPETC/R/utility_functions.R’: if (class(out$state) != "factor") ...
+Use inherits() (or maybe is()) instead.
 * checking Rd files ... OK
 * checking Rd metadata ... OK
+* checking Rd line widths ... OK
 * checking Rd cross-references ... OK
 * checking for missing documentation entries ... WARNING
 Undocumented code objects:
-  ‘generate_mi_glm_termplot_df’ ‘summarize_mi_coxph’ ‘summarize_mi_glm’
+  ‘generate_mi_glm_termplot_df’
 All user-level objects in a package should have documentation entries.
 See chapter ‘Writing R documentation files’ in the ‘Writing R
 Extensions’ manual.
 * checking for code/documentation mismatches ... OK
 * checking Rd \usage sections ... WARNING
-Undocumented arguments in documentation object 'add_atrisk'
+Undocumented arguments in Rd file 'add_atrisk.Rd'
   ‘p’ ‘surv_obj’ ‘space’ ‘x_break’ ‘atrisk_init_pos’ ‘plot_theme’
 
-Undocumented arguments in documentation object 'calculate_type3_mi'
+Undocumented arguments in Rd file 'calculate_type3_mi.Rd'
   ‘mira_obj’ ‘vcov_fun’
 
-Undocumented arguments in documentation object 'construct_surv_cmprisk_var'
+Undocumented arguments in Rd file 'construct_surv_cmprisk_var.Rd'
   ‘append’
 
-Undocumented arguments in documentation object 'decimalplaces'
+Undocumented arguments in Rd file 'decimalplaces.Rd'
   ‘max_dec’
 
-Undocumented arguments in documentation object 'extract_atrisk'
+Undocumented arguments in Rd file 'extract_atrisk.Rd'
   ‘time.scale’
 
-Undocumented arguments in documentation object 'factor_desp'
+Undocumented arguments in Rd file 'factor_desp.Rd'
   ‘group’ ‘includeNA’ ‘round_to_100’ ‘drop.unused.levels’
 
-Undocumented arguments in documentation object 'fisher_test'
+Undocumented arguments in Rd file 'fisher_test.Rd'
   ‘group’
 
-Undocumented arguments in documentation object 'format_pvalue'
+Undocumented arguments in Rd file 'format_pvalue.Rd'
   ‘eps’ ‘trim’ ‘droptrailing0’ ‘pad’ ‘...’
 
-Undocumented arguments in documentation object 'k_sample_test'
+Undocumented arguments in Rd file 'k_sample_test.Rd'
   ‘df’ ‘group’
-Documented arguments not in \usage in documentation object 'k_sample_test':
+Documented arguments not in \usage in Rd file 'k_sample_test.Rd':
   ‘x’ ‘grp’
 
-Documented arguments not in \usage in documentation object 'kable_table_one':
+Documented arguments not in \usage in Rd file 'kable_table_one.Rd':
   ‘...’
 
-Undocumented arguments in documentation object 'logical_desp'
+Undocumented arguments in Rd file 'logical_desp.Rd'
   ‘group’
 
-Undocumented arguments in documentation object 'numeric_desp'
+Undocumented arguments in Rd file 'numeric_desp.Rd'
   ‘group’
 
-Undocumented arguments in documentation object 'prepare_survfit'
+Undocumented arguments in Rd file 'prepare_survfit.Rd'
   ‘surv_obj’
 
-Undocumented arguments in documentation object 'recode_missing'
+Undocumented arguments in Rd file 'recode_missing.Rd'
   ‘x’ ‘na.value’
 
-Undocumented arguments in documentation object 'summarize_coxph'
+Undocumented arguments in Rd file 'summarize_coxph.Rd'
   ‘mdl’ ‘exponentiate’ ‘maxlabel’ ‘alpha’
 
-Undocumented arguments in documentation object 'two_sample_test'
+Undocumented arguments in Rd file 'summarize_mi_coxph.Rd'
+  ‘cox_mira’ ‘exponentiate’ ‘alpha’
+
+Undocumented arguments in Rd file 'summarize_mi_glm.Rd'
+  ‘mira_obj’ ‘exponentiate’ ‘alpha’ ‘vcov_fun’
+
+Undocumented arguments in Rd file 'two_sample_test.Rd'
   ‘df’ ‘group’
-Documented arguments not in \usage in documentation object 'two_sample_test':
+Documented arguments not in \usage in Rd file 'two_sample_test.Rd':
   ‘x’ ‘grp’
 
-Undocumented arguments in documentation object 'updateWorksheet'
+Undocumented arguments in Rd file 'updateWorksheet.Rd'
   ‘...’
 
 Functions with \usage entries need to have the appropriate \alias
@@ -125,93 +186,20 @@ Extensions’ manual.
 * checking Rd contents ... OK
 * checking for unstated dependencies in examples ... OK
 * checking contents of ‘data’ directory ... OK
-* checking data for non-ASCII characters ... NOTE
-  Note: found 2 marked UTF-8 strings
+* checking data for non-ASCII characters ... OK
+* checking LazyData ... OK
 * checking data for ASCII and uncompressed saves ... OK
 * checking files in ‘vignettes’ ... WARNING
 Files in the 'vignettes' directory but no files in 'inst/doc':
   ‘trcpetc-intro.Rmd’
-* checking examples ... ERROR
-Running examples in ‘trcpetc-Ex.R’ failed
-The error most likely occurred in:
-
-> ### Name: check_box_convert
-> ### Title: check box convert
-> ### Aliases: check_box_convert
-> 
-> ### ** Examples
-> 
-> 
-> library(dplyr)
-
-Attaching package: ‘dplyr’
-
-The following objects are masked from ‘package:stats’:
-
-    filter, lag
-
-The following objects are masked from ‘package:base’:
-
-    intersect, setdiff, setequal, union
-
-> 
-> Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
-> 
-> ## Without checkbox question (Assuming missing all questions is FALSE)
-> cardio_data %>% select(Comorbidities) %>%
-+  table_one()
-Note: Using an external vector in selections is ambiguous.
-ℹ Use `all_of(Comorbidities)` instead of `Comorbidities` to silence this message.
-ℹ See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
-This message is displayed once per session.
-$tab
-               row_id        variable        var_desp Overall_n Overall_stat
-1             Total_N         Total N            <NA>       185          185
-2        DiabetesTRUE        Diabetes        Diabetes       185     33 (18%)
-3    HypertensionTRUE    Hypertension    Hypertension       185     35 (19%)
-4            COPDTRUE            COPD            COPD       185     41 (22%)
-5             CKDTRUE             CKD             CKD       185     39 (21%)
-6             CADTRUE             CAD             CAD       185     38 (21%)
-7 NoComorbiditiesTRUE NoComorbidities NoComorbidities       185     19 (10%)
-
-$pval
-[1] FALSE
-
-$stat_test
-[1] "none"
-
-$include_Missing
-[1] FALSE
-
-$print_test
-[1] FALSE
-
-$total
-[1] TRUE
-
-> # Example with one checkbox question (Assumes missing all questions is missing)
-> 
-> cardio_data %>% select(Comorbidities) %>%
-+  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
-+  table_one(Check_box = Comorbidities,
-+            Check_box_title = "Comorbidities¹")%>%
-+  kableExtra::footnote(
-+    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
-+    general_title = "",
-+    footnote_as_chunk = TRUE
-+  )
-Error in if (!kable_format %in% c("html", "latex")) { : 
-  argument is of length zero
-Calls: %>% -> <Anonymous>
-Execution halted
+* checking examples ... [15s/15s] OK
 * checking for unstated dependencies in vignettes ... OK
-* checking package vignettes in ‘inst/doc’ ... WARNING
-dir.exists(dir) is not TRUE
+* checking package vignettes ... WARNING
+Directory 'inst/doc' does not exist.
 Package vignette without corresponding single PDF/HTML:
-   ‘trcpetc-intro.Rmd’
-
-* checking running R code from vignettes ... NONE
-  ‘trcpetc-intro.Rmd’ using ‘UTF-8’... OK
+  ‘trcpetc-intro.Rmd’
 * checking re-building of vignette outputs ... OK
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
 * DONE
-Status: 1 ERROR, 6 WARNINGs, 3 NOTEs
+Status: 6 WARNINGs, 4 NOTEs

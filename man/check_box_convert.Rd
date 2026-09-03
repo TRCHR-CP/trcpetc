@@ -36,7 +36,8 @@ cardio_data \%>\% select(Comorbidities) \%>\%
 cardio_data \%>\% select(Comorbidities) \%>\%
  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  \%>\%
  table_one(Check_box = Comorbidities,
-           Check_box_title = "Comorbidities¹")\%>\%
+           Check_box_title = "Comorbidities¹") \%>\%
+ kable_table_one() \%>\%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
    general_title = "",
@@ -54,8 +55,9 @@ Comorbidities2  <- cardio_data \%>\% select(CKD:CAD) \%>\% names()
 cardio_data \%>\% select(Comorbidities1,Comorbidities2) \%>\%
  check_box_convert(check_box_cols = Comorbidities1,title = "Comorbidities1¹")  \%>\%
  check_box_convert(check_box_cols = Comorbidities2,title = "Comorbidities2¹")  \%>\%
- table_one(Check_box = Comorbidities,
-           Check_box_title = c("Comorbidities¹","Comorbidities2¹"))\%>\%
+ table_one(Check_box = c(Comorbidities1, Comorbidities2),
+           Check_box_title = c("Comorbidities1¹","Comorbidities2¹")) \%>\%
+ kable_table_one() \%>\%
  kableExtra::footnote(
    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100\%.",
    general_title = "",

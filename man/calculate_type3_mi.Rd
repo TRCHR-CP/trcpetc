@@ -6,6 +6,11 @@
 \usage{
 calculate_type3_mi(mira_obj, vcov_fun = NULL)
 }
+\arguments{
+\item{mira_obj}{A \code{mira} object containing multiply imputed model fits.}
+
+\item{vcov_fun}{Optional function used to calculate each model covariance matrix.}
+}
 \description{
 calculate_type3_mi
 }

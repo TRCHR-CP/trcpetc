@@ -9,6 +9,7 @@
 #' An internal function that determines the number of digits in the summary of a continuous variable.
 #'
 #' @param x a continuous variable
+#' @param max_dec Maximum number of decimal places to return.
 #' @return the most frequent number of digits in the variable
 decimalplaces <- function(x, max_dec= 4L) {
   y<- x[!is.na(x)]
@@ -43,6 +44,11 @@ decimalplaces <- function(x, max_dec= 4L) {
 #' @details An internal function that formats p-values according to the statistical guidelines of the Annals of Medicine.
 #'
 #' @param x Numeric variable
+#' @param eps Threshold used for displaying small p-values.
+#' @param trim Logical; whether to trim leading whitespace.
+#' @param droptrailing0 Logical; whether to drop trailing zeroes.
+#' @param pad Logical; whether to pad formatted values.
+#' @param ... Additional arguments passed to \code{format.pval()}.
 #' @return character variables reporting p-values
 #' @export
 format_pvalue <- function(x, eps = 0.001, trim = TRUE,
@@ -84,6 +90,7 @@ format_pvalue <- function(x, eps = 0.001, trim = TRUE,
 #' @param wb a \code{wb} object
 #' @param sheetName a name of the sheet to be updated
 #' @param x a dataframe to be write in the \code{wb} object
+#' @param ... Additional arguments reserved for compatibility.
 #' @return a \code{wb} object
 #' @export
 updateWorksheet <- function(wb, sheetName, x, ...) {
@@ -118,6 +125,7 @@ updateWorksheet <- function(wb, sheetName, x, ...) {
 #'
 #' @param fit a survfit object
 #' @param time.list a numeric vector specifying the time points at which the number of at-risk subjects is calculated.
+#' @param time.scale Numeric scale used to convert the fit time values.
 #' @return A dataframe containing the number of at risk patients at time-, overall or by strata
 extract_atrisk <- function(fit, time.list, time.scale= 1) {
 
@@ -207,6 +215,7 @@ run_gray_test <- function(surv_obj, evt_type= 1:2) {
 
 
 #' @title prepare survfit for survival table
+#' @param surv_obj A \code{survfit} object to prepare for tabulation.
 #' @importFrom magrittr %>%
 prepare_survfit <- function(surv_obj) {
 
@@ -233,8 +242,8 @@ prepare_survfit <- function(surv_obj) {
                          prob     = as.numeric(surv_obj$pstate),
                          conf_low = as.numeric(surv_obj$lower),
                          conf_high= as.numeric(surv_obj$upper))
-    if (class(out$strata)!= 'factor') out$strata<- factor(out$strata)
-    if (class(out$state) != 'factor') out$state <- stats::relevel(factor(out$state), ref= '0')
+    if (!is.factor(out$strata)) out$strata<- factor(out$strata)
+    if (!is.factor(out$state)) out$state <- stats::relevel(factor(out$state), ref= '0')
     out
   }
 
@@ -268,7 +277,7 @@ prepare_survfit <- function(surv_obj) {
 
 
 
-  out<- if (any(class(surv_obj)=="survfitms")) {
+  out<- if (inherits(surv_obj, "survfitms")) {
 
     surv_obj %>%
       prepare_cmprisk() %>%
@@ -337,6 +346,12 @@ prepare_survfit <- function(surv_obj) {
 }
 
 #' @title Create atrisk table
+#' @param p A ggplot object containing the survival curve.
+#' @param surv_obj A \code{survfit} object used to calculate the at-risk table.
+#' @param space Numeric spacing between strata labels.
+#' @param x_break Numeric time points for the at-risk table.
+#' @param atrisk_init_pos Numeric initial vertical position for the at-risk label.
+#' @param plot_theme Optional ggplot2 theme used to determine text styling.
 add_atrisk <- function(p, surv_obj, space = -0.15 ,x_break= NULL, atrisk_init_pos= NULL, plot_theme = NULL) {
 
   # ---- get font information ----
