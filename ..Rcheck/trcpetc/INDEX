@@ -1,0 +1,41 @@
+add_atrisk              Create atrisk table
+calculate_type3_mi      calculate_type3_mi
+cardio_data             Cardiology Patient Dataset
+cardio_data_dictionary
+                        Cardiology Patient Dataset dictionary
+check_box_convert       check box convert
+construct_surv_cmprisk_var
+                        construct survival or competing risks process
+decimalplaces           decimalplaces
+estimate_cif_km         Kaplan-Meier survival and cumulative incidence
+                        (CIF) estimates
+exact_round_100         Round a Vector of Percentages to 100
+extract_atrisk          extract_atrisk
+factor_desp             factor_desp
+factor_order            Order a factor variable by descending
+                        frequency.
+fisher_test             fisher_test
+format_pvalue           format_pvalue
+k_sample_test           k_sample_test
+kable_table_one         kable_table_one
+logical_desp            logical_desp
+mean_sd                 mean_sd
+med_iqr                 med_iqr
+median_time_to_event    Calculate Median Time to Event for a Specific
+                        State
+n_avail                 n_avail
+numeric_desp            numeric_desp
+prepare_survfit         prepare survfit for survival table
+recode_missing          recode_missing
+run_gray_test           Run Grays Test
+run_logrank_test        Run Log-Rank Test for Survival Differences
+show_cif                Plot Cumulative Incidence Function for
+                        Competing Risks
+show_surv               Plot Survival or Cumulative Death Function
+summarize_cif           Summarize Cumulative Incidence Function (CIF)
+summarize_coxph         summarize_coxph
+summarize_km            Summarize Kaplan-Meier Estimates
+table_one               table_one
+titles_non_missing      titles_non_missing
+two_sample_test         two_sample_test
+updateWorksheet         updateWorksheet

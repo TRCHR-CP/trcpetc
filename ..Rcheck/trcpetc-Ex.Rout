@@ -1,0 +1,101 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "trcpetc"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> library('trcpetc')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("check_box_convert")
+> ### * check_box_convert
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: check_box_convert
+> ### Title: check box convert
+> ### Aliases: check_box_convert
+> 
+> ### ** Examples
+> 
+> 
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+> 
+> ## Without checkbox question (Assuming missing all questions is FALSE)
+> cardio_data %>% select(Comorbidities) %>%
++  table_one()
+Note: Using an external vector in selections is ambiguous.
+ℹ Use `all_of(Comorbidities)` instead of `Comorbidities` to silence this message.
+ℹ See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
+This message is displayed once per session.
+$tab
+               row_id        variable        var_desp Overall_n Overall_stat
+1             Total_N         Total N            <NA>       185          185
+2        DiabetesTRUE        Diabetes        Diabetes       185     33 (18%)
+3    HypertensionTRUE    Hypertension    Hypertension       185     35 (19%)
+4            COPDTRUE            COPD            COPD       185     41 (22%)
+5             CKDTRUE             CKD             CKD       185     39 (21%)
+6             CADTRUE             CAD             CAD       185     38 (21%)
+7 NoComorbiditiesTRUE NoComorbidities NoComorbidities       185     19 (10%)
+
+$pval
+[1] FALSE
+
+$stat_test
+[1] "none"
+
+$include_Missing
+[1] FALSE
+
+$print_test
+[1] FALSE
+
+$total
+[1] TRUE
+
+> # Example with one checkbox question (Assumes missing all questions is missing)
+> 
+> cardio_data %>% select(Comorbidities) %>%
++  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
++  table_one(Check_box = Comorbidities,
++            Check_box_title = "Comorbidities¹")%>%
++  kableExtra::footnote(
++    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
++    general_title = "",
++    footnote_as_chunk = TRUE
++  )
+Error in if (!kable_format %in% c("html", "latex")) { : 
+  argument is of length zero
+Calls: %>% -> <Anonymous>
+Execution halted

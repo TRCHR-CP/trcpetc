@@ -37,13 +37,23 @@ This package begins by describing how to install the package and reviewing commo
 
 This vignette begins by explaining how to install the package and outlines common setup errors you might encounter. It then provides practical examples showcasing the package’s main features, followed by a summary of recent updates and changes. In the comments section, I’ve included general observations and questions about the package and would appreciate your feedback and insights. Finally, the vignette concludes with a list of planned updates that are currently in development but not yet included in this version of trcpetc.
 
-# Instalation
-You can install trcpetc directly from github using the code `remotes::install_github('TRCHR-CP/trcpetc')`
+# Installation
+From a local clone of the package, install the current source with:
+
+```{r, eval=FALSE}
+devtools::install("/path/to/TRCPETC", upgrade = "never", build_vignettes = TRUE)
+```
+
+After installation, start a fresh R session before loading `trcpetc`. Once the package is available on GitHub, it can also be installed with `remotes::install_github('TRCHR-CP/trcpetc')`.
 
 # setup Errors
-   - Newer versions of dplyr, and other packages are required for trcpetc to work. The package will likely not work on older docker containers and has only been reviewed in the container with R version 4.5.1 .
-   - After installing the package on docker, loading the package, and running the table_one() function I got an error “lazy-load database ‘/usr/local/lib/R/site-library/trcpetc/R/trcpetc.rdb’ is corrupt”.
-      - I was able to resolve this by restarting the r session and loading the package again.
+  - A current version of dplyr and the other package dependencies is required. This source has been checked in this container with R 4.0.3 and is intended to run with R 4.5.1; test it in the target R installation before deployment.
+  - If you see an error that the `trcpetc.rdb` lazy-load database is corrupt, restart R and reinstall the package from the local source directory. This usually means that an installed package copy was interrupted or is being used by an old R session.
+
+```{r, eval=FALSE}
+remove.packages("trcpetc")
+devtools::install("/path/to/TRCPETC", upgrade = "never", build_vignettes = TRUE)
+```
 
 # Descriptive tables
 
@@ -163,6 +173,16 @@ kable_table_one(t1, caption = "Summary table overall and stratified by sex") %>%
     footnote_as_chunk = TRUE) 
 
 ```
+
+By default, a grouped `table_one()` reports standardized mean differences (SMDs) rather than p-values. Use `stat_test = "pval"` for p-values or `stat_test = "none"` to omit between-group statistics. SMDs follow the unweighted `tableone` implementation: continuous and logical variables use absolute pairwise mean differences standardized by the average within-group variance, while factors use generalized Mahalanobis distances between multinomial proportion vectors. With more than two groups, pairwise SMDs are averaged.
+
+### Methods when SMDs are reported
+
+When a grouping variable is supplied, standardized mean differences are reported by default. For continuous variables, the SMD is the absolute difference between group means divided by the square root of the average within-group variances. For logical variables, the group mean is the proportion of TRUE observations and the Bernoulli variance, $p(1-p)$, is used. For factors, the SMD is the generalized Mahalanobis distance between the group-specific multinomial proportion vectors, using the average multinomial covariance matrix. For more than two groups, the displayed SMD is the arithmetic mean of all pairwise SMDs. These are unweighted SMDs and do not depend on a hypothesis-test p-value.
+
+### Methods when p-values are reported
+
+Set `stat_test = "pval"` to report p-values. Unless `continuous` includes `"meansd"`, continuous variables are summarized as median (interquartile range) and compared using the Wilcoxon rank-sum test for two groups or the Kruskal-Wallis test for more than two groups. If `continuous` includes `"meansd"`, the corresponding p-values use Welch's two-sample t-test for two groups or Welch's one-way ANOVA for more than two groups. Logical and factor variables are compared using Fisher's exact test; larger contingency tables use the package's configured hybrid or simulated exact-test fallback. Use `print_test = TRUE` with p-values to display the test selected for each row.
 
 # Descriptive Survival functions
 
@@ -579,7 +599,9 @@ median_time_to_event(survfitms_obj = CIF_Sex,subgroup = "Sex=Female", target_pro
   - Option to display overall summaries alongside group summaries
   - Can show overall summaries for all patients or only those with non-missing values for the grouping variable by specifying the argument include_overall as one of: “none”, “group”, or “all”
   - Option to produce the total N for each column with the argument total
-  - Option to suppress p-values with the argument pval = FALSE
+  - Reports standardized mean differences by default for grouped tables; use stat_test = "pval" for p-values or stat_test = "none" for no between-group statistic
+  - SMDs use pooled within-group variance for numeric and logical variables and generalized Mahalanobis distance for factors, following the unweighted tableone implementation
+  - The legacy pval argument remains supported for compatibility: TRUE selects p-values and FALSE suppresses between-group statistics
   - Option to print the statistical test performed with print_test = TRUE
   - Option to specify which summary statistic to produce for continuous variables, can be either “mediqr” and/or “meadsd”
   - Option to force percentages to equal 100% when rounded with round_to_100 = TRUE

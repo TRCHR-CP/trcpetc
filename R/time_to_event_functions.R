@@ -78,6 +78,17 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
   if (rlang::quo_is_missing(evt_dt)) stop("No event date.")
   if (rlang::quo_is_missing(end_dt)) stop("No date of the end of follow-up.")
   if (rlang::quo_is_missing(patid))  stop("Please provide subject id")
+  if (!units %in% c("days", "weeks", "months", "years")) {
+    stop('`units` must be one of "days", "weeks", "months", or "years".')
+  }
+  if (!is.null(surv_varname) && length(surv_varname) != 2) {
+    stop("`surv_varname` must contain exactly two names.")
+  }
+  if (!is.null(adm_cnr_time) &&
+      (!is.numeric(adm_cnr_time) || length(adm_cnr_time) != 1 ||
+       is.na(adm_cnr_time) || adm_cnr_time < 0)) {
+    stop("`adm_cnr_time` must be a single non-negative number.")
+  }
 
   n_cmp_evt <- length(cmp_evt_dt)
 
@@ -99,6 +110,8 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
     dplyr::mutate(first_evt = ifelse(rlang::is_empty((evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt))])), NA, (evt_desc[which.min(c(!!evt_dt, !!!cmp_evt_dt))])),
                   first_evt = ifelse(is.na(first_evt) &  !rlang::is_empty(!!end_dt) ,'censored_0', first_evt),
                   first_evt_dt =  dplyr::coalesce(pmin(!!evt_dt, !!!cmp_evt_dt, na.rm = TRUE), !!end_dt),
+                  first_evt = ifelse(!is.na(!!end_dt) & first_evt_dt > !!end_dt, 'censored_0', first_evt),
+                  first_evt_dt = ifelse(!is.na(!!end_dt) & first_evt_dt > !!end_dt, !!end_dt, first_evt_dt),
                   time2evt = dplyr::case_when(is.infinite(first_evt_dt) | is.na(first_evt_dt) ~ NA_real_,TRUE ~ as.numeric(first_evt_dt - !!idx_dt)),
                   evt = dplyr::case_when( is.na(time2evt) ~ NA_integer_, TRUE ~ as.integer(gsub('^(cmp_evt|evt|censored)_', '', first_evt))),
                   time2evt = dplyr::case_when(units == "days"  ~ time2evt,
@@ -140,14 +153,14 @@ construct_surv_cmprisk_var <- function(df, patid, idx_dt, evt_dt, end_dt, cmpris
                   flag_evt_time_neg = (time2evt < 0))
 
   # Values equal to zero become 0.5 days
-  if (any(tmp_df$time2evt==0)) {
+  if (any(tmp_df$time2evt == 0, na.rm = TRUE)) {
     warning("Event at time zero")
     tmp_df$time2evt <- replace(tmp_df$time2evt, tmp_df$time2evt==0, 0.5)
     flag <- TRUE
   }
 
   # Values below zero are replaced with NA
-  if (any(tmp_df$time2evt < 0)) {
+  if (any(tmp_df$time2evt < 0, na.rm = TRUE)) {
     warning("Negative time-to-event!?")
     tmp_df$time2evt <- replace(tmp_df$time2evt, tmp_df$time2evt < 0, NA)
     flag <- TRUE

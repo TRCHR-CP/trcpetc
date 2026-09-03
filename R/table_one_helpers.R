@@ -3,6 +3,50 @@
 #' @keywords internal
 #' @importFrom data.table :=
 
+format_smd <- function(x) {
+  if (length(x) == 0 || is.na(x)) return(NA_character_)
+  formatC(x, digits = 3, format = "f")
+}
+
+continuous_smd <- function(variable, group, binary = FALSE) {
+  means <- tapply(variable, group, mean, na.rm = TRUE)
+  vars <- if (binary) means * (1 - means) else tapply(variable, group, stats::var, na.rm = TRUE)
+  mean_diff <- outer(means, means, FUN = "-")
+  pooled_var <- outer(vars, vars, FUN = "+") / 2
+  smd <- mean_diff / sqrt(pooled_var)
+  smd[is.na(smd) & mean_diff == 0 & pooled_var == 0] <- 0
+  abs(smd[lower.tri(smd)])
+}
+
+categorical_smd <- function(tab) {
+  proportions <- prop.table(tab, margin = 1)
+  if (ncol(proportions) > 1) proportions <- proportions[, -1, drop = FALSE]
+  covariances <- lapply(seq_len(nrow(proportions)), function(i) {
+    p <- proportions[i, ]
+    covariance <- -outer(p, p)
+    diag(covariance) <- p * (1 - p)
+    drop(covariance)
+  })
+  distances <- unlist(lapply(seq_len(nrow(proportions) - 1), function(i) {
+    vapply((i + 1):nrow(proportions), function(j) {
+      difference <- proportions[i, ] - proportions[j, ]
+      pooled_covariance <- (covariances[[i]] + covariances[[j]]) / 2
+      if (anyNA(difference) || anyNA(pooled_covariance)) {
+        NA_real_
+      } else if (all(pooled_covariance == 0)) {
+        if (all(difference == 0)) 0 else NaN
+      } else {
+        as.numeric(sqrt(t(difference) %*% MASS::ginv(pooled_covariance) %*% difference))
+      }
+    }, numeric(1))
+  }))
+  distances
+}
+
+average_pairwise_smd <- function(smd) {
+  if (length(smd) == 0) NA_real_ else mean(smd, na.rm = TRUE)
+}
+
 table_one_overall <- function(df,total = TRUE,round_to_100 = FALSE,drop.unused.levels = FALSE,overall_label = "Overall"){
 
   df <- df %>%
@@ -221,7 +265,9 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
       as.data.frame(responseName = "n", stringsAsFactors = FALSE) %>%
       dplyr::mutate(n= ifelse(!is.na(n), formatC(n, format= "d", big.mark = ","), NA_character_)) %>%
       reshape2::dcast(stats::as.formula( paste0(". ~ ", tbl_var_name[2])), value.var = "n") %>%
-      dplyr::bind_cols(pval= format_pvalue(test))  %>%  dplyr::mutate(test = "Fisher")
+      dplyr::bind_cols(pval = format_pvalue(test),
+               smd = format_smd(average_pairwise_smd(categorical_smd(t(freq))))) %>%
+      dplyr::mutate(test = "Fisher")
 
     freq <- freq %>%
       as.data.frame(responseName = "freq", stringsAsFactors = FALSE) %>%
@@ -368,7 +414,13 @@ logical_desp <- function(df, group) {
       reshape2::dcast(stats::as.formula(paste("variable", rlang::quo_name(group), sep= " ~ "))) %>%
       dplyr::mutate(type= "freq") %>%
       # dplyr::left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
-      dplyr::left_join(test_fun(df, !!group), by= c("variable", "type"))
+      dplyr::left_join(test_fun(df, !!group), by= c("variable", "type")) %>%
+      dplyr::left_join({
+        smd <- lapply(df %>% dplyr::select_if(is.logical), function(x) {
+          format_smd(average_pairwise_smd(continuous_smd(as.numeric(x), dplyr::pull(df, !!group), binary = TRUE)))
+        })
+        tibble::tibble(variable = names(smd), type = "freq", smd = unlist(smd))
+      }, by = c("variable", "type"))
 
     n_var <- df %>%
       dplyr::summarise_if(is.logical, dplyr::funs(n_avail)) %>%
@@ -528,12 +580,21 @@ numeric_desp <- function(df, group) {
                       variable= gsub("(_mean_sd|_med_iqr)$", "", variable))
     }
 
-    # adding the p-values
-    test_fun <- if (dplyr::n_groups(df)==2) two_sample_test else if (dplyr::n_groups(df)>2) k_sample_test
+    if (dplyr::n_groups(df) > 1) {
+      test_fun <- if (dplyr::n_groups(df)==2) two_sample_test else k_sample_test
+      sum_stat <- sum_stat %>%
+        dplyr::left_join(test_fun(df, !!group), by= c("variable", "type"))
 
-    sum_stat <- sum_stat %>%
-      # dplyr::left_join(test_fun(df, rlang::UQ(group)), by= c("variable", "type"))
-      dplyr::left_join(test_fun(df, !!group), by= c("variable", "type"))
+      smd <- df %>%
+        dplyr::ungroup() %>%
+        dplyr::select_if(is.numeric) %>%
+        lapply(function(x) format_smd(average_pairwise_smd(continuous_smd(x, dplyr::pull(df, !!group))))) %>%
+        unlist()
+      sum_stat <- sum_stat %>%
+        dplyr::left_join(tibble::tibble(variable = names(smd), smd = smd), by = "variable")
+    } else {
+      sum_stat <- sum_stat %>% dplyr::mutate(smd = NA_character_)
+    }
 
   }
 

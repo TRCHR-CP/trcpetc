@@ -86,7 +86,7 @@ check_box_convert <- function(df, check_box_cols, title = NULL) {
     dplyr::mutate(dplyr::across(dplyr::all_of(check_box_cols), ~ as.logical(.x))) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(dplyr::across(dplyr::all_of(check_box_cols), ~ {
-      if (all(c_across(dplyr::all_of(check_box_cols)) == FALSE, na.rm = TRUE)) NA else .x
+      if (all(dplyr::c_across(dplyr::all_of(check_box_cols)) == FALSE, na.rm = TRUE)) NA else .x
     })) %>%
     dplyr::ungroup()
 

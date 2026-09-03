@@ -30,7 +30,8 @@
 #'   }
 #'   Default is \code{"none"}.
 #' @param total Logical; whether to report the total N. Default is \code{TRUE}.
-#' @param pval Logical; whether to report p-values for between-group comparisons. Default is \code{TRUE}.
+#' @param pval Logical; deprecated compatibility option. Use \code{stat_test} instead. \code{TRUE} selects p-values and \code{FALSE} suppresses between-group statistics.
+#' @param stat_test Character string specifying the between-group statistic to report. One of \code{"smd"} (the default), \code{"pval"}, or \code{"none"}. SMDs use pooled within-group variance for numeric and logical variables and a generalized Mahalanobis distance of multinomial proportions for factors.
 #' @param print_test Logical. If \code{TRUE}, the output will include the type of statistical test applied to each variable. Default is \code{FALSE}.
 #' @param continuous Character string specifying the summary statistics for continuous variables.
 #'   Must be one of:
@@ -85,9 +86,10 @@
 
 
 table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123, include_overall  = c("none","group","all"),
-                      total = TRUE,pval=TRUE,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
+                      total = TRUE,pval = NULL,print_test  = FALSE,continuous = "mediqr",round_to_100 = FALSE,
                       drop.unused.levels = FALSE,overall_label = "Overall",include_Missing = FALSE,
-                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE) {
+                      Check_box = NULL,Check_box_title = NULL,print_unused = FALSE,
+                      stat_test = c("smd", "pval", "none")) {
 
   set.seed(seed)
 
@@ -108,8 +110,16 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
   if (rlang::quo_is_missing(var_name)) var_name <- rlang::quo(var_name)
   if (rlang::quo_is_missing(var_desp)) var_desp <- rlang::quo(var_desp)
 
-  if(rlang::quo_is_missing(group)) pval <- FALSE #No p-values without a grouping variable
-  if(!pval) print_test <- FALSE #Can't print the test is there is no pvalue
+  stat_test <- match.arg(stat_test)
+  if (!is.null(pval)) {
+    if (!is.logical(pval) || length(pval) != 1 || is.na(pval)) {
+      stop("`pval` must be TRUE or FALSE when supplied.")
+    }
+    stat_test <- if (pval) "pval" else "none"
+    warning("`pval` is deprecated; use `stat_test = \"pval\"` or `stat_test = \"none\"`.", call. = FALSE)
+  }
+  if (rlang::quo_is_missing(group)) stat_test <- "none"
+  if (stat_test != "pval") print_test <- FALSE
 
   # Errors -------------------------------------------------------------------------
 
@@ -158,11 +168,15 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
     if(include_Missing){
-      summary_group <-   df %>% dplyr::mutate(
-        {{ group }} := {{ group }} %>%
-          forcats::fct_na_value_to_level(level = "Missing")) %>%
-        table_one_stratify(group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels) %>%
-        dplyr::left_join((summary_group %>% dplyr::select(row_id,pval)),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
+      summary_group_missing <- df %>% dplyr::mutate(
+        {{ group }} := forcats::fct_explicit_na({{ group }}, na_level = "Missing")) %>%
+        table_one_stratify(group = !!group,total = total,round_to_100 = round_to_100,drop.unused.levels = drop.unused.levels)
+      summary_group <- if (stat_test == "none") {
+        summary_group_missing
+      } else {
+        summary_group_missing %>%
+          dplyr::left_join((summary_group %>% dplyr::select(row_id, dplyr::all_of(stat_test))),by = c('row_id'),suffix = c(".Missing",".No.Missing"))
+      }
 
     }
 
@@ -204,7 +218,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
 
 
 
-  if(!pval) summary$pval = summary$pval.Missing = summary$pval.No.Missing <- NULL
+  if (stat_test != "pval") summary$pval = summary$pval.Missing = summary$pval.No.Missing <- NULL
+  if (stat_test != "smd") summary$smd = summary$smd.Missing = summary$smd.No.Missing <- NULL
   if(!print_test) summary$test  <- NULL
 
   #Optionally removing the continuous variables
@@ -256,7 +271,8 @@ table_one <- function(df, group, datadic = NULL, var_name, var_desp, seed = 123,
     ))
 
 
-  list(tab = out,pval = pval,include_Missing = include_Missing,print_test = print_test,total=total)
+    list(tab = out, pval = stat_test == "pval", stat_test = stat_test,
+      include_Missing = include_Missing, print_test = print_test, total=total)
 
 
 }
@@ -311,6 +327,7 @@ kable_table_one <- function(tableone,caption = "", bold_variables = TRUE,full_wi
 
   out = tableone$tab
   pval = tableone$pval
+  stat_test = if (!is.null(tableone$stat_test)) tableone$stat_test else if (pval) "pval" else "none"
   include_Missing=tableone$include_Missing
   total = tableone$total
   print_test = tableone$print_test
@@ -350,7 +367,8 @@ kable_table_one <- function(tableone,caption = "", bold_variables = TRUE,full_wi
   ) %>%
     dplyr::select(
       dplyr::all_of(c("var_desp", c(rbind(n_columns, stat_columns)))),
-      dplyr::any_of(if (pval) c("pval", "pval.No.Missing", "pval.Missing") else NULL),
+      dplyr::any_of(if (stat_test == "pval") c("pval", "pval.No.Missing", "pval.Missing") else
+            if (stat_test == "smd") c("smd", "smd.No.Missing", "smd.Missing") else NULL),
       dplyr::any_of(if (print_test) "test" else NULL)
     ) %>%
 
@@ -359,14 +377,22 @@ kable_table_one <- function(tableone,caption = "", bold_variables = TRUE,full_wi
                     escape = FALSE,
                     align= c('l', rep(c('c', 'c'), length(headers)), 'r'),
                     col.names = c('Variables', rep(c('N', 'Stat'), length(headers)),
-                                  if (pval & !include_Missing) '*P*-value' else character(0) ,
-                                  if (pval & include_Missing) 'Without missing' else character(0) ,
-                                  if (pval & include_Missing) 'With missing' else character(0) ,
+                                  if (stat_test == "pval" & !include_Missing) '*P*-value' else character(0) ,
+                                  if (stat_test == "pval" & include_Missing) 'Without missing' else character(0) ,
+                                  if (stat_test == "pval" & include_Missing) 'With missing' else character(0) ,
+                                  if (stat_test == "smd" & !include_Missing) 'SMD' else character(0),
+                                  if (stat_test == "smd" & include_Missing) 'Without missing' else character(0),
+                                  if (stat_test == "smd" & include_Missing) 'With missing' else character(0),
                                   if (print_test) 'Statistical test' else character(0))) %>%
     kableExtra::row_spec(row = 0, align = "c") %>%
     kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                               full_width = full_width) %>%
-    kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers), if (pval & !include_Missing) '' else character(0),if(pval & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0), if (print_test ) '' else character(0)))%>%
+    kableExtra::add_header_above(c("", stats::setNames (rep(2, length(headers)), headers),
+                    if (stat_test == "pval" & !include_Missing) '' else character(0),
+                    if (stat_test == "pval" & include_Missing) stats::setNames (rep(2, 1), "*P*-value") else character(0),
+                    if (stat_test == "smd" & !include_Missing) '' else character(0),
+                    if (stat_test == "smd" & include_Missing) stats::setNames (rep(2, 1), "SMD") else character(0),
+                    if (print_test ) '' else character(0)))%>%
     kableExtra::add_indent(indent)
 
   out

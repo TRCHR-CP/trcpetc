@@ -1,5 +1,32 @@
 Welcome to trcpetc!
 
+`table_one()` reports standardized mean differences (SMDs) by default when a grouping variable is supplied. Use `stat_test = "pval"` for p-values or `stat_test = "none"` to omit between-group statistics. The legacy arguments `pval = TRUE` and `pval = FALSE` remain supported but are deprecated.
+
+SMDs follow the unweighted `tableone` implementation: numeric and logical variables use absolute pairwise mean differences divided by the square root of the average within-group variance, with Bernoulli variance for logical variables. Factor SMDs use generalized Mahalanobis distances between multinomial proportion vectors and the average multinomial covariance matrix. For more than two groups, pairwise SMDs are averaged.
+
+## Running tests
+
+Install the package and its test dependency from the package directory:
+
+```r
+install.packages(c("devtools", "testthat"))
+devtools::install()
+```
+
+Run all tests with:
+
+```r
+devtools::test()
+```
+
+Run only the descriptive-table tests with:
+
+```r
+devtools::test(filter = "table-one")
+```
+
+The tests demonstrate formula checks using a small controlled data set and a smoke test using the bundled `cardio_data` data set.
+
 
 
 To install onto R use 

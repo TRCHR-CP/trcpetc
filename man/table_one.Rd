@@ -13,7 +13,7 @@ table_one(
   seed = 123,
   include_overall = c("none", "group", "all"),
   total = TRUE,
-  pval = TRUE,
+  pval = NULL,
   print_test = FALSE,
   continuous = "mediqr",
   round_to_100 = FALSE,
@@ -22,7 +22,8 @@ table_one(
   include_Missing = FALSE,
   Check_box = NULL,
   Check_box_title = NULL,
-  print_unused = FALSE
+  print_unused = FALSE,
+  stat_test = c("smd", "pval", "none")
 )
 }
 \arguments{
@@ -49,7 +50,7 @@ Default is \code{"none"}.}
 
 \item{total}{Logical; whether to report the total N. Default is \code{TRUE}.}
 
-\item{pval}{Logical; whether to report p-values for between-group comparisons. Default is \code{TRUE}.}
+\item{pval}{Logical; deprecated compatibility option. Use \code{stat_test} instead. \code{TRUE} selects p-values and \code{FALSE} suppresses between-group statistics.}
 
 \item{print_test}{Logical. If \code{TRUE}, the output will include the type of statistical test applied to each variable. Default is \code{FALSE}.}
 
@@ -74,6 +75,8 @@ Must be one of:
 \item{Check_box_title}{Optional character string to identify the checkbox column titles.}
 
 \item{print_unused}{Logical; whether to print variables that were excluded due to unsupported types. Default is \code{FALSE}.}
+
+\item{stat_test}{Character string specifying the between-group statistic to report. One of \code{"smd"} (the default), \code{"pval"}, or \code{"none"}. SMDs use pooled within-group variance for numeric and logical variables and a generalized Mahalanobis distance of multinomial proportions for factors.}
 }
 \value{
 A data frame containing summary statistics by variable type, optionally stratified by group.

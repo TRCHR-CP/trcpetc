@@ -6,36 +6,15 @@ Author: Original version by Chun-Po Steve Fan
 Maintainer: Jessica Weiss <jessica.weiss@uhn.ca>
 Description: Miscellaneous functions to facilitate data analysis projects. Descriptive tables report standardized mean differences (SMDs) by default when a grouping variable is supplied. For numeric and logical variables, SMDs are absolute pairwise differences in group means divided by the square root of the average within-group variances (Bernoulli variance is used for logical variables). For factors, SMDs are generalized Mahalanobis distances between group-specific multinomial proportions using the average multinomial covariance matrix; with more than two groups, the reported value is the mean of all pairwise SMDs. These calculations follow the unweighted implementation in the tableone package.
 License: What license is it under?
-Depends: 
-    R (>= 3.5)
-Imports: 
-    dplyr,
-    ggplot2,
-    magrittr,
-    kableExtra,
-    mitools,
-    openxlsx,
-    survival,
-    purrr,
-    scales,
-    stats,
-    tidyr,
-    data.table,
-    rlang,
-    lubridate,
-    reshape2,
-    cmprsk,
-    forcats,
-    MASS,
-    mice,
-    tibble,
-    viridis
-Suggests:
-    knitr,
-    rmarkdown,
-    testthat (>= 3.0.0)
+Depends: R (>= 3.5)
+Imports: dplyr, ggplot2, magrittr, kableExtra, mitools, openxlsx,
+        survival, purrr, scales, stats, tidyr, data.table, rlang,
+        lubridate, reshape2, cmprsk, forcats, MASS, mice, tibble,
+        viridis
+Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
+Built: R 4.0.3; ; 2026-09-02 20:12:09 UTC; unix

@@ -1,0 +1,217 @@
+* using log directory ‘/home/rstudio/data/Staff/Brigitte Mueller/R-Packages/TRCPETC/..Rcheck’
+* using R version 4.0.3 (2020-10-10)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* using option ‘--no-manual’
+* checking for file ‘./DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘trcpetc’ version ‘0.1.0’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .gitignore
+  ..Rcheck
+  .Rproj.user
+  .git
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘trcpetc’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... WARNING
+Non-standard license specification:
+  What license is it under?
+Standardizable: FALSE
+Checking should be performed on sources prepared by ‘R CMD build’.
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... WARNING
+Found the following directory with the name of a check directory:
+  ./..Rcheck
+Most likely, these were included erroneously.
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... NOTE
+Missing or unexported object: ‘dplyr::where’
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  ‘generate_mi_glm_termplot_df’ ‘summarize_mi_coxph’ ‘summarize_mi_glm’
+All user-level objects in a package should have documentation entries.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'add_atrisk'
+  ‘p’ ‘surv_obj’ ‘space’ ‘x_break’ ‘atrisk_init_pos’ ‘plot_theme’
+
+Undocumented arguments in documentation object 'calculate_type3_mi'
+  ‘mira_obj’ ‘vcov_fun’
+
+Undocumented arguments in documentation object 'construct_surv_cmprisk_var'
+  ‘append’
+
+Undocumented arguments in documentation object 'decimalplaces'
+  ‘max_dec’
+
+Undocumented arguments in documentation object 'extract_atrisk'
+  ‘time.scale’
+
+Undocumented arguments in documentation object 'factor_desp'
+  ‘group’ ‘includeNA’ ‘round_to_100’ ‘drop.unused.levels’
+
+Undocumented arguments in documentation object 'fisher_test'
+  ‘group’
+
+Undocumented arguments in documentation object 'format_pvalue'
+  ‘eps’ ‘trim’ ‘droptrailing0’ ‘pad’ ‘...’
+
+Undocumented arguments in documentation object 'k_sample_test'
+  ‘df’ ‘group’
+Documented arguments not in \usage in documentation object 'k_sample_test':
+  ‘x’ ‘grp’
+
+Documented arguments not in \usage in documentation object 'kable_table_one':
+  ‘...’
+
+Undocumented arguments in documentation object 'logical_desp'
+  ‘group’
+
+Undocumented arguments in documentation object 'numeric_desp'
+  ‘group’
+
+Undocumented arguments in documentation object 'prepare_survfit'
+  ‘surv_obj’
+
+Undocumented arguments in documentation object 'recode_missing'
+  ‘x’ ‘na.value’
+
+Undocumented arguments in documentation object 'summarize_coxph'
+  ‘mdl’ ‘exponentiate’ ‘maxlabel’ ‘alpha’
+
+Undocumented arguments in documentation object 'two_sample_test'
+  ‘df’ ‘group’
+Documented arguments not in \usage in documentation object 'two_sample_test':
+  ‘x’ ‘grp’
+
+Undocumented arguments in documentation object 'updateWorksheet'
+  ‘...’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... OK
+* checking data for non-ASCII characters ... NOTE
+  Note: found 2 marked UTF-8 strings
+* checking data for ASCII and uncompressed saves ... OK
+* checking files in ‘vignettes’ ... WARNING
+Files in the 'vignettes' directory but no files in 'inst/doc':
+  ‘trcpetc-intro.Rmd’
+* checking examples ... ERROR
+Running examples in ‘trcpetc-Ex.R’ failed
+The error most likely occurred in:
+
+> ### Name: check_box_convert
+> ### Title: check box convert
+> ### Aliases: check_box_convert
+> 
+> ### ** Examples
+> 
+> 
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> Comorbidities  <- cardio_data %>% select(Diabetes:NoComorbidities) %>% names()
+> 
+> ## Without checkbox question (Assuming missing all questions is FALSE)
+> cardio_data %>% select(Comorbidities) %>%
++  table_one()
+Note: Using an external vector in selections is ambiguous.
+ℹ Use `all_of(Comorbidities)` instead of `Comorbidities` to silence this message.
+ℹ See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
+This message is displayed once per session.
+$tab
+               row_id        variable        var_desp Overall_n Overall_stat
+1             Total_N         Total N            <NA>       185          185
+2        DiabetesTRUE        Diabetes        Diabetes       185     33 (18%)
+3    HypertensionTRUE    Hypertension    Hypertension       185     35 (19%)
+4            COPDTRUE            COPD            COPD       185     41 (22%)
+5             CKDTRUE             CKD             CKD       185     39 (21%)
+6             CADTRUE             CAD             CAD       185     38 (21%)
+7 NoComorbiditiesTRUE NoComorbidities NoComorbidities       185     19 (10%)
+
+$pval
+[1] FALSE
+
+$stat_test
+[1] "none"
+
+$include_Missing
+[1] FALSE
+
+$print_test
+[1] FALSE
+
+$total
+[1] TRUE
+
+> # Example with one checkbox question (Assumes missing all questions is missing)
+> 
+> cardio_data %>% select(Comorbidities) %>%
++  check_box_convert(check_box_cols = Comorbidities,title = "Comorbidities¹")  %>%
++  table_one(Check_box = Comorbidities,
++            Check_box_title = "Comorbidities¹")%>%
++  kableExtra::footnote(
++    general = "¹Patients could present with more than one comorbidity, totals may not sum to 100%.",
++    general_title = "",
++    footnote_as_chunk = TRUE
++  )
+Error in if (!kable_format %in% c("html", "latex")) { : 
+  argument is of length zero
+Calls: %>% -> <Anonymous>
+Execution halted
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes in ‘inst/doc’ ... WARNING
+dir.exists(dir) is not TRUE
+Package vignette without corresponding single PDF/HTML:
+   ‘trcpetc-intro.Rmd’
+
+* checking running R code from vignettes ... NONE
+  ‘trcpetc-intro.Rmd’ using ‘UTF-8’... OK
+* checking re-building of vignette outputs ... OK
+* DONE
+Status: 1 ERROR, 6 WARNINGs, 3 NOTEs

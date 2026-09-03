@@ -6,7 +6,7 @@
 \usage{
 kable_table_one(
   tableone,
-  caption = NULL,
+  caption = "",
   bold_variables = TRUE,
   full_width = TRUE
 )

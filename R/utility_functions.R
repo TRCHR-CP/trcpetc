@@ -27,10 +27,10 @@ decimalplaces <- function(x, max_dec= 4L) {
     info <- info[ vapply(info, length, integer(1L) ) == 2]
 
     n_dec <- nchar(unlist(info))[ 2 * (1:length(y)) ]
-    dec <- sort(table(n_dec))
+    dec <- table(n_dec)
 
     # return( pmin.int(max_dec, as.integer( names(dec)[length(dec)])) )
-    out <- pmin.int(max_dec, as.integer( names(dec)[length(dec)]))
+    out <- pmin.int(max_dec, as.integer(names(dec)[which.max(dec)]))
 
   } else {
     out<- 0L
