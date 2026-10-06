@@ -1,7 +1,7 @@
 Type: Package
 Package: trcpetc
 Title: Descriptive Tables and Clinical Time-to-Event Analysis
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: c(
     person("Jessica", "Weiss", email = "jessica.weiss@uhn.ca", role = c("aut", "cre"), comment = "University Health Network (UHN)"),
     person("Rong", "Huang", role = "aut", comment = "University Health Network (UHN)"),

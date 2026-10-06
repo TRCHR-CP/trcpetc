@@ -171,3 +171,8 @@ testthat::test_that("survival construction validates and censors dates", {
 testthat::test_that("decimalplaces returns the modal precision", {
   testthat::expect_equal(trcpetc:::decimalplaces(c(1.1, 2.2, 3.33)), 1)
 })
+
+testthat::test_that("integer summaries retain one decimal place", {
+  testthat::expect_equal(trcpetc:::mean_sd(1:3), c(stat = "2.0 \u00B1 1.0"))
+  testthat::expect_equal(trcpetc:::med_iqr(1:3), c(stat = "2.0 (1.5 \u2013 2.5)"))
+})

@@ -636,7 +636,7 @@ n_avail <- function(x) formatC( sum( !is.na(x) ), digits= 0, format= "d", big.ma
 #' @param x Numeric variable
 #' @return a character reporting the mean plus/minus standard deviation
 mean_sd <- function(x) {
-  n_dec <- decimalplaces(x)
+  n_dec <- max(1L, decimalplaces(x))
 
   funs <- c(mean, stats::sd)
   out <- sapply(funs,
@@ -672,7 +672,7 @@ med_iqr <- function(x) {
   q1 <- function(x, ...) stats::quantile(x, probs = .25, ...)
   q3 <- function(x, ...) stats::quantile(x, probs = .75, ...)
 
-  n_dec<- decimalplaces(x)
+  n_dec<- max(1L, decimalplaces(x))
   funs<- c(stats::median, q1, q3)
   out<- sapply(funs,
                function(f) {
