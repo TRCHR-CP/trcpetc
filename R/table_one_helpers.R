@@ -236,6 +236,7 @@ factor_desp <- function(df, group, includeNA = FALSE,round_to_100 = FALSE,drop.u
                     responseName = "pct",
                     stringsAsFactors = FALSE) %>%
       tibble::rownames_to_column("level")  %>%
+      dplyr::mutate(pct = ifelse(is.nan(pct), 0, pct)) %>%
       dplyr::mutate(pct = if (round_to_100) formatC(exact_round_100(pct * 100,digits = pct_digits), digits = pct_digits, format = "f") else formatC(pct * 100, digits = pct_digits, format = "f"))%>%
       dplyr::select(level, pct)
 

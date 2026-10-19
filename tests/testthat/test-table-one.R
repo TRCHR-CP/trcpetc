@@ -146,6 +146,23 @@ testthat::test_that("all-missing logical summaries use a dash percentage", {
   )
 })
 
+testthat::test_that("all-missing factor percentages match grouped and overall output", {
+  dat <- data.frame(
+    group = factor(c("A", "B")),
+    category = factor(c(NA, NA), levels = c("x", "y"))
+  )
+
+  result <- trcpetc::table_one(
+    dat, group = group, include_overall = "group", stat_test = "none"
+  )$tab
+
+  category_rows <- result$row_id %in% c("category_x", "category_y")
+  overall <- result$Overall_stat[category_rows]
+  grouped <- unlist(result[category_rows, c("A_stat", "B_stat")])
+  testthat::expect_equal(overall, c("0 (0%)", "0 (0%)"))
+  testthat::expect_true(all(grouped == "0 (0%)"))
+})
+
 testthat::test_that("survival construction validates and censors dates", {
   dat <- data.frame(
     id = 1:3,
