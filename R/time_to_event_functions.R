@@ -1433,80 +1433,65 @@ median_time_to_event <- function(survfitms_obj, evt_type = 1, subgroup = NULL,
     }
 
     # Calculate estimates
-    
-if (interpolate) {
-  time <- interpolate_time(
-    cif_values, times, target_prob
-  )
 
-  # Invert the CIF confidence limits
-  lower_time <- if (length(upper_probs) > 0) {
-    interpolate_time(upper_probs, times, target_prob)
-  } else {
-    NA_real_
-  }
+    if (interpolate) {
+      time <- interpolate_time(
+        cif_values, times, target_prob
+      )
 
-  upper_time <- if (length(lower_probs) > 0) {
-    interpolate_time(lower_probs, times, target_prob)
-  } else {
-    NA_real_
-  }
+      # Invert the CIF confidence limits
+      lower_time <- if (length(upper_probs) > 0) {
+        interpolate_time(upper_probs, times, target_prob)
+      } else {
+        NA_real_
+      }
 
-} else {
-  median_index <- if (any(cif_values >= target_prob, na.rm = TRUE)) {
-    which(cif_values >= target_prob)[1]
-  } else {
-    NA_integer_
-  }
+      upper_time <- if (length(lower_probs) > 0) {
+        interpolate_time(lower_probs, times, target_prob)
+      } else {
+        NA_real_
+      }
+    } else {
+      median_index <- if (any(cif_values >= target_prob, na.rm = TRUE)) {
+        which(cif_values >= target_prob)[1]
+      } else {
+        NA_integer_
+      }
 
-  # Lower time limit comes from the upper CIF limit
-  lower_index <- if (
-    length(upper_probs) > 0 &&
-    any(upper_probs >= target_prob, na.rm = TRUE)
-  ) {
-    which(upper_probs >= target_prob)[1]
-  } else {
-    NA_integer_
-  }
+      # Lower time limit comes from the upper CIF limit
+      lower_index <- if (
+        length(upper_probs) > 0 &&
+        any(upper_probs >= target_prob, na.rm = TRUE)
+      ) {
+        which(upper_probs >= target_prob)[1]
+      } else {
+        NA_integer_
+      }
 
-  # Upper time limit comes from the lower CIF limit
-  upper_index <- if (
-    length(lower_probs) > 0 &&
-    any(lower_probs >= target_prob, na.rm = TRUE)
-  ) {
-    which(lower_probs >= target_prob)[1]
-  } else {
-    NA_integer_
-  }
+      # Upper time limit comes from the lower CIF limit
+      upper_index <- if (
+        length(lower_probs) > 0 &&
+        any(lower_probs >= target_prob, na.rm = TRUE)
+      ) {
+        which(lower_probs >= target_prob)[1]
+      } else {
+        NA_integer_
+      }
 
-  time <- if (!is.na(median_index)) times[median_index] else NA_real_
+      time <- if (!is.na(median_index)) times[median_index] else NA_real_
 
-  lower_time <- if (!is.na(lower_index)) {
-    times[lower_index]
-  } else {
-    NA_real_
-  }
+      lower_time <- if (!is.na(lower_index)) {
+        times[lower_index]
+      } else {
+        NA_real_
+      }
 
-  upper_time <- if (!is.na(upper_index)) {
-    times[upper_index]
-  } else {
-    NA_real_
-  }
-}
-
-    # if (interpolate) {
-    #   time <- interpolate_time(cif_values, times, target_prob)
-    #   lower_time <- if (length(lower_probs) > 0) interpolate_time(lower_probs, times, target_prob) else NA
-    #   upper_time <- if (length(upper_probs) > 0) interpolate_time(upper_probs, times, target_prob) else NA
-    # } else {
-    #   median_index <- if (any(cif_values >= target_prob, na.rm = TRUE)) which(cif_values >= target_prob)[1] else NA
-    #   lower_index <- if (length(lower_probs) > 0 && any(lower_probs >= target_prob, na.rm = TRUE)) which(lower_probs >= target_prob)[1] else NA
-    #   upper_index <- if (length(upper_probs) > 0 && any(upper_probs >= target_prob, na.rm = TRUE)) which(upper_probs >= target_prob)[1] else NA
-
-    #   time <- if (!is.na(median_index)) times[median_index] else NA
-    #   lower_time <- if (!is.na(lower_index) && lower_index <= length(times)) times[lower_index] else NA
-    #   upper_time <- if (!is.na(upper_index) && upper_index <= length(times)) times[upper_index] else NA
-    # }
+      upper_time <- if (!is.na(upper_index)) {
+        times[upper_index]
+      } else {
+        NA_real_
+      }
+    }
 
     # Additional statistics
     max_followup <- if (length(times) > 0) max(times, na.rm = TRUE) else NA
@@ -1524,13 +1509,6 @@ if (interpolate) {
     } else {
       0
     }
-
-    # Ensure CIs are in correct order
-    # if (!is.na(lower_time) && !is.na(upper_time)) {
-    #   ordered_ci <- sort(c(lower_time, upper_time))
-    #   lower_time <- ordered_ci[1]
-    #   upper_time <- ordered_ci[2]
-    # }
 
     # Compile results
     result <- list(
@@ -1568,4 +1546,3 @@ if (interpolate) {
     return(result)
   })
 }
-
